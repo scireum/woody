@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Made with all the love in the world
+  ~ by scireum in Remshalden, Germany
+  ~
+  ~ Copyright by scireum GmbH
+  ~ http://www.scireum.de - info@scireum.de
+  -->
+
+<project name="Woody CRM" default="ivy">
+
+    <import file="../sirius/build/build-base.xml" />
+
+    <property name="no-search" value="true" />
+
+    <!-- Load environment -->
+    <property environment="env"/>
+    <!-- Name of the product -->
+    <property name="app.name" value="Woody CRM" />
+    <!-- Technical of the product which can be used as filename -->
+    <property name="app.filename" value="woody" />
+
+    <target name="build">
+        <property name="app.build" value="${build.number}" />
+        <property name="app.vcs" value="${build.vcs.number}" />
+        <antcall target="sirius.make" />
+        <!--
+        <exec executable="sds">
+            <arg value="push" />
+            <arg value="woody" />
+            <arg value="${dist.dir}/${app.filename}.zip" />
+        </exec>
+        -->
+    </target>
+
+</project>

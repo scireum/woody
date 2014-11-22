@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE ivy-module [
+        <!ENTITY kernel SYSTEM "../sirius/build/ivy-kernel.xml">
+        <!ENTITY web SYSTEM "../sirius/build/ivy-web.xml">
+        <!ENTITY app SYSTEM "../sirius/build/ivy-app.xml">
+]>
+<ivy-module version="2.0">
+    <info organisation="com.scireum" module="woody"/>
+
+    <configurations defaultconfmapping="compile->compile;compile->master;test->compile;test->master">
+        <conf name="compile" />
+        <conf name="test" />
+    </configurations>
+
+    <dependencies>
+        &kernel;
+        &web;
+        &app;
+    </dependencies>
+</ivy-module>
