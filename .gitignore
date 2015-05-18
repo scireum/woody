@@ -1,7 +1,6 @@
-data
-logs
-dist
-/out
-/.idea/workspace.xml
-web-cache
-build/site
+target
+.idea/workspace.xml
+.idea/libraries
+.idea/libraries/*
+instance.conf
+.idea/shelf

@@ -1,0 +1,58 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.core.employee.Employee
+@import sirius.biz.tenants.UserAccount
+@args UserAccount account, List accounts
+@extends(view.tenants.user-account.html, account, "employee")
+
+<form action="@prefix/user-account/@account.getIdAsString()/employee" method="post" id="editForm">
+    <div class="row">
+        @view.wondergem.parts.textfield(span:     "4",
+                                     name:     "Employee_employeeNumber",
+                                     value:    account.as(Employee.class).getEmployeeNumber(),
+                                     labelKey: "Employee.employeeNumber",
+                                     helpKey:  null)
+        <div class="span4 control-group">
+            <label>@i18n("ContentEntity.brand")</label>
+            <select name="Employee_mentor" class="input-block-level">
+                <option value="" @if(account.as(Employee.class).getMentor().isEmpty()) {selected="selected"}></option>
+                @for(UserAccount a : accounts) {
+                <option value="@a.getId()" @if(account.as(Employee.class).getMentor().is(a)) {selected="selected"}>@account.getLogin().getUsername()</option>
+                }
+            </select>
+        </div>
+
+    </div>
+    <div class="row">
+        @view.wondergem.parts.textfield(span:     "4",
+                                     name:     "Employee_homePhone",
+                                     value:    account.as(Employee.class).getHomePhone(),
+                                     labelKey: "Employee.homePhone",
+                                     helpKey:  null)
+        @view.wondergem.parts.textfield(span:     "4",
+                                     name:     "Employee_mobilePhone",
+                                     value:    account.as(Employee.class).getMobilePhone(),
+                                     labelKey: "Employee.mobilePhone",
+                                     helpKey:  null)
+    </div>
+    <div class="row">
+        @view.wondergem.parts.textfield(span:     "4",
+                                     name:     "Employee_joinDate",
+                                     value:    (NLS.toUserString(account.as(Employee.class).getJoinDate())),
+                                     labelKey: "Employee.joinDate",
+                                     helpKey:  null)
+        @view.wondergem.parts.textfield(span:     "4",
+                                     name:     "Employee_birthday",
+                                     value:    (NLS.toUserString(account.as(Employee.class).getBirthday())),
+                                     labelKey: "Employee.birthday",
+                                     helpKey:  null)
+    </div>
+    <div class="form-actions">
+        <a onclick="$('#editForm').submit()" class="btn btn-primary"><i class="icon-ok"></i> @i18n("NLS.save")</a>
+    </div>
+</form>
