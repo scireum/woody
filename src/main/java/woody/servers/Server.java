@@ -9,14 +9,18 @@
 package woody.servers;
 
 import sirius.biz.model.BizEntity;
+import sirius.kernel.di.std.Framework;
 import sirius.mixing.Column;
 import sirius.mixing.annotations.BeforeSave;
+import sirius.mixing.annotations.Length;
+import sirius.mixing.annotations.NullAllowed;
 
 import java.time.LocalDateTime;
 
 /**
  * Created by aha on 12.05.15.
  */
+@Framework(Servers.FRAMEWORK_SERVERS)
 public class Server extends BizEntity {
 
     public enum Interval {
@@ -52,27 +56,37 @@ public class Server extends BizEntity {
         RED, YELLOW, GREEN;
     }
 
+    @Length(length = 50)
     private String category;
     public static final Column CATEGORY = Column.named("category");
 
+    @Length(length = 100)
     private String name;
     public static final Column NAME = Column.named("name");
 
     private ServerState state;
     public static final Column STATE = Column.named("state");
 
+    @Length(length = 50)
+    @NullAllowed
     private String ipAddress;
     public static final Column IP_ADDRESS = Column.named("ipAddress");
 
+    @Length(length = 50)
+    @NullAllowed
     private String publicIpAddress;
     public static final Column PUBLIC_IP_ADDRESS = Column.named("publicIpAddress");
 
+    @Length(length = 255)
+    @NullAllowed
     private String primaryMonitoringUrl;
     public static final Column PRIMARY_MONITORING_URL = Column.named("primaryMonitoringUrl");
 
     private ServerState primaryUrlState;
     public static final Column PRIMARY_URL_STATE = Column.named("primaryUrlState");
 
+    @Length(length = 255)
+    @NullAllowed
     private String secondaryMonitoringUrl;
     public static final Column SECONDARY_MONITORING_URL = Column.named("secondaryMonitoringUrl");
 

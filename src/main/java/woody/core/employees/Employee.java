@@ -6,7 +6,7 @@
  * http://www.scireum.de - info@scireum.de
  */
 
-package woody.core.employee;
+package woody.core.employees;
 
 import sirius.biz.model.AddressData;
 import sirius.biz.tenants.UserAccount;

@@ -10,6 +10,7 @@ package woody.servers;
 
 import sirius.biz.tenants.UserAccount;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.Framework;
 import sirius.kernel.health.Exceptions;
 import sirius.mixing.Column;
 import sirius.mixing.Mixable;
@@ -21,6 +22,7 @@ import java.util.regex.Pattern;
  * Created by aha on 12.05.15.
  */
 @Mixin(UserAccount.class)
+@Framework(Servers.FRAMEWORK_SERVERS)
 public class ServerCredentials extends Mixable {
 
     @NullAllowed

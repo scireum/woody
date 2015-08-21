@@ -12,12 +12,14 @@ import sirius.biz.model.BizEntity;
 import sirius.biz.tenants.UserAccount;
 import sirius.mixing.Column;
 import sirius.mixing.EntityRef;
+import sirius.mixing.annotations.Length;
 
 /**
  * Created by aha on 12.05.15.
  */
 public class ServerAccess extends BizEntity {
 
+    @Length(length = 150)
     private String serverNameExpression;
     public static final Column SERVER_NAME_EXPRESSION = Column.named("serverNameExpression");
 
