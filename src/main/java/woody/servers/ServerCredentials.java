@@ -39,7 +39,7 @@ public class ServerCredentials extends Mixable {
     private static final Pattern VALID_SSH_KEY = Pattern.compile("AAAA[0-9A-Za-z+/]+[=]{0,3}");
 
     @BeforeSave
-    public void verifySSHKey() {
+    protected void verifySSHKey() {
         if (Strings.isFilled(publicKey) && !VALID_SSH_KEY.matcher(publicKey).matches()) {
             throw Exceptions.createHandled().withNLSKey("ServerCredentials.invalidSSHKey").handle();
         }

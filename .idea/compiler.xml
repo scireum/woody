@@ -24,8 +24,15 @@
         <processorPath useClasspath="true" />
         <module name="woody" />
       </profile>
+      <profile default="false" name="Annotation profile for sirius-biz" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="sirius-biz" target="1.8" />
       <module name="woody" target="1.8" />
     </bytecodeTargetLevel>
   </component>

@@ -114,7 +114,7 @@ public class Employee extends Mixable {
     }
 
     @BeforeSave
-    public void checkIntegrity(UserAccount parent) {
+    protected void checkIntegrity(UserAccount parent) {
         if (getMentor().isFilled()) {
             parent.assertSameTenant(() -> parent.getDescriptor()
                                           .getProperty(Column.mixin(Employee.class).inner(MENTOR))

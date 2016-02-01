@@ -8,7 +8,7 @@
 
 package woody.servers;
 
-import sirius.biz.model.BizEntity;
+import sirius.biz.tenants.TenantAware;
 import sirius.kernel.di.std.Framework;
 import sirius.mixing.Column;
 import sirius.mixing.annotations.BeforeSave;
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * Created by aha on 12.05.15.
  */
 @Framework(Servers.FRAMEWORK_SERVERS)
-public class Server extends BizEntity {
+public class Server extends TenantAware {
 
     public enum Interval {
         OFF, HOURLY, DAILY, WEEKLY, MONTHLY;
@@ -124,7 +124,7 @@ public class Server extends BizEntity {
     public static final Column BACKUP_STATE = Column.named("backupState");
 
     @BeforeSave
-    public void updateStates() {
+    protected void updateStates() {
         heatbeatState = expectedHeartbeatInterval.check(lastHeartbeat);
         keyUpdateState = expectedKeyUpdateInterval.check(lastKeyUpdate);
         backupState = expectedBackupInterval.check(lastBackup);

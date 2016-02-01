@@ -10,11 +10,10 @@ package woody.servers;
 
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
-import sirius.biz.web.DefaultRoute;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.HandledException;
-import sirius.mixing.Column;
 import sirius.web.controller.Controller;
+import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
@@ -39,10 +38,7 @@ public class ServerController extends BizController {
         assertNotNew(userAccount);
         if (ctx.isPOST()) {
             try {
-                load(ctx,
-                     userAccount,
-                     Column.mixin(ServerCredentials.class).inner(ServerCredentials.PUBLIC_KEY),
-                     Column.mixin(ServerCredentials.class).inner(ServerCredentials.OTP_SECRET));
+                load(ctx, userAccount);
                 oma.update(userAccount);
                 showSavedMessage();
             } catch (HandledException e) {
