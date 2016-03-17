@@ -21,7 +21,9 @@ import javax.annotation.Nonnull;
 @Register
 public class CSSDetector implements ScopeDetector {
 
-    public static final ScopeInfo CSS_SCOPE = new ScopeInfo("css", "css", "css", null, null);
+    // ToDO 15.2.2016 16:46 6. Parameter null eingefügt, damit es compilert
+
+    public static final ScopeInfo CSS_SCOPE = new ScopeInfo("css", "css", "css", null, null, null);
 
     @Nonnull
     @Override

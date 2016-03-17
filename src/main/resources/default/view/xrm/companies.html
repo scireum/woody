@@ -1,0 +1,56 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.xrm.Company
+@args Page companies
+@extends(view.wondergem.template.html, title: NLS.get("Model.userAccount.plural"))
+
+@section(breadcrumbs) {
+
+<li>
+        <a href="/companies">@i18n("Company.plural")</a>
+    </li>
+}
+
+@pageHeader("Company.plural")
+
+@tableSearchHeader(companies, "companies") {
+    <a class="btn btn-primary" href="@prefix/company/new">@i18n("Model.create")</a>
+}
+
+@table(companies) {
+    <thead>
+        <tr>
+            <th>
+                @i18n("Company.name")<br>
+                <span class="muted">@i18n("Company.id")</span>
+            </th>
+            <th>
+                @i18n("Company.customerNr")
+            </th>
+            <th />
+        </tr>
+    </thead>
+    <tbody>
+    @for(Company company : companies.getItems()) {
+        <tr>
+            <td>
+                <a class="link" href="@prefix/company/@company.getId()">@company.getName()</a><br>
+                <span class="muted">@company.getId()</span>
+            </td>
+            <td>
+                @company.getCustomerNr()
+            </td>
+            <td class="col-md-2 align-center">
+                @deleteLink(("company/" + company.getId() + "/delete?" + companies.createQueryString()))
+            </td>
+        </tr>
+    }
+    </tbody>
+}
+
+@pagination(companies, "companies")

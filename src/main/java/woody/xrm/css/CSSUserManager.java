@@ -79,9 +79,10 @@ public class CSSUserManager extends GenericUserManager {
                                 person.getCompany().getValue().getName(),
                                 String.valueOf(person.getId()),
                                 person.getLogin().getUsername(),
-                                person.getEmail(),
+                                person.getContact().getEmail(),
                                 "de",
                                 computeRoles(null, String.valueOf(person.getId())),
+                                ui -> getScopeConfig(),
                                 this::getUserObject);
         } else {
             return null;

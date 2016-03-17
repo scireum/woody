@@ -32,6 +32,7 @@ public class EmployeeController extends BizController {
         UserAccount userAccount = find(UserAccount.class, accountId);
         assertTenant(userAccount);
         assertNotNew(userAccount);
+
         if (ctx.isPOST()) {
             load(ctx, userAccount);
             oma.update(userAccount);
