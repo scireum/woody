@@ -12,7 +12,6 @@ import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
 import sirius.web.controller.Interceptor;
 import sirius.web.http.WebContext;
-import sirius.web.security.ScopeInfo;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 
@@ -25,13 +24,14 @@ import java.lang.reflect.Method;
 public class CSSInterceptor implements Interceptor {
 
     @Override
-    public boolean before(WebContext ctx, Controller controller, Method method) throws Exception {
+    public boolean before(WebContext webContext, boolean b, Controller controller, Method method) throws Exception {
         return false;
     }
 
     @Override
     public boolean beforePermissionError(String permission,
                                          WebContext ctx,
+                                         boolean jsonCall,
                                          Controller controller,
                                          Method method) throws Exception {
         if (UserContext.getCurrentScope() != CSSDetector.CSS_SCOPE) {
