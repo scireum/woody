@@ -29,7 +29,7 @@ public class PackageDefinition extends BizEntity {
     private static final Column PRODUCT = Column.named("product");
 
     @Trim
-// ToDo    @Unique(within = "tenant")     funktioniert nur bei public class PackageDefinition extends TenantAware
+    @Unique(within = "tenant")
     @Length(length = 255)
     private String name;
     public static final Column NAME = Column.named("name");

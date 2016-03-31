@@ -8,6 +8,7 @@
 
 package woody.xrm;
 
+import sirius.biz.model.AddressData;
 import sirius.biz.model.BizEntity;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.LoginData;
@@ -25,19 +26,22 @@ import sirius.mixing.annotations.Trim;
 public class Person extends BizEntity {
 
     private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
-    private static final Column COMPANY = Column.named("company");
+    public static final Column COMPANY = Column.named("company");
 
     private final PersonData person = new PersonData();
     public static final Column PERSON = Column.named("person");
 
+    private final AddressData address = new AddressData();
+    public static final Column ADDRESS = Column.named("addressdata");
+
     private final ContactData contact = new ContactData();
-    private static final Column CONTACT = Column.named("contactdata");
+    public static final Column CONTACT = Column.named("contactdata");
 
     private final LoginData login = new LoginData();
     public static final Column LOGIN = Column.named("login");
 
     @Trim
-    @Length(length = 50)
+    @Length(length = 100)
     @NullAllowed
     private String position;
     public static final Column POSITION = Column.named("position");
@@ -108,5 +112,9 @@ public class Person extends BizEntity {
 
     public ContactData getContact() {
         return contact;
+    }
+
+    public AddressData getAddress() {
+        return address;
     }
 }

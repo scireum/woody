@@ -13,25 +13,24 @@
 
 @editForm(("company/" + company.getIdAsString())) {
 
-
-  <div class="row">
+   Abrechnung
+    <div class="row">
         @textfield(name:     "invoiceMailAdr",
         value:    company.getInvoiceMailAdr(),
         labelKey: "Company.invoiceMailAdr")
 
-        textfield(name:     "invoiceMedium",
+        @codelistSelect(list:     "invoicemedium",
+        name:     "invoiceMedium",
         value:    company.getInvoiceMedium(),
-        labelKey: "Company.invoiceMedium",
-        required: true)
+        labelKey: "Company.invoiceMedium")
     </div>
-
 
     <div class="row">
         @textfield(name:     "ptPrice",
         value:    NLS.toUserString(company.getPtPrice()),
         labelKey: "Company.ptPrice")
     </div>
-
+    Rechnungsanschrift
     <div class="row">
         @textfield(span: "2",
         name:     "invoiceAddress_zip",

@@ -33,7 +33,7 @@ class CompanySpec extends BaseSpecification {
         c.setBusinessType("Industrie");
         c.setCompanyType("Kunde");
         c.setCustomerNr("0815_4711");
-        c.setInvoiceMedium(InvoiceMediumType.MAIL);
+        c.setInvoiceMedium("MAIL");
         c.setInvoiceEmailAdr("mail47111@mail.com");
         c.setMatchcode("007") ;
         c.getContactData().setPhone("01234/56789");
@@ -55,7 +55,7 @@ class CompanySpec extends BaseSpecification {
         and:
         cc.getContactData().getPhone() == "0049123456789";
         and:
-        cc.getInvoiceMedium() == InvoiceMediumType.MAIL;
+        cc.getInvoiceMedium() == "MAIL";
         and:
         cc.getAddress().getCity() == "London";
         and:

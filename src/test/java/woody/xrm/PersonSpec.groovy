@@ -34,7 +34,7 @@ class PersonSpec extends BaseSpecification {
         c.setName("Testcompany2");
         c.setBusinessType("Industrie");
         c.setCompanyType("Kunde");
-        c.setInvoiceMedium(InvoiceMediumType.MAIL);
+        c.setInvoiceMedium("MAIL");
         oma.update(c);
 
         Person p = new Person();

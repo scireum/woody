@@ -45,82 +45,37 @@
     </div>
 
     <div class="row">
-        @textfield(name:     "companyType",
-        value:    company.getCompanyType(),
-        labelKey: "Company.companyType",
-        required: true)
 
-        @textfield(name:     "businessType",
+        @codelistSelect(span:"2", list:     "companytype",
+        name:     "companyType",
+        value:    company.getCompanyType(),
+        labelKey: "Company.companyType")
+
+        @codelistSelect(span: "2", list:     "businesstype",
+        name:     "businessType",
         value:    company.getBusinessType(),
-        labelKey: "Company.businessType",
-        required: true)
+        labelKey: "Company.businessType")
+
+        @textfield(span: "2", name:     "customerNr",
+        value:    company.getCustomerNr(),
+        labelKey: "Company.customerNr")
+
+        @textfield(span: "3", name:     "matchcode",
+        value:    company.getMatchcode(),
+        labelKey: "Company.matchcode")
+
     </div>
 
     <div class="row">
-        @textfield(name:     "customerNr",
-        value:    company.getCustomerNr(),
-        labelKey: "Company.customerNr")
 
         @textfield(name:     "homepage",
         value:    company.getHomepage(),
         labelKey: "Company.homepage")
 
-    </div>
-
-
-
-    <div class="row">
-        @textfield(name:     "matchcode",
-        value:    company.getMatchcode(),
-        labelKey: "Company.matchcode")
-
-
         @textfield(name:     "image",
         value:    company.getImage(),
         labelKey: "Company.image")
     </div>
-
-
-    <div class="row">
-        @textfield(name:     "invoiceMailAdr",
-        value:    company.getInvoiceMailAdr(),
-        labelKey: "Company.invoiceMailAdr")
-
-        textfield(name:     "invoiceMedium",
-        value:    company.getInvoiceMedium(),
-        labelKey: "Company.invoiceMedium",
-        required: true)
-    </div>
-
-
-    <div class="row">
-        @textfield(name:     "ptPrice",
-        value:    NLS.toUserString(company.getPtPrice()),
-        labelKey: "Company.ptPrice")
-    </div>
-
-    <div class="row">
-        @textfield(span: "2",
-        name:     "invoiceAddress_zip",
-        value:    company.getInvoiceAddress().getZip(),
-        labelKey: "AddressData.zip")
-
-        @textfield(span:"4",
-        name:     "invoiceAddress_city",
-        value:    company.getInvoiceAddress().getCity(),
-        labelKey: "AddressData.city")
-
-        @textfield(span: "5",
-        name:     "invoiceAddress_street",
-        value:    company.getInvoiceAddress().getStreet(),
-        labelKey: "AddressData.street")
-
-        @textfield(span: "1",
-        name:     "invoiceAddress_country",
-        value:    company.getInvoiceAddress().getCountry(),
-        labelKey: "AddressData.country")
-    </div>
-
 
 }
 

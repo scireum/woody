@@ -1,0 +1,129 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*  ??? @includeExtensions("view-company-details", company)
+*@
+@import woody.xrm.Person
+@args Person person, woody.xrm.CompanyController controller
+@extends(view.xrm.person.html, person, "details")
+
+
+@editForm(("person/" + person.getIdAsString())) {
+    <div class="row">
+
+        @codelistSelect(list:     "salutations",
+        name:     "person_salutation",
+        value:    person.getPerson().getSalutation(),
+        labelKey: "PersonData.salutation")
+
+        @textfield(name:     "person_title",
+        value:    person.getPerson().getTitle(),
+        labelKey: "PersonData.title")
+
+        @textfield(name:     "person_lastname",
+                   value:    person.getPerson().getLastname(),
+                   labelKey: "PersonData.lastname",
+                   required: true)
+
+        @textfield(name:     "person_firstname",
+                   value:    person.getPerson().getFirstname(),
+                   labelKey: "PersonData.firstname")
+
+        @textfield(name:     "person_birthday",
+        value:    NLS.toUserString(person.getPerson().getBirthday()),
+        labelKey: "PersonData.birthday")
+
+        @checkbox(name: "person_offline",
+        value: person.getPerson().isOffline(),
+        labelKey: "PersonData.offline")
+    </div>
+
+    <div class="row">
+        @textfield(span: "2",
+        name:     "address_zip",
+        value:    person.getAddress().getZip(),
+        labelKey: "AddressData.zip")
+
+        @textfield(span:"4",
+        name:     "address_city",
+        value:    person.getAddress().getCity(),
+        labelKey: "AddressData.city")
+
+        @textfield(span: "5",
+        name:     "address_street",
+        value:    person.getAddress().getStreet(),
+        labelKey: "AddressData.street")
+
+        @textfield(span: "1",
+        name:     "address_country",
+        value:    person.getAddress().getCountry(),
+        labelKey: "AddressData.country")
+    </div>
+
+    <div class="row">
+
+        @textfield(name:     "contact_phone",
+        value:    person.getContact().getPhone(),
+        labelKey: "ContactData.phone")
+
+        @textfield(name:     "contact_email",
+        value:    person.getContact().getEmail(),
+        labelKey: "ContactData.email")
+
+        @textfield(name:     "contact_mobile",
+        value:    person.getContact().getMobile(),
+        labelKey: "ContactData.mobile")
+
+        @textfield(name:     "contact_fax",
+        value:    person.getContact().getFax(),
+        labelKey: "ContactData.fax")
+
+        @textfield(name:     "login_username",
+        value:    person.getLogin().getUsername(),
+        labelKey: "LoginData.username")
+
+        @textfield(name:     "login_passwordHash",
+        value:    person.getLogin().getPasswordHash(),
+        labelKey: "LoginData.passwordHash")
+
+        @textfield(name:     "login_ucasePasswordHash",
+        value:    person.getLogin().getUcasePasswordHash(),
+        labelKey: "LoginData.ucasePasswordHash")
+
+        @textfield(name:     "login_salt",
+        value:    person.getLogin().getSalt(),
+        labelKey: "LoginData.salt")
+
+        @textfield(name:     "login_generatedPassword",
+        value:    person.getLogin().getGeneratedPassword(),
+        labelKey: "LoginData.generatedPassword")
+
+        @textfield(name:     "login_apiToken",
+        value:    person.getLogin().getApiToken(),
+        labelKey: "LoginData.apiToken")
+
+        @textfield(name:     "login_numberOfLogins",
+        value:    NLS.toUserString(person.getLogin().getNumberOfLogins()),
+        labelKey: "LoginData.numberOfLogins")
+
+        @textfield(name:     "lastLogin",
+        value:    NLS.toUserString(person.getLogin().getLastLogin()),
+        labelKey: "LoginData.lastLogin")
+
+        @checkbox(name: "login_accountLocked",
+        value: person.getLogin().isAccountLocked(),
+        labelKey: "LoginData.accountLocked")
+
+    </div>
+
+
+}
+
+@formBar() {
+    @tracing(person.getTrace())
+}
+
+

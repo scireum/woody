@@ -35,7 +35,7 @@ class ContractSpec extends BaseSpecification {
         co.setName("Testcompany1");
         co.setBusinessType("Industrie");
         co.setCompanyType("Kunde");
-        co.setInvoiceMedium(InvoiceMediumType.MAIL);
+        co.setInvoiceMedium("MAIL");
         oma.update(co);
 
         Person p = new Person();

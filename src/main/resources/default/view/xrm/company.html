@@ -50,22 +50,26 @@
                 <a href="@prefix/company/@company.getId()/acc" class="link">
                     <i class="icon-users"></i>@i18n("Model.accounting")
                 </a>
-                </li>
-
-        <!--
-            <li @if(page == "config") { class="active" }>
-                <a href=" prefix/company/@company.getId()/config" class="link">
-                        <i class="icon-users"></i>@i18n("Model.config")
-                </a>
+             </li>
+            <li @if(page == "persons") { class="active" }>
+            <a href="@prefix/company/@company.getId()/persons" class="link">
+                <i class="icon-users"></i>@i18n("Person.plural")
+            </a>
             </li>
-        -->
-        </div>
+            <li @if(page == "contracts") { class="active" }>
+            <a href="@prefix/company/@company.getId()/contracts" class="link">
+                <i class="icon-users"></i>@i18n("Contract.plural")
+            </a>
+            </li>
 
-    <!--
-            if(page == "details") {@includeExtensions("company-details", company, page)}
-            if(page == "accounting") {@includeExtensions("company-accounting", company, page)}
-        }
-     -->
+    </div>
+            <!--
+
+            @if(page == "details") {@includeExtensions("company-details", company, page)}
+            @if(page == "accounting") {@includeExtensions("company-accounting", company, page)}
+
+           }
+           -->
         <a href="@prefix/companies" class="btn btn-block">@i18n("NLS.back")</a>
     </div>
     }

@@ -101,7 +101,7 @@ public class Company extends TenantAware {
     private final ContactData contactData = new ContactData();
     public static final Column CONTACTDATA = Column.named("contactData");
 
-    //------------------ Abrechnung
+    //------------------ Abrechnung -------------------------------------------
     @NullAllowed
     @Autoloaded
     private final AddressData invoiceAddress = new AddressData();
@@ -115,7 +115,7 @@ public class Company extends TenantAware {
 
     @NullAllowed
     @Autoloaded
-    private InvoiceMediumType invoiceMedium;
+    private String invoiceMedium;
     public static final String INVOICEMEDIUM = "invoiceMedium";
 
     @Trim
@@ -135,7 +135,7 @@ public class Company extends TenantAware {
     @BeforeSave
     protected void onSave() {
         // check the invoiceMedium == MAIL
-        if (Strings.areEqual(InvoiceMediumType.MAIL, getInvoiceMedium())) {
+        if (Strings.areEqual("MAIL", getInvoiceMedium())) {
             if (Strings.isEmpty(getInvoiceMailAdr())) {
                 throw Exceptions.createHandled()
                           .withNLSKey("woody.xrm.Company.invoiceMailAdrMissing").handle();
@@ -247,11 +247,11 @@ public class Company extends TenantAware {
         this.image = image;
     }
 
-    public InvoiceMediumType getInvoiceMedium() {
+    public String getInvoiceMedium() {
         return invoiceMedium;
     }
 
-    public void setInvoiceMedium(InvoiceMediumType invoiceMedium) {
+    public void setInvoiceMedium(String invoiceMedium) {
         this.invoiceMedium = invoiceMedium;
     }
 
