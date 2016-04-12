@@ -1,0 +1,57 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*  ??? @includeExtensions("view-company-details", company)
+*@
+@import woody.xrm.Contract
+@import woody.xrm.AccountingIntervalType
+@args Contract contract, woody.xrm.CompanyController controller
+@extends(view.xrm.contract.html, contract, "details")
+
+
+@editForm(("contract/" + contract.getIdAsString())) {
+
+  <div class="row">
+
+        @textfield(name:     "accountingGroup",
+        value:    contract.getAccountingGroup(),
+        labelKey: "Contract.accountingGroup")
+
+        @checkbox(name: "noAccounting",
+        value: contract.isNoAccounting(),
+        labelKey: "Contract.noAccounting")
+  </div>
+
+    <div class="row">
+        @textfield(name:     "signingDate",
+        value:    NLS.toUserString(contract.getSigningDate()),
+        labelKey: "Contract.signingDate")
+
+        @textfield(name:     "contractPartner",
+        value:    contract.getContractPartner().getValue().toString(),
+        labelKey: "Contract.contractPartner")
+
+    </div>
+    <div class="row">
+        @singleSelect(name: "accountingInterval",
+        labelKey: "Contract.accountingInterval") {
+            @for(AccountingIntervalType accountingIntervalType : AccountingIntervalType.values()) {
+                <option value="@accountingIntervalType.name()" @if (accountingIntervalType == contract.getAccountingInterval()) { selected="selected" }>@accountingIntervalType.toString()</option>
+            }
+        }
+    </div>
+
+
+
+
+
+}
+
+@formBar() {
+    @tracing(contract.getTrace())
+}
+
+

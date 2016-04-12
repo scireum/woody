@@ -9,6 +9,8 @@
 package woody.xrm;
 
 import sirius.biz.tenants.TenantAware;
+import sirius.biz.web.Autoloaded;
+import sirius.kernel.di.std.Framework;
 import sirius.mixing.Column;
 import sirius.mixing.annotations.Length;
 import sirius.mixing.annotations.NullAllowed;
@@ -21,19 +23,22 @@ import java.util.List;
 /**
  * Created by gerhardhaufler on 09.02.16.
  */
+//@Framework("products")
 public class Product extends TenantAware{
 
-
     @Trim
+    @Autoloaded
     @Unique(within = "tenant")
     @Length(length = 255)
     private String name;
     public static final Column NAME = Column.named("name");
 
     @Trim
+    @Autoloaded
     @Length(length = 255)    private String article;
     public static final Column ARTICLE = Column.named("article");
 
+    @Autoloaded
     private Boolean collectBugs = false;
     public static final Column COLLECTBUGS = Column.named("collectBugs");
 
@@ -45,6 +50,7 @@ public class Product extends TenantAware{
     @Image
     @Column(name = IMAGE, nullable = true, length = 255)       */
     @NullAllowed
+    @Autoloaded
     @Length(length = 255)
     private String image;
     public static final Column IMAGE = Column.named("image");
@@ -58,6 +64,7 @@ public class Product extends TenantAware{
     @Lob
     @Column(name = DESCRIPTION, nullable = true)   */
     @NullAllowed
+    @Autoloaded
     @Length(length = 1000)
     private String description;
     public static final Column DESCRIPTION = Column.named("description");

@@ -1,0 +1,57 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*  ??? @includeExtensions("view-company-details", company)
+*@
+@import woody.xrm.PackageDefinition
+@args PackageDefinition packageDefinition, woody.xrm.ProductController controller
+@extends(view.xrm.packageDefinition.html, packageDefinition, "details")
+
+
+@editForm(("packageDefinition/" + packageDefinition.getIdAsString())) {
+    <div class="row">
+        @textfield(name:     "name",
+        value:    packageDefinition.getName(),
+        labelKey: "PackageDefinition.name",
+        required: true)
+
+        @codelistSelect(list:     "packettype",
+        value:    ppackageDefinition.getPacketType(),
+        labelKey: "PackageDefinition.packetType")
+
+        @textfield(name:     "accountingUnit",
+        value:    packageDefinition.getAccountingUnit().toString(),
+        labelKey: "PackageDefinition.accountingUnit")
+
+        @textfield(name:     "singlePrice",
+        value:    NLS.toUserString(packageDefinition.getSinglePrice()),
+        labelKey: "PackageDefinition.singlePrice")
+
+        @textfield(name:     "unitPrice",
+        value:    NLS.toUserString(packageDefinition.getUnitPrice()),
+        labelKey: "PackageDefinition.unitPrice")
+
+        @textfield(name:     "defaultPosition",
+        value:    NLS.toUserString(packageDefinition.getDefaultPosition()),
+        labelKey: "PackageDefinition.defaultPosition")
+
+        @textarea(name:     "description",
+        value:    packageDefinition.getPacketType(),
+        labelKey: "PackageDefinition.description")
+
+        @textarea(name:     "parameter",
+        value:    packageDefinition.getParameter(),
+        labelKey: "PackageDefinition.parameter")
+    </div>
+
+
+}
+
+@formBar() {
+    @tracing(packageDefinition.getTrace())
+}
+
+

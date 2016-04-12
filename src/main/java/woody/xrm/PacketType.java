@@ -19,7 +19,7 @@ public enum PacketType {
 
     @Override
     public String toString() {
-        return NLS.get(PacketType.class.getName() + "." + name());
+        return NLS.get(PacketType.class.getSimpleName() + "." + name());
     }
 
 }

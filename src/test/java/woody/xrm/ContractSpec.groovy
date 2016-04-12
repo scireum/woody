@@ -81,7 +81,6 @@ class ContractSpec extends BaseSpecification {
         oma.update(pd2);
 
         Contract  c = new Contract();
-//        c.getTenant().setValue(tenants.getRequiredTenant());
         c.getCompany().setValue(co);
         c.getContractPartner().setValue(p);
         c.setAccountingGroup("1");
@@ -89,10 +88,7 @@ class ContractSpec extends BaseSpecification {
         c.getPackageDefinition().setValue(pd);
         c.setSigningDate(LocalDate.of(2015,12,07));
         c.setStartDate(LocalDate.of(2016,02,01)) ;
-        oma.update(c);
-
         c.getPackageDefinition().setValue(pd2);
-        // ToDO: c.packageDefinition = <PaketDef2_Product2>
         oma.update(c)
         when:
 

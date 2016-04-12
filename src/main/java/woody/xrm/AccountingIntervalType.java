@@ -21,7 +21,7 @@ public enum AccountingIntervalType {
 
     @Override
     public String toString() {
-        return NLS.get(AccountingIntervalType.class.getName() + "." + name());
+        return NLS.get(AccountingIntervalType.class.getSimpleName() + "." + name());
     }
 
 

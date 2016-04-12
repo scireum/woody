@@ -9,6 +9,7 @@
 package woody.xrm;
 
 import sirius.biz.model.BizEntity;
+import sirius.biz.web.Autoloaded;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
@@ -38,6 +39,7 @@ public class Contract extends BizEntity {
 
     @Trim
     @Length(length = 50)
+    @Autoloaded
     private String accountingGroup;
     public static final Column ACCOUNTINGGROUP = Column.named("accountingGroup");
 
@@ -45,6 +47,7 @@ public class Contract extends BizEntity {
     private final EntityRef<Person> contractPartner = EntityRef.on(Person.class, EntityRef.OnDelete.CASCADE);
     public static final Column CONTRACTPARTNER = Column.named("contractPartner");
 
+    @Autoloaded
     private LocalDate signingDate;
     public static final Column SIGNINGDATE = Column.named("signingDate");
 
@@ -54,34 +57,41 @@ public class Contract extends BizEntity {
     public static final Column PACKAGEDEFINITION = Column.named("packageDefinition");
 
     @NullAllowed
-    private Integer amount = null;
-    public static final Column AMOUNT = Column.named("amount");
+    @Autoloaded
+    private Integer quantity = null;
+    public static final Column QUANTITY = Column.named("quantity");
 
+    @Autoloaded
     private LocalDate startDate;
     public static final Column STARTDATE = Column.named("startDate");
 
     @NullAllowed
+    @Autoloaded
     private LocalDate endDate;
     public static final Column ENDDATE = Column.named("endDate");
 
     @NullAllowed
     @Length(length = 255)
+    @Autoloaded
     private String posLine;
     public static final Column POS_LINE = Column.named("posLine");
 
     /* this is the contractSinglePrice */
     @NullAllowed
     @Length(scale = 3, precision = 15)
+    @Autoloaded
     private Amount singlePrice = null;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
 
     //    @Filter(position = 10)
+    @Autoloaded
     private ContractSinglePriceType singlePriceState = ContractSinglePriceType.NO_SINGLEPRICE;
     public static final Column SINGLEPRICESTATE = Column.named("singlePriceState");
 
     /* this is the contractUnitPrice */
     @NullAllowed
     @Length(scale = 3, precision = 15)
+    @Autoloaded
     private Amount unitPrice = null;
     public static final Column UNITPRICE = Column.named("unitPrice");
 
@@ -89,6 +99,7 @@ public class Contract extends BizEntity {
      * with the position-value you can control the order of the lineitems in the
      * invoice
      */
+    @Autoloaded
     private int position = 0;
     public static final Column POSITION = Column.named("position");
 
@@ -100,10 +111,18 @@ public class Contract extends BizEntity {
                 @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_SYNTAX, value = TextArea.MARKDOWN) })
         @Lob
         @Column(name = PARAMETER, nullable = true)   */
+
+    @Autoloaded
     @NullAllowed
     @Length(length = 1500)
     private String parameter;
     public static final Column PARAMETER = Column.named("parameter");
+
+    @Autoloaded
+    @NullAllowed
+    @Length(length = 1500)
+    private String comments;
+    public static final Column COMMENTS = Column.named("comments");
 
     private boolean noAccounting = false;
     public static final Column NOACCOUNTING = Column.named("noAccounting");
@@ -112,14 +131,17 @@ public class Contract extends BizEntity {
      *
      * @see AccountingIntervalType
      */
+    @Autoloaded
     private AccountingIntervalType accountingInterval;
     public static final Column ACCOUNTINGINTERVAL = Column.named("accountingInterval");
 
+    @Autoloaded
     @NullAllowed
     private LocalDate accountedTo;
     public static final Column ACCOUNTEDTO = Column.named("accountedTo");
 
     // the discount is written as percent-value: 7,5% --> 7.5
+    @Autoloaded
     @NullAllowed
     @Length(scale = 3, precision = 15)
     private Amount discountPercent;
@@ -127,7 +149,7 @@ public class Contract extends BizEntity {
 
     // this is a absoluteDiscount, eg. price = 100, absoluteDiscount = 15
     // end-price = 100 - 15 = 85
-//    @Autoloaded(permissions = "ADMINISTRATOR")
+    @Autoloaded
     @NullAllowed
     @Length(scale = 3, precision = 15)
     private Amount discountAbsolute;
@@ -349,9 +371,6 @@ public class Contract extends BizEntity {
 
     }
 
-
-
-
     public EntityRef<Company> getCompany() {
         return company;
     }
@@ -372,12 +391,12 @@ public class Contract extends BizEntity {
         this.signingDate = signingDate;
     }
 
-    public Integer getAmount() {
-        return amount;
+    public Integer getQuantity() {
+        return quantity;
     }
 
-    public void setAmount(Integer amount) {
-        this.amount = amount;
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
     public LocalDate getStartDate() {
@@ -490,5 +509,13 @@ public class Contract extends BizEntity {
 
     public EntityRef<PackageDefinition> getPackageDefinition() {
         return packageDefinition;
+    }
+
+    public String getComments() {
+        return comments;
+    }
+
+    public void setComments(String comments) {
+        this.comments = comments;
     }
 }

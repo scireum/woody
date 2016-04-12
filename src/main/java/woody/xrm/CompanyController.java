@@ -58,21 +58,27 @@ public class CompanyController extends BizController {
         ctx.respondWith().template("view/xrm/company-details.html", cl);
     }
 
-    @LoginRequired
-    @Permission(MANAGE_XRM)
-    @Routed("/person/:1")
-    public void person(WebContext ctx, String personId) {
-        Person person = personHandler(ctx, personId, false);
-        ctx.respondWith().template("view/xrm/person-details.html", person);
-    }
-
-
-    @LoginRequired
+   @LoginRequired
     @Permission(MANAGE_XRM)
     @Routed("/company/:1/acc")
     public void companyAccounting(WebContext ctx, String companyId) {
         Company cl = companyHandler(ctx, companyId, false);
         ctx.respondWith().template("view/xrm/company-accounting.html", cl);
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/company/:1/contracts")
+    public void companyContracts(WebContext ctx, String companyId) {
+        PageHelper<Contract> ph =
+                PageHelper.withQuery(oma.select(Contract.class).eq(Contract.COMPANY, companyId));
+
+        ph.withContext(ctx);
+        ph.withSearchFields(Contract.SIGNINGDATE);
+        Optional oCompany = oma.find(Company.class, companyId);
+        Company company = (Company) oCompany.get();
+        currentCompany = company;
+        ctx.respondWith().template("view/xrm/company-contracts.html", ph.asPage());
     }
 
     @LoginRequired
@@ -130,6 +136,49 @@ public class CompanyController extends BizController {
         companies(ctx);
     }
 
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/contract/:1")
+    public void contract(WebContext ctx, String contractId) {
+        Contract contract = contractHandler(ctx, contractId, false);
+        ctx.respondWith().template("view/xrm/contract-details.html", contract);
+    }
+
+    private Contract contractHandler(WebContext ctx, String contractId, boolean forceDetails) {
+        Contract contract = findForTenant(Contract.class, contractId);
+        if (ctx.isPOST()) {
+            try {
+                boolean wasNew = contract.isNew();
+                if (contract.isNew()) {
+                    // do nothing
+                }
+                load(ctx, contract);
+                if(contract.getCompany().getValue() == null) {
+                    contract.getCompany().setValue(currentCompany);
+                }
+                oma.update(contract);
+                showSavedMessage();
+                if (wasNew) {
+                    ctx.respondWith().redirectTemporarily(WebContext.getContextPrefix() + "/contract/" + contract.getId());
+                    return contract;
+                }
+            } catch (Throwable e) {
+                UserContext.handle(e);
+            }
+        }
+        return contract;
+
+    }
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/person/:1")
+    public void person(WebContext ctx, String personId) {
+        Person person = personHandler(ctx, personId, false);
+        ctx.respondWith().template("view/xrm/person-details.html", person);
+    }
+
+
+
     private Person personHandler(WebContext ctx, String personId, boolean forceDetails) {
         Person person = findForTenant(Person.class, personId);
         if (ctx.isPOST()) {
@@ -137,7 +186,7 @@ public class CompanyController extends BizController {
                 boolean wasNew = person.isNew();
                 if (person.isNew()) {
                     // do nothing
-                } // ToDO load funktioniert bei dem Neu-Anlegen einer Person nicht richtig. Der username wird gespeichert, der lastname nicht
+                }
                 load(ctx, person);
                 if(person.getCompany().getValue() == null) {
                     person.getCompany().setValue(currentCompany);

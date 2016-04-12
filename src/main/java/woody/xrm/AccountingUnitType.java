@@ -18,7 +18,7 @@ public enum AccountingUnitType {
 
     @Override
     public String toString() {
-        return NLS.get(AccountingUnitType.class.getName() + "." + name());
+        return NLS.get(AccountingUnitType.class.getSimpleName() + "." + name());
     }
 
 }

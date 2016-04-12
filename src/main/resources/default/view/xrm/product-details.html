@@ -1,0 +1,49 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*  ??? @includeExtensions("view-company-details", company)
+*@
+@import woody.xrm.Product
+@args Product prod, woody.xrm.ProductController controller
+@extends(view.xrm.product.html, prod, "details")
+
+
+@editForm(("product/" + prod.getIdAsString())) {
+
+
+    <div class="row">
+        @textfield(name:     "name",
+                   value:    prod.getName(),
+                   labelKey: "Product.name",
+                   required: true)
+        @textfield(name:     "article",
+                   value:    prod.getArticle(),
+                   labelKey: "Product.article")
+    </div>
+
+    <div class="row">
+        @checkbox(name: "collectBugs",
+        value: prod.getCollectBugs(),
+        labelKey: "Product.collectBugs")
+
+        @textfield(name:     "image",
+        value:    prod.getImage(),
+        labelKey: "Product.image")
+    </div>
+
+    <div class="row">
+        @textfield(name:     "description",
+        value:    prod.getDescription(),
+        labelKey: "Product.description")
+    </div>
+
+
+}
+
+@formBar() {
+@tracing(prod.getTrace())
+}
+

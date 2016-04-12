@@ -26,7 +26,7 @@ import java.math.BigDecimal;
 public class PackageDefinition extends BizEntity {
 
     private final EntityRef<Product> product = EntityRef.on(Product.class, EntityRef.OnDelete.CASCADE);
-    private static final Column PRODUCT = Column.named("product");
+    public static final Column PRODUCT = Column.named("product");
 
     @Trim
     @Unique(within = "tenant")

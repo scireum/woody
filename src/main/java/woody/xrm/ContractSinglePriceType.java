@@ -70,7 +70,7 @@ import sirius.kernel.nls.NLS;
 
         @Override
         public String toString() {
-            return NLS.get(ContractSinglePriceType.class.getName() + "." + name());
+            return NLS.get(ContractSinglePriceType.class.getSimpleName() + "." + name());
         }
 
 

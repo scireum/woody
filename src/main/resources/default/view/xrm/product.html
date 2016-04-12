@@ -1,0 +1,65 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+
+@args woody.xrm.Product prod, String page
+@extends(view.wondergem.template.html, title: (product.toString()))
+
+@section(head) {
+
+<script src="/assets/wondergem/ace/ace.js" type="text/javascript"></script>
+}
+
+@section(breadcrumbs) {
+    <li>
+        <a href="@prefix/products">@i18n("Product.plural")</a>
+    </li>
+    <li>
+        <a href="@prefix/products/@prod.getId()">@prod</a>
+    </li>
+}
+
+@pageHeader("Product")
+
+<div class="row">
+    @if (!prod.isNew()) {
+    <div class="col-md-3">
+        @navbox() {
+            <li class="nav-header">@i18n("Model.details")</li>
+            <li>
+                Name: <b>@prod.getName()</b>
+            </li>
+            <li>
+                Artikel: @prod.getArticle()
+            </li>
+
+            <li class="nav-header"></li>
+            <li @if(page == "details") { class="active" }>
+                <a href="@prefix/product/@prod.getId()" class="link">
+                    <i class="icon-users"></i>@i18n("Model.details")
+                </a>
+            </li>
+            <li @if(page == "packageDefinition") { class="active" }>
+            <a href="@prefix/product/@prod.getId()/packageDefinitions" class="link">
+                <i class="icon-users"></i>@i18n("PackageDefinition.plural")
+            </a>
+            </li>
+    </div>
+            <!--
+
+            @if(page == "details") {@includeExtensions("product-details", product, page)}
+            @if(page == "accounting") {@includeExtensions("product-accounting", product, page)}
+
+           }
+           -->
+        <a href="@prefix/products" class="btn btn-block">@i18n("NLS.back")</a>
+    </div>
+    }
+    <div class="@if (prod.isNew()) { col-md-12 } else { col-md-9 }">
+        @render
+    </div>
+</div>

@@ -1,0 +1,55 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.xrm.Company
+@import woody.xrm.Contract
+@args Page contracts
+@extends(view.wondergem.template.html, title: NLS.get("Contract.plural"))
+
+@section(breadcrumbs) {
+
+    <li>
+        <a href="/contracts">@i18n("Contract.plural")</a>
+    </li>
+}
+
+@pageHeader("Contract.plural")
+
+@tableSearchHeader(contracts, "contracts") {
+    <a class="btn btn-primary" href="@prefix/contract/new">@i18n("Model.create")</a>
+}
+
+@table(contracts) {
+    <thead>
+        <tr>
+            <th>
+                Vertrag
+            </th>
+            <th>
+                @i18n("Contract.quantity")
+            </th>
+           <th />
+        </tr>
+    </thead>
+    <tbody>
+    @for(Contract contract : contracts.getItems()) {
+        <tr>
+            <td>
+                <a class="link" href="@prefix/contract/@contract.getId()">@contract.toString()</a>
+            </td>
+            <td>
+                @contract.getQuantity()
+            </td>
+            <td class="col-md-2 align-center">
+                @deleteLink(("contract/" + contract.getId() + "/delete?" + contracts.createQueryString()))
+            </td>
+        </tr>
+    }
+    </tbody>
+}
+
+@pagination(contracts, "contracts")
