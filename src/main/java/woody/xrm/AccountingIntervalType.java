@@ -25,6 +25,7 @@ public enum AccountingIntervalType {
     }
 
 
+
     /**
      * returns the next accountingStartDate
      * eg. date = 1. Apr 2011, accountingIntervalType =

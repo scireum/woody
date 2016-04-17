@@ -13,12 +13,14 @@ import sirius.biz.tenants.TenantAware;
 import sirius.kernel.commons.Amount;
 import sirius.mixing.Column;
 import sirius.mixing.EntityRef;
+import sirius.mixing.OMA;
 import sirius.mixing.annotations.Length;
 import sirius.mixing.annotations.NullAllowed;
 import sirius.mixing.annotations.Trim;
 import sirius.mixing.annotations.Unique;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Created by gerhardhaufler on 09.02.16.
@@ -87,6 +89,20 @@ public class PackageDefinition extends BizEntity {
         return getName();
     }
 
+
+    public  List<PackageDefinition> getValues() {
+        if (getProduct() == null) {
+            return oma.select(PackageDefinition.class)
+                      .orderAsc(PackageDefinition.NAME)
+                      .queryList();
+        } else {
+            Product product = this.getProduct().getValue();
+            return oma.select(PackageDefinition.class)
+                      .eq(PackageDefinition.PRODUCT, product)
+                      .orderAsc(PackageDefinition.NAME)
+                      .queryList();
+        }
+    }
 
     public EntityRef<Product> getProduct() {
         return product;

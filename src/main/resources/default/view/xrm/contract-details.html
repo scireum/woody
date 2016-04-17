@@ -8,6 +8,9 @@
 *@
 @import woody.xrm.Contract
 @import woody.xrm.AccountingIntervalType
+@import woody.xrm.PackageDefinition
+@import woody.xrm.Product
+@import woody.xrm.ContractSinglePriceType
 @args Contract contract, woody.xrm.CompanyController controller
 @extends(view.xrm.contract.html, contract, "details")
 
@@ -16,7 +19,44 @@
 
   <div class="row">
 
-        @textfield(name:     "accountingGroup",
+ @*
+      @singleSelect(name: "product",
+      labelKey: "Contract.product") {
+          @for(Product product : Product.getValues()) {
+             <option value="@product.getName()" @if (product == contract.getPackageDefinition().getValue().getProduct().getValue()) { selected="selected" }>@product.getName()</option>
+          }
+      }
+*@
+      @textfield(name:     "quantity",
+      value:    NLS.toUserString(contract.getQuantity()),
+      labelKey: "Contract.quantity")
+
+      @*
+
+      @singleSelect(name: "packageDefinition",
+      labelKey: "Contract.packageDefinition") {
+         @for(PackageDefinition packageDefinition : PackageDefinition.getValues()) {
+            <option value="@packageDefinition.getName()" @if (packageDefinition == contract.getPackageDefinition().getValue()) { selected="selected" }>@packageDefinition.getName()</option>
+         }
+      }
+       *@
+
+      @textfield(name:     "unitPrice",
+      value:    NLS.toUserString(contract.getUnitPrice()),
+      labelKey: "Contract.unitPrice")
+
+      @textfield(name:     "singlePrice",
+      value:    NLS.toUserString(contract.getSinglePrice()),
+      labelKey: "Contract.singlePrice")
+
+      @singleSelect(name: "singlePriceState",
+      labelKey: "Contract.singlePriceState") {
+         @for(ContractSinglePriceType singlePriceState : ContractSinglePriceType.values()) {
+            <option value="@singlePriceState.name()" @if (singlePriceState == contract.getSinglePriceState()) { selected="selected" }>@singlePriceState.toString()</option>
+         }
+      }
+
+      @textfield(name:     "accountingGroup",
         value:    contract.getAccountingGroup(),
         labelKey: "Contract.accountingGroup")
 
@@ -31,17 +71,37 @@
         labelKey: "Contract.signingDate")
 
         @textfield(name:     "contractPartner",
-        value:    contract.getContractPartner().getValue().toString(),
+        value:    contract.getContractPartner().getValue().getPerson().toString(),
         labelKey: "Contract.contractPartner")
 
-    </div>
-    <div class="row">
+        @textfield(name:     "startDate",
+        value:    NLS.toUserString(contract.getStartDate()),
+        labelKey: "Contract.startDate")
+
+        @textfield(name:     "endDate",
+        value:    NLS.toUserString(contract.getEndDate()),
+        labelKey: "Contract.endDate")
+
+        @textfield(name:     "accountedTo",
+        value:    NLS.toUserString(contract.getAccountedTo()),
+        labelKey: "Contract.accountedTo")
+
         @singleSelect(name: "accountingInterval",
         labelKey: "Contract.accountingInterval") {
             @for(AccountingIntervalType accountingIntervalType : AccountingIntervalType.values()) {
                 <option value="@accountingIntervalType.name()" @if (accountingIntervalType == contract.getAccountingInterval()) { selected="selected" }>@accountingIntervalType.toString()</option>
             }
         }
+
+        @textfield(name:     "position",
+        value:    NLS.toUserString(contract.getPosition()),
+        labelKey: "Contract.position")
+
+        @textfield(name:     "posLine",
+        value:    contract.getPosLine(),
+        labelKey: "Contract.posLine")
+
+
     </div>
 
 

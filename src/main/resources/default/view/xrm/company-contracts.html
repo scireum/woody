@@ -27,22 +27,54 @@
     <thead>
         <tr>
             <th>
-                Vertrag
-            </th>
-            <th>
                 @i18n("Contract.quantity")
             </th>
-           <th />
+            <th>
+                @i18n("Contract.packageDefinition")
+            </th>
+            <th>
+                @i18n("PackageDefinition.product")
+            </th>
+            <th>
+                @i18n("Contract.startDate")
+            </th>
+            <th>
+                @i18n("Contract.accountedTo")
+            </th>
+            <th>
+                @i18n("Contract.endDate")
+            </th>
+            <th>
+                @i18n("Company.name")
+            </th>
+            <th />
         </tr>
     </thead>
     <tbody>
     @for(Contract contract : contracts.getItems()) {
         <tr>
             <td>
-                <a class="link" href="@prefix/contract/@contract.getId()">@contract.toString()</a>
+                @if(contract.getQuantity() == null) {1} else {@contract.getQuantity()}
             </td>
             <td>
-                @contract.getQuantity()
+                <a class="link" href="@prefix/contract/@contract.getId()">@contract.getPackageDefinition().getValue().getName()</a>
+            </td>
+            <td>
+                @contract.getPackageDefinition().getValue().getProduct().getValue().getName()
+            </td>
+            <td>
+                @NLS.toUserString(contract.getStartDate())
+            </td>
+            <td>
+                @if(contract.getAccountedTo() == null) {offen} else
+                    {@NLS.toUserString(contract.getAccountedTo())}
+            </td>
+            <td>
+                @if(contract.getEndDate() == null) {offen} else
+                    {NLS.toUserString(contract.getEndDate())}
+            </td>
+            <td>
+                @contract.getCompany().getValue().getName()
             </td>
             <td class="col-md-2 align-center">
                 @deleteLink(("contract/" + contract.getId() + "/delete?" + contracts.createQueryString()))

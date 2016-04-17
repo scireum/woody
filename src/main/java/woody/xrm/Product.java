@@ -69,6 +69,11 @@ public class Product extends TenantAware{
     private String description;
     public static final Column DESCRIPTION = Column.named("description");
 
+    public List<Product> getValues() {
+        return oma.select(Product.class).orderAsc(Product.NAME).queryList();
+    }
+
+
     public String getName() {
         return name;
     }
