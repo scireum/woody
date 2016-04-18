@@ -11,61 +11,93 @@
 @import woody.xrm.PackageDefinition
 @import woody.xrm.Product
 @import woody.xrm.ContractSinglePriceType
-@args Contract contract, woody.xrm.CompanyController controller
+@args Contract contract, List<PackageDefinition> pdList, woody.xrm.CompanyController controller
 @extends(view.xrm.contract.html, contract, "details")
 
 
 @editForm(("contract/" + contract.getIdAsString())) {
 
-  <div class="row">
+    <div class="row">
 
- @*
-      @singleSelect(name: "product",
+      @singleSelect(span: "4", name: "product",
       labelKey: "Contract.product") {
           @for(Product product : Product.getValues()) {
              <option value="@product.getName()" @if (product == contract.getPackageDefinition().getValue().getProduct().getValue()) { selected="selected" }>@product.getName()</option>
           }
       }
-*@
-      @textfield(name:     "quantity",
+
+        @textfield( name:     "product",
+        value:    contract.getPackageDefinition().getValue().getProduct().getValue().getName(),
+        labelKey: "Contract.product")
+
+
+        @textfield(span: "3", name:     "quantity",
       value:    NLS.toUserString(contract.getQuantity()),
       labelKey: "Contract.quantity")
 
-      @*
-
-      @singleSelect(name: "packageDefinition",
+      @singleSelect(span: "5", name: "packageDefinition",
       labelKey: "Contract.packageDefinition") {
-         @for(PackageDefinition packageDefinition : PackageDefinition.getValues()) {
+         @for(PackageDefinition packageDefinition : pdList) {
             <option value="@packageDefinition.getName()" @if (packageDefinition == contract.getPackageDefinition().getValue()) { selected="selected" }>@packageDefinition.getName()</option>
          }
       }
-       *@
+    </div>
 
-      @textfield(name:     "unitPrice",
+    <div class="row">
+        @textfield(span: "4", name:     "unitPrice",
       value:    NLS.toUserString(contract.getUnitPrice()),
       labelKey: "Contract.unitPrice")
 
-      @textfield(name:     "singlePrice",
+      @textfield(, span: "4", name:     "singlePrice",
       value:    NLS.toUserString(contract.getSinglePrice()),
       labelKey: "Contract.singlePrice")
 
-      @singleSelect(name: "singlePriceState",
+      @singleSelect(span: "4", name: "singlePriceState",
       labelKey: "Contract.singlePriceState") {
          @for(ContractSinglePriceType singlePriceState : ContractSinglePriceType.values()) {
             <option value="@singlePriceState.name()" @if (singlePriceState == contract.getSinglePriceState()) { selected="selected" }>@singlePriceState.toString()</option>
          }
       }
+        @textfield(span: "4", name:     "discountPercent",
+        value:    NLS.toUserString(contract.getDiscountPercent()),
+        labelKey: "Contract.discountPercent")
 
-      @textfield(name:     "accountingGroup",
+        @textfield(span: "4", name:     "discountAbsolute",
+        value:    NLS.toUserString(contract.getDiscountAbsolute()),
+        labelKey: "Contract.discountAbsolute")
+
+    </div>
+
+    <div class="row">
+        @singleSelect(span: "4", name: "accountingInterval",
+        labelKey: "Contract.accountingInterval") {
+            @for(AccountingIntervalType accountingIntervalType : AccountingIntervalType.values()) {
+                <option value="@accountingIntervalType.name()" @if (accountingIntervalType == contract.getAccountingInterval()) { selected="selected" }>@accountingIntervalType.toString()</option>
+            }
+        }
+
+        @textfield(span: "4", name:     "accountingGroup",
         value:    contract.getAccountingGroup(),
         labelKey: "Contract.accountingGroup")
 
-        @checkbox(name: "noAccounting",
+        @checkbox(span: "4", name: "noAccounting",
         value: contract.isNoAccounting(),
         labelKey: "Contract.noAccounting")
-  </div>
+    </div>
 
     <div class="row">
+        @textfield(span: "4", name:     "startDate",
+        value:    NLS.toUserString(contract.getStartDate()),
+        labelKey: "Contract.startDate")
+
+        @textfield(span: "4", name:     "accountedTo",
+        value:    NLS.toUserString(contract.getAccountedTo()),
+        labelKey: "Contract.accountedTo")
+
+        @textfield(span: "4", name:     "endDate",
+        value:    NLS.toUserString(contract.getEndDate()),
+        labelKey: "Contract.endDate")
+
         @textfield(name:     "signingDate",
         value:    NLS.toUserString(contract.getSigningDate()),
         labelKey: "Contract.signingDate")
@@ -74,41 +106,26 @@
         value:    contract.getContractPartner().getValue().getPerson().toString(),
         labelKey: "Contract.contractPartner")
 
-        @textfield(name:     "startDate",
-        value:    NLS.toUserString(contract.getStartDate()),
-        labelKey: "Contract.startDate")
 
-        @textfield(name:     "endDate",
-        value:    NLS.toUserString(contract.getEndDate()),
-        labelKey: "Contract.endDate")
-
-        @textfield(name:     "accountedTo",
-        value:    NLS.toUserString(contract.getAccountedTo()),
-        labelKey: "Contract.accountedTo")
-
-        @singleSelect(name: "accountingInterval",
-        labelKey: "Contract.accountingInterval") {
-            @for(AccountingIntervalType accountingIntervalType : AccountingIntervalType.values()) {
-                <option value="@accountingIntervalType.name()" @if (accountingIntervalType == contract.getAccountingInterval()) { selected="selected" }>@accountingIntervalType.toString()</option>
-            }
-        }
-
-        @textfield(name:     "position",
+        @textfield(span: "2", name:     "position",
         value:    NLS.toUserString(contract.getPosition()),
         labelKey: "Contract.position")
 
-        @textfield(name:     "posLine",
+        @textfield(span: "10", name:     "posLine",
         value:    contract.getPosLine(),
         labelKey: "Contract.posLine")
-
-
     </div>
 
+    <div class="row">
+        @textarea(span: "12", name:     "parameter",
+        value:    contract.getParameter(),
+        labelKey: "Contract.parameter")
 
-
-
-
-}
+        @textarea(span: "12", name:     "comments",
+        value:    contract.getComments(),
+        labelKey: "Contract.comments")
+    </div>
+    }
 
 @formBar() {
     @tracing(contract.getTrace())

@@ -141,7 +141,20 @@ public class CompanyController extends BizController {
     @Routed("/contract/:1")
     public void contract(WebContext ctx, String contractId) {
         Contract contract = contractHandler(ctx, contractId, false);
-        ctx.respondWith().template("view/xrm/contract-details.html", contract);
+        List<PackageDefinition> pdList = null;
+        Product product = contract.getPackageDefinition().getValue().getProduct().getValue();
+        if (product == null) {
+            pdList = oma.select(PackageDefinition.class)
+                      .orderAsc(PackageDefinition.NAME)
+                      .queryList();
+        } else {
+            pdList = oma.select(PackageDefinition.class)
+                      .eq(PackageDefinition.PRODUCT, product)
+                      .orderAsc(PackageDefinition.NAME)
+                      .queryList();
+        }
+
+        ctx.respondWith().template("view/xrm/contract-details.html", contract, pdList);
     }
 
     private Contract contractHandler(WebContext ctx, String contractId, boolean forceDetails) {

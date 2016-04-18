@@ -51,8 +51,6 @@ public class Contract extends BizEntity {
     private LocalDate signingDate;
     public static final Column SIGNINGDATE = Column.named("signingDate");
 
-    //    @Filter(position = 20)
-
     private final EntityRef<PackageDefinition> packageDefinition = EntityRef.on(PackageDefinition.class, EntityRef.OnDelete.CASCADE);
     public static final Column PACKAGEDEFINITION = Column.named("packageDefinition");
 
@@ -103,15 +101,6 @@ public class Contract extends BizEntity {
     private int position = 0;
     public static final Column POSITION = Column.named("position");
 
-    /*    @FormField(position = 31, editGroup = "parameter", create = false)
-        @Params({
-                @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA, value = "true"),
-                @Param(name = ParamsFieldConstants.PARAM_NO_LABEL, value = "true"),
-                @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_MAXIMIZED, value = "false"),
-                @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_SYNTAX, value = TextArea.MARKDOWN) })
-        @Lob
-        @Column(name = PARAMETER, nullable = true)   */
-
     @Autoloaded
     @NullAllowed
     @Length(length = 1500)
@@ -156,9 +145,6 @@ public class Contract extends BizEntity {
     public static final Column DISCOUNTABSOLUTE = Column.named("discountAbsolute");
 
 
-
-
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -190,17 +176,8 @@ public class Contract extends BizEntity {
     }
 
 
-    /*   ToDo
-    @Transient
-    private LazyPart<AccountingService> as = new LazyPart<AccountingService>(
-            AccountingService.class);
-    */
-
-
     @Part
     private static OMA oma;
-
-   // throw Exceptions.createHandled().withNLSKey("woody.xrm.Contract.doesNotStartOnFirstOfMonth ${hallo}").set("hallo","X").handle();
 
     @BeforeSave
     protected void onSave() {

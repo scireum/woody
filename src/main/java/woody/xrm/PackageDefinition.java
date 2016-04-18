@@ -89,21 +89,6 @@ public class PackageDefinition extends BizEntity {
         return getName();
     }
 
-
-    public  List<PackageDefinition> getValues() {
-        if (getProduct() == null) {
-            return oma.select(PackageDefinition.class)
-                      .orderAsc(PackageDefinition.NAME)
-                      .queryList();
-        } else {
-            Product product = this.getProduct().getValue();
-            return oma.select(PackageDefinition.class)
-                      .eq(PackageDefinition.PRODUCT, product)
-                      .orderAsc(PackageDefinition.NAME)
-                      .queryList();
-        }
-    }
-
     public EntityRef<Product> getProduct() {
         return product;
     }
