@@ -1,0 +1,30 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.xrm.Company
+@import woody.xrm.Person
+@args Company company, Person person
+@extends(view.xrm.person.html, company, person, "css")
+
+
+@editForm(("person/" + person.getIdAsString() + "/css")) {
+
+    <div class="row">
+        @textfield(name: "login_username", value: person.getLogin().getUsername(), labelKey: "LoginData.username")
+        @textfield(name: "login_generatedPassword", value: person.getLogin().getGeneratedPassword(), labelKey: "LoginData.generatedPassword")
+        @textfield(name: "login_numberOfLogins", value: NLS.toUserString(person.getLogin().getNumberOfLogins()), labelKey: "LoginData.numberOfLogins")
+        @textfield(name: "lastLogin", value: NLS.toUserString(person.getLogin().getLastLogin()), labelKey: "LoginData.lastLogin")
+        @checkbox(name: "login_accountLocked", value: person.getLogin().isAccountLocked(), labelKey: "LoginData.accountLocked")
+    </div>
+
+
+}
+
+@formBar() {
+}
+
+

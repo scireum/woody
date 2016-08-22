@@ -1,0 +1,51 @@
+@args Page tags, woody.core.tags.TagsController controller
+@extends(view.wondergem.template.html, title: NLS.get("Tag.plural"))
+
+@section(breadcrumbs) {
+    <li><a href="/tags">@i18n("Tag.plural")</a></li>
+}
+@pageHeader("Tag.plural")
+
+<div class="row">
+    <div class="col-md-3">
+        @filterbox(tags, "tags")
+    </div>
+    <div class="col-md-9">
+        @tableSearchHeader(tags, "tags") {
+          <a class="btn btn-primary" href="@prefix/tag/new">@i18n("Model.create")</a>
+        }
+
+        @table(tags) {
+            <thead>
+            <tr>
+                <th>
+                    @i18n("Tag.name")
+                </th>
+                <th>
+                    @i18n("Tag.targetType")
+                </th>
+                <th />
+            </tr>
+            </thead>
+            <tbody>
+            @for(woody.core.tags.Tag t : tags.getItems()) {
+                <tr>
+                    <td>
+                        <a class="link" href="@prefix/tag/@t.getId()">@t.getName()</a>
+                    </td>
+                    <td>
+                        @controller.translateType(t.getTargetType())
+                    </td>
+                    <td class="col-md-2 align-center">
+                        @deleteLink(("tag/" + t.getId() + "/delete?" + tags.createQueryString()))
+                    </td>
+                </tr>
+            }
+            </tbody>
+        }
+
+        @pagination(tags, "tags")
+
+    </div>
+</div>
+

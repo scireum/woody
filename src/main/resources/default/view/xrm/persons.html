@@ -1,0 +1,62 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.xrm.Person
+@args Page persons, String suggestions
+@extends(view.wondergem.template.html, title: NLS.get("Person.plural"))
+
+@section(breadcrumbs) {
+    <li><a href="/persons">@i18n("Person.plural")</a></li>
+}
+
+@magicsearch(persons, "persons", "persons/suggest", suggestions) {
+}
+
+@table(persons) {
+    <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")
+            </th>
+            <th>
+                @i18n("Model.company")
+            </th>
+            <th>
+                @i18n("ContactData.phone")
+            </th>
+            <th>
+                @i18n("ContactData.email")
+            </th>
+            <th>
+                @i18n("ContactData.mobile")
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    @for(Person person : persons.getItems()) {
+        <tr>
+            <td>
+                <a class="link" href="/company/@person.getCompany().getId()/person/@person.getId()">@person</a>
+            </td>
+            <td>
+                <a class="link" href="/company/@person.getCompany().getId()">@person.getCompany().getValue().getName()</a>
+            </td>
+            <td>
+                @person.getContact().getPhone()
+            </td>
+            <td>
+                @person.getContact().getEmail()
+            </td>
+            <td>
+                @person.getContact().getMobile()
+            </td>
+        </tr>
+    }
+    </tbody>
+}
+
+@pagination(persons, "persons")
