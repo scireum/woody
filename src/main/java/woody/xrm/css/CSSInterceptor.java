@@ -45,4 +45,9 @@ public class CSSInterceptor implements Interceptor {
         }
         return true;
     }
+
+    @Override
+    public boolean shouldExecuteRoute(WebContext ctx, boolean jsonCall, Controller controller) {
+        return true;
+    }
 }

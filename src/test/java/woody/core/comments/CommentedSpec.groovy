@@ -9,10 +9,9 @@
 package woody.core.comments
 
 import sirius.biz.tenants.TenantsHelper
+import sirius.db.mixing.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.di.std.Part
-import sirius.mixing.OMA
-import woody.core.tags.Tag
 
 /**
  * Created by aha on 29.11.15.

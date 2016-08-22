@@ -13,12 +13,15 @@ import sirius.biz.model.BizEntity;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.LoginData;
 import sirius.biz.model.PersonData;
-import sirius.biz.tenants.TenantAware;
-import sirius.mixing.Column;
-import sirius.mixing.EntityRef;
-import sirius.mixing.annotations.Length;
-import sirius.mixing.annotations.NullAllowed;
-import sirius.mixing.annotations.Trim;
+import sirius.db.mixing.Column;
+import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.annotations.BeforeSave;
+import sirius.db.mixing.annotations.Length;
+import sirius.db.mixing.annotations.NullAllowed;
+import sirius.db.mixing.annotations.Trim;
+import sirius.kernel.commons.Strings;
+import woody.core.comments.Commented;
+import woody.core.tags.Tagged;
 
 /**
  * Created by aha on 06.10.15.
@@ -31,32 +34,42 @@ public class Person extends BizEntity {
     private final PersonData person = new PersonData();
     public static final Column PERSON = Column.named("person");
 
-    private final AddressData address = new AddressData();
-    public static final Column ADDRESS = Column.named("addressdata");
+    private final AddressData address = new AddressData(AddressData.Requirements.NONE, null);
+    public static final Column ADDRESS = Column.named("address");
 
-    private final ContactData contact = new ContactData();
-    public static final Column CONTACT = Column.named("contactdata");
+    private final ContactData contact = new ContactData(true);
+    public static final Column CONTACT = Column.named("contact");
 
     private final LoginData login = new LoginData();
     public static final Column LOGIN = Column.named("login");
 
     @Trim
-    @Length(length = 100)
+    @Length(100)
     @NullAllowed
     private String position;
     public static final Column POSITION = Column.named("position");
 
-    private boolean itDecider;
-    public static final Column ITDECIDER = Column.named("itDecider");
+    private final Tagged tags = new Tagged(this);
+    public static final Column TAGS = Column.named("tags");
 
-    private boolean marketingDecider;
-    public static final Column MARKETINGDECIDER = Column.named("marketingDecider");
+    private final Commented comments = new Commented(this);
+    public static final Column COMMENTS = Column.named("comments");
 
-    private boolean salesDecider;
-    public static final Column SALESDECIDER = Column.named("salesDecider");
+    @BeforeSave
+    protected void verify() {
+        if (Strings.isEmpty(getLogin().getUsername())) {
+            getLogin().setUsername(getContact().getEmail());
+        }
+    }
 
-    private boolean management;
-    public static final Column MANAGEMENT = Column.named("management");
+    @Override
+    public String toString() {
+        if (!isNew()) {
+            return getPerson().toString();
+        } else {
+            return super.toString();
+        }
+    }
 
     public EntityRef<Company> getCompany() {
         return company;
@@ -78,43 +91,19 @@ public class Person extends BizEntity {
         this.position = position;
     }
 
-    public boolean isItDecider() {
-        return itDecider;
-    }
-
-    public void setItDecider(boolean itDecider) {
-        this.itDecider = itDecider;
-    }
-
-    public boolean isMarketingDecider() {
-        return marketingDecider;
-    }
-
-    public void setMarketingDecider(boolean marketingDecider) {
-        this.marketingDecider = marketingDecider;
-    }
-
-    public boolean isSalesDecider() {
-        return salesDecider;
-    }
-
-    public void setSalesDecider(boolean salesDecider) {
-        this.salesDecider = salesDecider;
-    }
-
-    public boolean isManagement() {
-        return management;
-    }
-
-    public void setManagement(boolean management) {
-        this.management = management;
-    }
-
     public ContactData getContact() {
         return contact;
     }
 
     public AddressData getAddress() {
         return address;
+    }
+
+    public Tagged getTags() {
+        return tags;
+    }
+
+    public Commented getComments() {
+        return comments;
     }
 }

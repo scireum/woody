@@ -12,11 +12,10 @@
 
 <form action="@prefix/user-account/@account.getIdAsString()/employee" method="post" id="editForm">
     <div class="row">
-        @view.wondergem.parts.textfield(span:     "4",
-                                     name:     "Employee_employeeNumber",
-                                     value:    account.as(Employee.class).getEmployeeNumber(),
-                                     labelKey: "Employee.employeeNumber",
-                                     helpKey:  null)
+        @textfield(span:     "4",
+                   name:     "Employee_employeeNumber",
+                   value:    account.as(Employee.class).getEmployeeNumber(),
+                   labelKey: "Employee.employeeNumber")
         <div class="span4 control-group">
             <label>@i18n("ContentEntity.brand")</label>
             <select name="Employee_mentor" class="input-block-level">
@@ -29,24 +28,24 @@
 
     </div>
     <div class="row">
-        @view.wondergem.parts.textfield(span:     "4",
+        @textfield(span:     "4",
                                      name:     "Employee_homePhone",
                                      value:    account.as(Employee.class).getHomePhone(),
                                      labelKey: "Employee.homePhone",
                                      helpKey:  null)
-        @view.wondergem.parts.textfield(span:     "4",
+        @textfield(span:     "4",
                                      name:     "Employee_mobilePhone",
                                      value:    account.as(Employee.class).getMobilePhone(),
                                      labelKey: "Employee.mobilePhone",
                                      helpKey:  null)
     </div>
     <div class="row">
-        @view.wondergem.parts.textfield(span:     "4",
+        @textfield(span:     "4",
                                      name:     "Employee_joinDate",
                                      value:    (NLS.toUserString(account.as(Employee.class).getJoinDate())),
                                      labelKey: "Employee.joinDate",
                                      helpKey:  null)
-        @view.wondergem.parts.textfield(span:     "4",
+        @textfield(span:     "4",
                                      name:     "Employee_birthday",
                                      value:    (NLS.toUserString(account.as(Employee.class).getBirthday())),
                                      labelKey: "Employee.birthday",

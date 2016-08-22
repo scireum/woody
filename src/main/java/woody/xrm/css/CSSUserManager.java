@@ -12,6 +12,7 @@ import com.google.common.collect.Sets;
 import sirius.biz.model.LoginData;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
+import sirius.db.mixing.OMA;
 import sirius.kernel.cache.Cache;
 import sirius.kernel.cache.CacheManager;
 import sirius.kernel.commons.Strings;
@@ -19,7 +20,6 @@ import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.extensions.Extension;
 import sirius.kernel.health.Exceptions;
-import sirius.mixing.OMA;
 import sirius.web.http.WebContext;
 import sirius.web.security.GenericUserManager;
 import sirius.web.security.ScopeInfo;
@@ -75,15 +75,16 @@ public class CSSUserManager extends GenericUserManager {
             Person person = personOptional.get();
             userAccountCache.put(person.getIdAsString(), person);
             rolesCache.remove(person.getIdAsString());
-            return new UserInfo(String.valueOf(person.getCompany().getId()),
-                                person.getCompany().getValue().getName(),
-                                String.valueOf(person.getId()),
-                                person.getLogin().getUsername(),
-                                person.getContact().getEmail(),
-                                "de",
-                                computeRoles(null, String.valueOf(person.getId())),
-                                ui -> getScopeConfig(),
-                                this::getUserObject);
+
+            return UserInfo.Builder.createUser(String.valueOf(person.getId()))
+                                   .withUsername(person.getLogin().getUsername())
+                                   .withTenantId(String.valueOf(person.getCompany().getId()))
+                                   .withTenantName(person.getCompany().getValue().getName())
+                                   .withEmail(person.getContact().getEmail())
+                                   .withPermissions(computeRoles(null, String.valueOf(person.getId())))
+                                   .withConfigSupplier(ui -> getScopeConfig())
+                                   .withUserSupplier(this::getUserObject)
+                                   .build();
         } else {
             return null;
         }

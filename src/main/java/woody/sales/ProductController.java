@@ -6,15 +6,13 @@
  * http://www.scireum.de - info@scireum.de
  */
 
-package woody.xrm;
+package woody.sales;
 
-import sirius.biz.model.PersonData;
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
+import sirius.db.mixing.Column;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Register;
-import sirius.kernel.nls.NLS;
-import sirius.mixing.Column;
 import sirius.web.controller.Controller;
 import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
@@ -48,11 +46,10 @@ public class ProductController extends BizController {
 
     @LoginRequired
     @Permission(MANAGE_XRM)
-    @Routed("/product/:1" )
+    @Routed("/product/:1")
     public void product(WebContext ctx, String productId) {
         Product product = productHandler(ctx, productId, false);
         ctx.respondWith().template("view/xrm/product-details.html", product);
-
     }
 
     @LoginRequired
@@ -63,14 +60,15 @@ public class ProductController extends BizController {
         ctx.respondWith().template("view/xrm/packageDefinition-details.html", packageDefinition);
     }
 
-
     @LoginRequired
     @Permission(MANAGE_XRM)
     @Routed("/product/:1/packageDefinitions")
     public void productPackageDefinitions(WebContext ctx, String productId) {
-        PageHelper<PackageDefinition> ph =
-                PageHelper.withQuery(oma.select(PackageDefinition.class).eq(PackageDefinition.PRODUCT, productId)
-                                        .orderAsc(Column.named(Product.NAME + ","+ PackageDefinition.NAME)));
+        PageHelper<PackageDefinition> ph = PageHelper.withQuery(oma.select(PackageDefinition.class)
+                                                                   .eq(PackageDefinition.PRODUCT, productId)
+                                                                   .orderAsc(Column.named(Product.NAME
+                                                                                          + ","
+                                                                                          + PackageDefinition.NAME)));
         ph.withContext(ctx);
         ph.withSearchFields(PackageDefinition.NAME, Product.NAME);
         Optional oproduct = oma.find(Product.class, productId);
@@ -94,7 +92,8 @@ public class ProductController extends BizController {
                 oma.update(product);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith().redirectTemporarily(WebContext.getContextPrefix() + "/product/" + product.getId());
+                    ctx.respondWith()
+                       .redirectTemporarily(WebContext.getContextPrefix() + "/product/" + product.getId());
                     return product;
                 }
             } catch (Throwable e) {
@@ -102,9 +101,7 @@ public class ProductController extends BizController {
             }
         }
         return product;
-
     }
-
 
     @LoginRequired
     @Permission(MANAGE_XRM)
@@ -118,7 +115,9 @@ public class ProductController extends BizController {
         products(ctx);
     }
 
-    private PackageDefinition packageDefinitionHandler(WebContext ctx, String packageDefinitionId, boolean forceDetails) {
+    private PackageDefinition packageDefinitionHandler(WebContext ctx,
+                                                       String packageDefinitionId,
+                                                       boolean forceDetails) {
         PackageDefinition packageDefinition = findForTenant(PackageDefinition.class, packageDefinitionId);
         if (ctx.isPOST()) {
             try {
@@ -127,13 +126,16 @@ public class ProductController extends BizController {
                     // do nothing
                 }
                 load(ctx, packageDefinition);
-                if(packageDefinition.getProduct().getValue() == null) {
+                if (packageDefinition.getProduct().getValue() == null) {
                     packageDefinition.getProduct().setValue(currentProduct);
                 }
                 oma.update(packageDefinition);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith().redirectTemporarily(WebContext.getContextPrefix() + "/packageDefinition/" + packageDefinition.getId());
+                    ctx.respondWith()
+                       .redirectTemporarily(WebContext.getContextPrefix()
+                                            + "/packageDefinition/"
+                                            + packageDefinition.getId());
                     return packageDefinition;
                 }
             } catch (Throwable e) {
@@ -141,7 +143,5 @@ public class ProductController extends BizController {
             }
         }
         return packageDefinition;
-
     }
-
 }

@@ -5,58 +5,44 @@
 *  Copyright by scireum GmbH
 *  http://www.scireum.de - info@scireum.de
 *@
-@args woody.xrm.Person person, String page
+@args woody.xrm.Company company, woody.xrm.Person person, String page
 @extends(view.wondergem.template.html, title: (person.toString()))
 
-@section(head) {
-
-<script src="/assets/wondergem/ace/ace.js" type="text/javascript"></script>
-}
-
 @section(breadcrumbs) {
-    <li>
-        <a href="@prefix/company-persons">@i18n("Person.plural")</a>
-    </li>
-    <li>
-        <a href="@prefix/person/@person.getId()">@person</a>
-    </li>
+    <li><a href="/companies">@i18n("Company.plural")</a></li>
+    <li><a href="/company/@company.getId()">@company.getName()</a></li>
+    <li><a href="/company/@company.getId()/persons">@i18n("Person.plural")</a></li>
+    <li><a href="@prefix/person/@person.getId()">@person</a></li>
 }
 
 @pageHeader("Person")
 
 <div class="row">
     @if (!person.isNew()) {
-    <div class="col-md-3">
-        @navbox() {
-            <li class="nav-header">@i18n("Model.details")</li>
-            <li>
-                <b>@person.getPerson().getLastname()</b>
-            </li>
-            <li>
-                @person.getPerson().getFirstname()
-            </li>
-            <li>
-                @person.getCompany().getValue().getName()
-            </li>
+        <div class="col-md-3">
+            @navbox() {
+                <li class="nav-header">@i18n("Model.details")</li>
+                <li>
+                    <b>@person.getPerson()</b>
+                </li>
+                <li>
+                    @company.getName()
+                </li>
 
-
-            <li class="nav-header"></li>
-            <li @if(page == "details") { class="active" }>
-                <a href="@prefix/person/@person.getId()" class="link">
-                    <i class="icon-users"></i>@i18n("Model.details")
-                </a>
-            </li>
-
-    </div>
-
-    <!--
-            if(page == "details") {includeExtensions("person-details", person, page)}
-
-        }
-     -->
-
-    <a href="@prefix/company/@person.getCompany().getValue().getId()/persons" class="btn btn-block">@i18n("NLS.back")</a>
-    </div>
+                <li class="nav-header"></li>
+                <li @if(page == "details") { class="active" }>
+                    <a href="/company/@company.getId()/person/@person.getId()" class="link">
+                        <i class="icon-users"></i>@i18n("Model.details")
+                    </a>
+                </li>
+                <li @if(page == "css") { class="active" }>
+                    <a href="/company/@company.getId()/person/@person.getId()/css" class="link">
+                        <i class="icon-users"></i>@i18n("Person.css")
+                    </a>
+                </li>
+            }
+            <a href="@prefix/company/@company.getId()/persons" class="btn btn-block">@i18n("NLS.back")</a>
+        </div>
     }
     <div class="@if (person.isNew()) { col-md-12 } else { col-md-9 }">
         @render

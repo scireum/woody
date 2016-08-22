@@ -10,11 +10,10 @@ package woody.xrm
 
 import sirius.biz.tenants.Tenants
 import sirius.biz.tenants.TenantsHelper
+import sirius.db.mixing.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.commons.Amount
 import sirius.kernel.di.std.Part
-import sirius.mixing.OMA
-import sirius.mixing.SmartQuery
 
 class CompanySpec extends BaseSpecification {
 
@@ -35,11 +34,11 @@ class CompanySpec extends BaseSpecification {
         c.setCustomerNr("0815_4711");
         c.setInvoiceMedium("MAIL");
         c.setInvoiceEmailAdr("mail47111@mail.com");
-        c.setMatchcode("007") ;
+        c.setMatchcode("007");
         c.getContactData().setPhone("01234/56789");
         c.getAddress().setCity("London");
         c.getAddress().setCountry("GB");
-        c.getInvoiceAddress().setZip("12345") ;
+        c.getInvoiceAddress().setZip("12345");
         c.getPostboxAddress().setStreet("Postbox 12345");
         c.setPtPrice(Amount.of(Double.parseDouble("1234.56")));
         oma.update(c);
@@ -63,7 +62,7 @@ class CompanySpec extends BaseSpecification {
         and:
         cc.getPostboxAddress().getStreet() == "Postbox 12345";
         and:
-        cc.getMatchcode()  == "007";
+        cc.getMatchcode() == "007";
         and:
         cc.getPtPrice() == Amount.of(1234.56D);
         and:

@@ -6,7 +6,7 @@
  * http://www.scireum.de - info@scireum.de
  */
 
-package woody.xrm;
+package woody.sales;
 
 /**
  * Created by gerhardhaufler on 09.02.16.

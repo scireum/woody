@@ -8,25 +8,25 @@
 
 package woody.xrm;
 
-
 import sirius.biz.tenants.TenantAware;
-import sirius.mixing.Column;
-import sirius.mixing.EntityRef;
+import sirius.db.mixing.Column;
+import sirius.db.mixing.EntityRef;
 
 /**
  * Created by gerhardhaufler on 07.02.16.
  */
 public class CompanyRelation extends TenantAware {
-    /**<code>
+    /**
+     * <code>
      * Here are stored all relations between the companies.
      * CompanyRelation = Beziehung zwischen den beiden Firmen.
      * whole-company   übergeordnet
-     *
-     *       |
-     *       |
-     *       V
+     * <p>
+     * |
+     * |
+     * V
      * part-company    untergeordnet
-     *
+     * <p>
      * </code>
      */
 
@@ -34,19 +34,19 @@ public class CompanyRelation extends TenantAware {
     public static final Column PART = Column.named("part");
 
     private CompanyRelationType companyRelationType;
-    public static final Column COMPANYRELATIONTYPE = Column.named("companyrelationtype");
+    public static final Column COMPANYRELATIONTYPE = Column.named("companyRelationType");
 
     private final EntityRef<Company> whole = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column WHOLE = Column.named("whole");
 
     @Override
     public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append(part);
-            sb.append(" ist ");
-            sb.append(companyRelationType.toString());
-            sb.append(" von ");
-            sb.append(whole);
-            return sb.toString() ;
+        StringBuilder sb = new StringBuilder();
+        sb.append(part);
+        sb.append(" ist ");
+        sb.append(companyRelationType.toString());
+        sb.append(" von ");
+        sb.append(whole);
+        return sb.toString();
     }
 }

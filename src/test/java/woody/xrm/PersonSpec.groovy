@@ -10,9 +10,9 @@ package woody.xrm
 
 import sirius.biz.tenants.Tenants
 import sirius.biz.tenants.TenantsHelper
+import sirius.db.mixing.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.di.std.Part
-import sirius.mixing.OMA
 
 /**
  * Created by gerhardhaufler on 09.02.16.
@@ -40,12 +40,12 @@ class PersonSpec extends BaseSpecification {
         Person p = new Person();
         p.getCompany().setValue(c);
 
-        p.getPerson().setFirstname("<Firstname1>") ;
-        p.getPerson().setLastname("<Lastname1>") ;
-        p.getPerson().setSalutation("Herr") ;
+        p.getPerson().setFirstname("<Firstname1>");
+        p.getPerson().setLastname("<Lastname1>");
+        p.getPerson().setSalutation("Herr");
         p.getPerson().setTitle("Prof.");
         p.getContact().setPhone("+772233445566");
-        p.getContact().setEmail("mail1@mail.com") ;
+        p.getContact().setEmail("mail1@mail.com");
 
         p.setPosition("Manager");
         p.getLogin().setUsername("<User1>");
@@ -55,11 +55,11 @@ class PersonSpec extends BaseSpecification {
         then:
         !p.isNew()
         and:
-        p.getPerson().getLastname() == "<Lastname1>" ;
+        p.getPerson().getLastname() == "<Lastname1>";
         and:
-        p.getLogin().getUsername() == "<User1>" ;
+        p.getLogin().getUsername() == "<User1>";
         and:
-        p.getContact().getEmail() == "mail1@mail.com" ;
+        p.getContact().getEmail() == "mail1@mail.com";
         and:
         oma.select(Person.class).count() == 1
     }

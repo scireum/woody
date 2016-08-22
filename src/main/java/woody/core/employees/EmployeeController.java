@@ -12,6 +12,8 @@ import sirius.biz.model.LoginData;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.tenants.UserAccountController;
 import sirius.biz.web.BizController;
+import sirius.db.mixing.Column;
+import sirius.db.mixing.constraints.FieldOperator;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
 import sirius.web.controller.Routed;
@@ -42,8 +44,8 @@ public class EmployeeController extends BizController {
            .template("view/core/employee/user-account-employee.html",
                      userAccount,
                      oma.select(UserAccount.class).fields(UserAccount.ID, UserAccount.LOGIN.inner(LoginData.USERNAME))
-//                        .where(FieldOperator.on(Column.mixin(Employee.class).inner(Employee.MENTOR))
-//                                            .notEqual(userAccount))
+                        .where(FieldOperator.on(Column.mixin(Employee.class).inner(Employee.MENTOR))
+                                            .notEqual(userAccount))
                         .orderAsc(UserAccount.LOGIN.inner(LoginData.USERNAME)).queryList());
     }
 }

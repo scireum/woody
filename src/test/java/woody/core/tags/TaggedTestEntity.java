@@ -9,7 +9,7 @@
 package woody.core.tags;
 
 import sirius.biz.model.BizEntity;
-import sirius.mixing.Column;
+import sirius.db.mixing.Column;
 
 /**
  * Created by aha on 29.11.15.
@@ -22,5 +22,4 @@ public class TaggedTestEntity extends BizEntity {
     public Tagged getTagged() {
         return tagged;
     }
-
 }

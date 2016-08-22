@@ -9,7 +9,7 @@
 package woody.core.comments;
 
 import sirius.biz.model.BizEntity;
-import sirius.mixing.Column;
+import sirius.db.mixing.Column;
 
 /**
  * Created by aha on 29.11.15.

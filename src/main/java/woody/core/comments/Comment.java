@@ -8,11 +8,11 @@
 
 package woody.core.comments;
 
+import sirius.db.mixing.Column;
+import sirius.db.mixing.Entity;
+import sirius.db.mixing.annotations.Length;
+import sirius.db.mixing.annotations.Lob;
 import sirius.kernel.commons.Strings;
-import sirius.mixing.Column;
-import sirius.mixing.Entity;
-import sirius.mixing.annotations.Length;
-import sirius.mixing.annotations.Lob;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 
@@ -25,15 +25,15 @@ public class Comment extends Entity {
 
     public static final String PERMISSION_EDIT_COMMENTS = "permission-edit-comments";
 
-    @Length(length = 255)
+    @Length(255)
     private String targetEntity;
     public static final Column TARGET_ENTITY = Column.named("targetEntity");
 
-    @Length(length = 255)
+    @Length(255)
     private String personName;
     public static final Column PERSON_NAME = Column.named("personName");
 
-    @Length(length = 255)
+    @Length(255)
     private String personEntity;
     public static final Column PERSON_ENTITY = Column.named("personEntity");
 

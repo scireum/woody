@@ -9,30 +9,30 @@
 package woody.core.tags;
 
 import sirius.biz.tenants.TenantAware;
+import sirius.db.mixing.Column;
+import sirius.db.mixing.annotations.BeforeSave;
+import sirius.db.mixing.annotations.Length;
+import sirius.db.mixing.annotations.Trim;
+import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
-import sirius.mixing.Column;
-import sirius.mixing.annotations.BeforeSave;
-import sirius.mixing.annotations.Length;
-import sirius.mixing.annotations.Trim;
-import sirius.mixing.annotations.Unique;
 
 /**
  * Created by aha on 25.11.15.
  */
 public class Tag extends TenantAware {
 
-    @Length(length = 255)
+    @Length(255)
     @Unique(within = {"tenant", "targetType"})
     private String uniqueName;
     public static final Column UNQIUE_NAME = Column.named("uniqueName");
 
     @Trim
-    @Length(length = 255)
+    @Length(255)
     private String name;
     public static final Column NAME = Column.named("name");
 
     @Trim
-    @Length(length = 255)
+    @Length(255)
     private String targetType;
     public static final Column TARGET_TYPE = Column.named("targetType");
 
@@ -43,7 +43,7 @@ public class Tag extends TenantAware {
 
     public static String getUnqiueName(String tagName) {
         if (tagName != null) {
-            String result = tagName.toLowerCase().replaceAll("[^a-z0-9]", "");
+            String result = tagName.toLowerCase().replaceAll("[^a-z0-9_]", "");
             if (Strings.isEmpty(result)) {
                 return null;
             } else {

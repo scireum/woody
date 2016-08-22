@@ -6,7 +6,7 @@
  * http://www.scireum.de - info@scireum.de
  */
 
-package woody.xrm;
+package woody.sales;
 
 import sirius.kernel.nls.NLS;
 

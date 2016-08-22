@@ -7,21 +7,17 @@
 *@
 @import woody.xrm.Company
 @import woody.xrm.Person
-@args Page persons
-@extends(view.wondergem.template.html, title: NLS.get("Person.plural"))
+@args Company company, Page persons, String suggestions
+@extends(view.xrm.company.html, company, "persons")
 
 @section(breadcrumbs) {
-
-
-<li>
-        <a href="/persons">@i18n("Person.plural")</a>
-    </li>
+    <li><a href="/companies">@i18n("Company.plural")</a></li>
+    <li><a href="/company/@company.getId()">@company.getName()</a></li>
+    <li><a href="/company/@company.getId()/persons">@i18n("Person.plural")</a></li>
 }
 
-@pageHeader("Person.plural")
-
-@tableSearchHeader(persons, "persons") {
-    <a class="btn btn-primary" href="@prefix/person/new">@i18n("Model.create")</a>
+@magicsearch(persons, ("company/" + company.getId() + "/persons"), "persons/suggest", suggestions) {
+    <a class="btn btn-primary" href="/company/@company.getId()/person/new">@i18n("Model.create")</a>
 }
 
 @table(persons) {
@@ -47,7 +43,7 @@
     @for(Person person : persons.getItems()) {
         <tr>
             <td>
-                <a class="link" href="@prefix/person/@person.getId()">@person.getPerson().getLastname()</a><br>
+                <a class="link" href="/company/@company.getId()/person/@person.getId()">@person.getPerson().getLastname()</a><br>
                 <span class="muted">@person.getPerson().getFirstname()</span>
             </td>
             <td>
@@ -61,11 +57,11 @@
             </td>
 
             <td class="col-md-2 align-center">
-                @deleteLink(("person/" + person.getId() + "/delete?" + persons.createQueryString()))
+                @deleteLink(("company/" + company.getId() + "/person/" + person.getId() + "/delete?" + persons.createQueryString()))
             </td>
         </tr>
     }
     </tbody>
 }
 
-@pagination(persons, "persons")
+@pagination(persons, ("company/" + company.getId() + "/persons"))

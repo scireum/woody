@@ -1,0 +1,39 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@args woody.tasks.Task task
+@extends(view.wondergem.template.html, title: (NLS.get("Task") + ": " + task.getIdAsString()))
+
+@section(breadcrumbs) {
+    <li>
+        <a href="@prefix/tasks">@i18n("Task.plural")</a>
+    </li>
+    <li>
+        <a href="@prefix/task/@task.getId()">@i18n("Task"): @task.getIdAsString()</a>
+    </li>
+}
+
+@pageHeader() {
+    @i18n("Task"): @task.getIdAsString()
+}
+
+@editForm(("task/" + task.getIdAsString())) {
+<div class="row">
+    @textfield(span: "12", name: "description", value: task.getDescription(), labelKey: "Task.description")
+    @autocompleteMultiSelect(span: "12", name: "tags", labelKey: "Tag.plural", serviceUri: "tags/TASK/autocomplete", optional: true) {
+        @for(woody.core.tags.Tag t : task.getTags().getTags()) {
+            <option value="@t.getName()" selected>@t.getName()</option>
+        }
+    }
+</div>
+}
+
+@formBar() {
+    <a href="@prefix/tasks" class="btn">@i18n("NLS.back")</a>
+
+    @tracing(task.getTrace())
+}

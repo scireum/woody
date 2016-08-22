@@ -9,15 +9,15 @@
 package woody.core.comments;
 
 import sirius.biz.tenants.UserAccount;
+import sirius.db.mixing.Composite;
+import sirius.db.mixing.Entity;
+import sirius.db.mixing.OMA;
+import sirius.db.mixing.annotations.BeforeDelete;
+import sirius.db.mixing.annotations.Transient;
+import sirius.db.mixing.constraints.FieldOperator;
+import sirius.db.mixing.constraints.Or;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
-import sirius.mixing.Composite;
-import sirius.mixing.Entity;
-import sirius.mixing.OMA;
-import sirius.mixing.annotations.BeforeDelete;
-import sirius.mixing.annotations.Transient;
-import sirius.mixing.constraints.FieldOperator;
-import sirius.mixing.constraints.Or;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 
@@ -57,8 +57,8 @@ public class Commented extends Composite {
         return oma.select(Comment.class)
                   .orderDesc(Comment.TOD)
                   .eq(Comment.TARGET_ENTITY, owner.getUniqueName())
-                  .where(Or.of(FieldOperator.on(Comment.PERSON_ENTITY).equal(UserContext.getCurrentUser().getUserId()),
-                               FieldOperator.on(Comment.PUBLIC_VISIBLE).equal(true)))
+                  .where(Or.of(FieldOperator.on(Comment.PERSON_ENTITY).eq(UserContext.getCurrentUser().getUserId()),
+                               FieldOperator.on(Comment.PUBLIC_VISIBLE).eq(true)))
                   .queryList();
     }
 

@@ -9,12 +9,11 @@
 package woody.servers;
 
 import sirius.biz.tenants.UserAccount;
+import sirius.biz.tenants.UserAccountController;
 import sirius.biz.web.BizController;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.HandledException;
 import sirius.web.controller.Controller;
-
-import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
@@ -29,9 +28,9 @@ public class ServerController extends BizController {
 
     public static final String PERMISSION_MANAGE_SERVERS = "permission-manage-servers";
 
-    @DefaultRoute //TODO Highly questionable
     @Routed("/user-account/:1/server-credentials")
     @LoginRequired
+    @Permission(UserAccountController.PERMISSION_MANAGE_USER_ACCOUNTS)
     @Permission(ServerController.PERMISSION_MANAGE_SERVERS)
     public void serverCredentials(WebContext ctx, String accountId) {
         UserAccount userAccount = find(UserAccount.class, accountId);

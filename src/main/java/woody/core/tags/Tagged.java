@@ -9,25 +9,37 @@
 package woody.core.tags;
 
 import sirius.biz.tenants.Tenants;
+import sirius.biz.web.MagicSearch;
+import sirius.db.mixing.Composite;
+import sirius.db.mixing.Entity;
+import sirius.db.mixing.OMA;
+import sirius.db.mixing.SmartQuery;
+import sirius.db.mixing.annotations.BeforeDelete;
+import sirius.db.mixing.annotations.Transient;
+import sirius.db.mixing.constraints.Exists;
+import sirius.db.mixing.constraints.FieldOperator;
+import sirius.db.mixing.constraints.Like;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
-import sirius.mixing.Composite;
-import sirius.mixing.Entity;
-import sirius.mixing.OMA;
-import sirius.mixing.annotations.BeforeDelete;
-import sirius.mixing.annotations.Transient;
+import sirius.kernel.health.Exceptions;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * Created by aha on 25.11.15.
  */
 public class Tagged extends Composite {
+
+    public static final String TYPE_NOTTAG = "nottag";
+    public static final String TYPE_TAG = "tag";
+    public static final String CSS_NOTTAG = "suggestion-nottag";
+    public static final String CSS_TAG = "suggestion-tag";
 
     @Transient
     protected final Entity owner;
@@ -45,7 +57,10 @@ public class Tagged extends Composite {
     @BeforeDelete
     protected void onDelete() {
         if (owner != null && !owner.isNew()) {
-            oma.select(TagAssignment.class).eq(TagAssignment.TARGET_ENTITY, owner.getUniqueName()).delete();
+            oma.select(TagAssignment.class)
+               .eq(TagAssignment.TARGET_ENTITY, owner.getId())
+               .eq(TagAssignment.TARGET_TYPE, owner.getTypeName())
+               .delete();
         }
     }
 
@@ -56,7 +71,8 @@ public class Tagged extends Composite {
     protected List<TagAssignment> getAssignedTags() {
         return oma.select(TagAssignment.class)
                   .orderAsc(TagAssignment.TAG.join(Tag.NAME))
-                  .eq(TagAssignment.TARGET_ENTITY, owner.getUniqueName())
+                  .eq(TagAssignment.TARGET_ENTITY, owner.getId())
+                  .eq(TagAssignment.TARGET_TYPE, owner.getTypeName())
                   .queryList();
     }
 
@@ -97,7 +113,8 @@ public class Tagged extends Composite {
         for (Long tag : uniqueTags) {
             TagAssignment ta = new TagAssignment();
             ta.getTag().setId(tag);
-            ta.setTargetEntity(owner.getUniqueName());
+            ta.setTargetEntity(owner.getId());
+            ta.setTargetType(owner.getTypeName());
             oma.update(ta);
         }
     }
@@ -112,8 +129,7 @@ public class Tagged extends Composite {
     }
 
     public List<String> parseTagsString(String tagString) {
-        return Arrays.asList(tagString.split("[\n\\.,;\\s]"))
-                     .stream()
+        return Arrays.stream(tagString.split("[\n.,;\\s]"))
                      .filter(Strings::isFilled)
                      .filter(s -> s.startsWith("#"))
                      .map(s -> s.substring(1))
@@ -136,11 +152,12 @@ public class Tagged extends Composite {
                 throw new IllegalStateException("owner must not be new");
             }
             if (!oma.select(TagAssignment.class)
-                    .eq(TagAssignment.TARGET_ENTITY, owner.getUniqueName())
+                    .eq(TagAssignment.TARGET_ENTITY, owner.getId())
                     .eq(TagAssignment.TAG, tag)
                     .exists()) {
                 TagAssignment ta = new TagAssignment();
-                ta.setTargetEntity(owner.getUniqueName());
+                ta.setTargetEntity(owner.getId());
+                ta.setTargetType(owner.getTypeName());
                 ta.getTag().setValue(tag);
                 oma.update(ta);
             }
@@ -155,9 +172,55 @@ public class Tagged extends Composite {
     public void removeTag(Tag tag) {
         if (tag != null && !owner.isNew()) {
             oma.select(TagAssignment.class)
-               .eq(TagAssignment.TARGET_ENTITY, owner.getUniqueName())
+               .eq(TagAssignment.TARGET_ENTITY, owner.getId())
+               .eq(TagAssignment.TARGET_TYPE, owner.getTypeName())
                .eq(TagAssignment.TAG, tag)
                .delete();
+        }
+    }
+
+    public static void computeSuggestions(Class<? extends Entity> type,
+                                          String query,
+                                          Consumer<MagicSearch.Suggestion> consumer) {
+        boolean inverted = query.startsWith("!");
+        if (inverted) {
+            query = query.substring(1);
+        }
+        oma.select(Tag.class)
+           .eq(Tag.TARGET_TYPE, Entity.getTypeName(type))
+           .orderAsc(Tag.NAME)
+           .where(Like.on(Tag.NAME).ignoreCase().ignoreEmpty().contains(query))
+           .iterateAll(t -> {
+               if (inverted) {
+                   consumer.accept(new MagicSearch.Suggestion(t.getName()).withValue(t.getIdAsString())
+                                                                          .withType(TYPE_NOTTAG)
+                                                                          .withCSS(CSS_NOTTAG));
+               } else {
+                   consumer.accept(new MagicSearch.Suggestion(t.getName()).withValue(t.getIdAsString())
+                                                                          .withType(TYPE_TAG)
+                                                                          .withCSS(CSS_TAG));
+               }
+           });
+    }
+
+    public static void applyTagSuggestions(Class<? extends Entity> type,
+                                           MagicSearch search,
+                                           SmartQuery<? extends Entity> query) {
+        for (MagicSearch.Suggestion suggestion : search.getSuggestions()) {
+            try {
+                long id = Long.parseLong(suggestion.getValue());
+                if (TYPE_TAG.equals(suggestion.getType())) {
+                    query.where(Exists.matchingIn(Entity.ID, TagAssignment.class, TagAssignment.TARGET_ENTITY)
+                                      .where(FieldOperator.on(TagAssignment.TAG).eq(id))
+                                      .where(FieldOperator.on(TagAssignment.TARGET_TYPE).eq(Entity.getTypeName(type))));
+                } else if (TYPE_NOTTAG.equals(suggestion.getType())) {
+                    query.where(Exists.notMatchingIn(Entity.ID, TagAssignment.class, TagAssignment.TARGET_ENTITY)
+                                      .where(FieldOperator.on(TagAssignment.TAG).eq(id))
+                                      .where(FieldOperator.on(TagAssignment.TARGET_TYPE).eq(Entity.getTypeName(type))));
+                }
+            } catch (NumberFormatException e) {
+                Exceptions.ignore(e);
+            }
         }
     }
 }

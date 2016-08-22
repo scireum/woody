@@ -7,74 +7,38 @@
 *  ??? @includeExtensions("view-company-details", company)
 *@
 @import woody.xrm.Company
-@args Company company, woody.xrm.CompanyController controller
+@args Company company
 @extends(view.xrm.company.html, company, "details")
 
 
 @editForm(("company/" + company.getIdAsString())) {
     <div class="row">
-        @textfield(name:     "name",
-                   value:    company.getName(),
-                   labelKey: "Company.name",
-                   required: true)
-        @textfield(name:     "name2",
-                   value:    company.getName2(),
-                   labelKey: "Company.name2")
+        @textfield(name: "name", value: company.getName(), labelKey: "Company.name", required: true)
+        @textfield(name: "name2",value: company.getName2(), labelKey: "Company.name2")
     </div>
 
     <div class="row">
-        @textfield(span: "2",
-        name:     "address_zip",
-        value:    company.getAddress().getZip(),
-        labelKey: "AddressData.zip")
-
-        @textfield(span:"4",
-        name:     "address_city",
-        value:    company.getAddress().getCity(),
-        labelKey: "AddressData.city")
-
-        @textfield(span: "5",
-        name:     "address_street",
-        value:    company.getAddress().getStreet(),
-        labelKey: "AddressData.street")
-
-        @textfield(span: "1",
-        name:     "address_country",
-        value:    company.getAddress().getCountry(),
-        labelKey: "AddressData.country")
+        @textfield(span: "6", name: "customerNr", value: company.getCustomerNr(), labelKey: "Company.customerNr")
+        @textfield(span: "6", name: "matchcode", value:    company.getMatchcode(), labelKey: "Company.matchcode")
     </div>
 
     <div class="row">
-
-        @codelistSelect(span:"2", list:     "companytype",
-        name:     "companyType",
-        value:    company.getCompanyType(),
-        labelKey: "Company.companyType")
-
-        @codelistSelect(span: "2", list:     "businesstype",
-        name:     "businessType",
-        value:    company.getBusinessType(),
-        labelKey: "Company.businessType")
-
-        @textfield(span: "2", name:     "customerNr",
-        value:    company.getCustomerNr(),
-        labelKey: "Company.customerNr")
-
-        @textfield(span: "3", name:     "matchcode",
-        value:    company.getMatchcode(),
-        labelKey: "Company.matchcode")
-
+        @textfield(span: "4", name: "address_street", value: company.getAddress().getStreet(), labelKey: "AddressData.street")
+        @textfield(span: "2", name: "address_zip", value: company.getAddress().getZip(), labelKey: "AddressData.zip")
+        @textfield(span: "3", name: "address_city", value: company.getAddress().getCity(), labelKey: "AddressData.city")
+        @codelistSelect(span: "3", list: "countries", name: "address_country", value: company.getAddress().getCountry(), labelKey: "AddressData.country")
     </div>
 
     <div class="row">
+        @textfield(span: "12", name: "homepage", value: company.getHomepage(), labelKey: "Company.homepage")
+    </div>
 
-        @textfield(name:     "homepage",
-        value:    company.getHomepage(),
-        labelKey: "Company.homepage")
-
-        @textfield(name:     "image",
-        value:    company.getImage(),
-        labelKey: "Company.image")
+    <div class="row">
+        @autocompleteMultiSelect(span: "12", name: "tags", labelKey: "Tag.plural", serviceUri: "tags/COMPANY/autocomplete", optional: true) {
+            @for(woody.core.tags.Tag t : company.getTags().getTags()) {
+                <option value="@t.getName()" selected>@t.getName()</option>
+            }
+         }
     </div>
 
 }
@@ -83,4 +47,18 @@
     @tracing(company.getTrace())
 }
 
+<form action="/company/@company.getId()/postComment" method="post" id="commentForm">
+    <textarea name="comment" rows="3">
+
+    </textarea>
+    <button type="submit" value="Senden"></button>
+</form>
+
+@for(woody.core.comments.Comment comment : company.getComments().getAllComments()) {
+    <div class="comment">
+        @comment.getPersonName()<br>
+        @comment.getTod()<br>
+        @comment.getTextContent()
+    </div>
+}
 

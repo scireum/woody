@@ -6,20 +6,21 @@
  * http://www.scireum.de - info@scireum.de
  */
 
-package woody.xrm;
+package woody.sales;
 
 import sirius.kernel.nls.NLS;
 
 /**
  * Created by gerhardhaufler on 09.02.16.
  */
-public enum PacketType {
-    STANDARD, // Standard
-    SPECIALAGREEMENT; //Rahmenvereinbarung
+public enum AccountingProcedure {
+
+    RIVAL, // konkurrierende Lizenz für CPS bzw. OXOMI bzw sellSite
+    VOLUME; // Volumen-Lizenz, z. B. für Volumen-Erweiterungen
 
     @Override
     public String toString() {
-        return NLS.get(PacketType.class.getSimpleName() + "." + name());
+        return NLS.get(AccountingProcedure.class.getName() + "." + name());
     }
 
 }

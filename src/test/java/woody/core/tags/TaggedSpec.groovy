@@ -8,14 +8,10 @@
 
 package woody.core.tags
 
-import sirius.biz.tenants.Tenant
-import sirius.biz.tenants.Tenants
 import sirius.biz.tenants.TenantsHelper
-import sirius.biz.tenants.UserAccount
+import sirius.db.mixing.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.di.std.Part
-import sirius.mixing.OMA
-import sirius.web.security.UserContext
 
 /**
  * Created by aha on 29.11.15.

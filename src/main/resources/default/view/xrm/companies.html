@@ -6,19 +6,16 @@
 *  http://www.scireum.de - info@scireum.de
 *@
 @import woody.xrm.Company
-@args Page companies
-@extends(view.wondergem.template.html, title: NLS.get("Model.userAccount.plural"))
+@args Page companies, String suggestions
+@extends(view.wondergem.template.html, title: NLS.get("Company.plural"))
 
 @section(breadcrumbs) {
-
-<li>
-        <a href="/companies">@i18n("Company.plural")</a>
-    </li>
+    <li><a href="/companies">@i18n("Company.plural")</a></li>
 }
 
 @pageHeader("Company.plural")
 
-@tableSearchHeader(companies, "companies") {
+@magicsearch(companies, "companies", "companies/suggest", suggestions) {
     <a class="btn btn-primary" href="@prefix/company/new">@i18n("Model.create")</a>
 }
 
@@ -26,11 +23,16 @@
     <thead>
         <tr>
             <th>
-                @i18n("Company.name")<br>
-                <span class="muted">@i18n("Company.id")</span>
+                @i18n("Company.name")
             </th>
             <th>
                 @i18n("Company.customerNr")
+            </th>
+            <th>
+                @i18n("AddressData.city")
+            </th>
+            <th>
+                @i18n("AddressData.country")
             </th>
             <th />
         </tr>
@@ -39,11 +41,16 @@
     @for(Company company : companies.getItems()) {
         <tr>
             <td>
-                <a class="link" href="@prefix/company/@company.getId()">@company.getName()</a><br>
-                <span class="muted">@company.getId()</span>
+                <a class="link" href="@prefix/company/@company.getId()">@company.getName()</a>
             </td>
             <td>
                 @company.getCustomerNr()
+            </td>
+            <td>
+                @company.getAddress().getCity()
+            </td>
+            <td>
+                @codeLists.getValue("countries", company.getAddress().getCountry())
             </td>
             <td class="col-md-2 align-center">
                 @deleteLink(("company/" + company.getId() + "/delete?" + companies.createQueryString()))

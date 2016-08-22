@@ -9,12 +9,18 @@
 package woody.servers;
 
 import sirius.biz.tenants.UserAccount;
+import sirius.biz.web.Autoloaded;
+import sirius.db.mixing.Column;
+import sirius.db.mixing.Mixable;
+import sirius.db.mixing.annotations.BeforeSave;
+import sirius.db.mixing.annotations.Length;
+import sirius.db.mixing.annotations.Lob;
+import sirius.db.mixing.annotations.Mixin;
+import sirius.db.mixing.annotations.NullAllowed;
+import sirius.db.mixing.annotations.Trim;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.health.Exceptions;
-import sirius.mixing.Column;
-import sirius.mixing.Mixable;
-import sirius.mixing.annotations.*;
 
 import java.util.regex.Pattern;
 
@@ -27,12 +33,14 @@ public class ServerCredentials extends Mixable {
 
     @NullAllowed
     @Lob
+    @Autoloaded(permissions = ServerController.PERMISSION_MANAGE_SERVERS)
     private String publicKey;
     public static final Column PUBLIC_KEY = Column.named("publicKey");
 
     @Trim
     @NullAllowed
-    @Length(length = 100)
+    @Length(100)
+    @Autoloaded(permissions = ServerController.PERMISSION_MANAGE_SERVERS)
     private String otpSecret;
     public static final Column OTP_SECRET = Column.named("otpSecret");
 
@@ -60,5 +68,4 @@ public class ServerCredentials extends Mixable {
     public void setOtpSecret(String otpSecret) {
         this.otpSecret = otpSecret;
     }
-
 }

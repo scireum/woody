@@ -6,22 +6,25 @@
  * http://www.scireum.de - info@scireum.de
  */
 
-package woody.xrm;
+package woody.sales;
 
 import sirius.biz.model.BizEntity;
 import sirius.biz.web.Autoloaded;
+import sirius.db.mixing.Column;
+import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.OMA;
+import sirius.db.mixing.annotations.BeforeSave;
+import sirius.db.mixing.annotations.Length;
+import sirius.db.mixing.annotations.NullAllowed;
+import sirius.db.mixing.annotations.Numeric;
+import sirius.db.mixing.annotations.Trim;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
-import sirius.mixing.Column;
-import sirius.mixing.EntityRef;
-import sirius.mixing.OMA;
-import sirius.mixing.annotations.BeforeSave;
-import sirius.mixing.annotations.Length;
-import sirius.mixing.annotations.NullAllowed;
-import sirius.mixing.annotations.Trim;
+import woody.xrm.Company;
+import woody.xrm.Person;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,11 +41,10 @@ public class Contract extends BizEntity {
     public static final Column COMPANY = Column.named("company");
 
     @Trim
-    @Length(length = 50)
+    @Length(50)
     @Autoloaded
     private String accountingGroup;
     public static final Column ACCOUNTINGGROUP = Column.named("accountingGroup");
-
 
     private final EntityRef<Person> contractPartner = EntityRef.on(Person.class, EntityRef.OnDelete.CASCADE);
     public static final Column CONTRACTPARTNER = Column.named("contractPartner");
@@ -51,7 +53,8 @@ public class Contract extends BizEntity {
     private LocalDate signingDate;
     public static final Column SIGNINGDATE = Column.named("signingDate");
 
-    private final EntityRef<PackageDefinition> packageDefinition = EntityRef.on(PackageDefinition.class, EntityRef.OnDelete.CASCADE);
+    private final EntityRef<PackageDefinition> packageDefinition =
+            EntityRef.on(PackageDefinition.class, EntityRef.OnDelete.CASCADE);
     public static final Column PACKAGEDEFINITION = Column.named("packageDefinition");
 
     @NullAllowed
@@ -69,14 +72,14 @@ public class Contract extends BizEntity {
     public static final Column ENDDATE = Column.named("endDate");
 
     @NullAllowed
-    @Length(length = 255)
+    @Length(255)
     @Autoloaded
     private String posLine;
     public static final Column POS_LINE = Column.named("posLine");
 
     /* this is the contractSinglePrice */
     @NullAllowed
-    @Length(scale = 3, precision = 15)
+    @Numeric(scale = 3, precision = 15)
     @Autoloaded
     private Amount singlePrice = null;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
@@ -88,7 +91,7 @@ public class Contract extends BizEntity {
 
     /* this is the contractUnitPrice */
     @NullAllowed
-    @Length(scale = 3, precision = 15)
+    @Numeric(scale = 3, precision = 15)
     @Autoloaded
     private Amount unitPrice = null;
     public static final Column UNITPRICE = Column.named("unitPrice");
@@ -103,13 +106,13 @@ public class Contract extends BizEntity {
 
     @Autoloaded
     @NullAllowed
-    @Length(length = 1500)
+    @Length(1500)
     private String parameter;
     public static final Column PARAMETER = Column.named("parameter");
 
     @Autoloaded
     @NullAllowed
-    @Length(length = 1500)
+    @Length(1500)
     private String comments;
     public static final Column COMMENTS = Column.named("comments");
 
@@ -132,7 +135,7 @@ public class Contract extends BizEntity {
     // the discount is written as percent-value: 7,5% --> 7.5
     @Autoloaded
     @NullAllowed
-    @Length(scale = 3, precision = 15)
+    @Numeric(scale = 3, precision = 15)
     private Amount discountPercent;
     public static final Column DISCOUNTPERCENT = Column.named("discountPercent");
 
@@ -140,10 +143,9 @@ public class Contract extends BizEntity {
     // end-price = 100 - 15 = 85
     @Autoloaded
     @NullAllowed
-    @Length(scale = 3, precision = 15)
+    @Numeric(scale = 3, precision = 15)
     private Amount discountAbsolute;
     public static final Column DISCOUNTABSOLUTE = Column.named("discountAbsolute");
-
 
     @Override
     public String toString() {
@@ -175,7 +177,6 @@ public class Contract extends BizEntity {
         return sb.toString();
     }
 
-
     @Part
     private static OMA oma;
 
@@ -199,11 +200,12 @@ public class Contract extends BizEntity {
         // check the unitPrice. If the unitPrice is null, fetch the unitPrice from the packetDefinition
         if (getUnitPrice() == null) {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
-                                                     .eq(PackageDefinition.ID, this.getPackageDefinition()
-                                                                                   .getValue().getId()).queryFirst();
-            if(packageDefinition != null) {
-                if(packageDefinition.getUnitPrice().isFilled())  {
-                    this.setUnitPrice(packageDefinition.getUnitPrice()) ;
+                                                     .eq(PackageDefinition.ID,
+                                                         this.getPackageDefinition().getValue().getId())
+                                                     .queryFirst();
+            if (packageDefinition != null) {
+                if (packageDefinition.getUnitPrice().isFilled()) {
+                    this.setUnitPrice(packageDefinition.getUnitPrice());
                 }
             }
         }
@@ -211,30 +213,33 @@ public class Contract extends BizEntity {
         // check the singlePrice. If the singlePrice is null, fetch the singlePrice from the packetDefinition
         if (getSinglePrice() == null) {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
-                                                     .eq(PackageDefinition.ID, this.getPackageDefinition()
-                                                                                   .getValue().getId()).queryFirst();
-            if(packageDefinition != null) {
-                if(packageDefinition.getSinglePrice().isFilled())  {
-                    this.setSinglePrice(packageDefinition.getSinglePrice()) ;
+                                                     .eq(PackageDefinition.ID,
+                                                         this.getPackageDefinition().getValue().getId())
+                                                     .queryFirst();
+            if (packageDefinition != null) {
+                if (packageDefinition.getSinglePrice().isFilled()) {
+                    this.setSinglePrice(packageDefinition.getSinglePrice());
                 }
             }
         }
-
 
 // ToDo   wieder aktivieren
         // check the singlePriceState
 //       as.get().checkContractSinglePriceState(this);
 
         // check the start and end-date in relation to now. A warning is generated if the duration is > 180 days
-        if (getStartDate() != null &&
-            (LocalDate.now().minusDays(180).isAfter(getStartDate())
-             || LocalDate.now().minusDays(180).isBefore(getStartDate()))) {
+        if (getStartDate() != null && (LocalDate.now().minusDays(180).isAfter(getStartDate()) || LocalDate.now()
+                                                                                                          .minusDays(180)
+                                                                                                          .isBefore(
+                                                                                                                  getStartDate()))) {
 
             //  ToDo Warnung ausgeben  Datum liegt 1/2 Jahr in der Vergangenheit oder Zukunft.
 
         }
-        if (getEndDate() != null && (LocalDate.now().minusDays(180).isAfter(getEndDate())
-                                     || LocalDate.now().minusDays(180).isBefore(getEndDate()))) {
+        if (getEndDate() != null && (LocalDate.now().minusDays(180).isAfter(getEndDate()) || LocalDate.now()
+                                                                                                      .minusDays(180)
+                                                                                                      .isBefore(
+                                                                                                              getEndDate()))) {
 
             //  ToDo Warnung ausgeben  Datum liegt 1/2 Jahr in der Vergangenheit oder Zukunft.
 
@@ -253,27 +258,24 @@ public class Contract extends BizEntity {
             // check whether the packageDefinition has changed --> not so good!
             if (getDescriptor().isChanged(this, getDescriptor().getProperty(PACKAGEDEFINITION))) {
                 int ggg = 1;
-                throw Exceptions.createHandled()
-                                .withNLSKey("woody.xrm.Contract.noPackageDefinitionChange").handle();
+                throw Exceptions.createHandled().withNLSKey("woody.xrm.Contract.noPackageDefinitionChange").handle();
             }
         }
     }
-
-
 
     // ToDo Fraglich, ob das bleibt.
 
     /**
      * get the unitPrice from the contract. If the unitPrice is null, the unitPrice is fetched from the
+     *
      * @return untitPrice from the contract or - if null - from the packetDefinition
      */
     public BigDecimal getSolidUnitPrice() {
         BigDecimal price = null;
         price = this.getUnitPrice().getAmount();
         if (price == null) {
-            Optional opti = oma.find(
-                    PackageDefinition.class, this.getPackageDefinition().getId());
-            if(opti.isPresent()) {
+            Optional opti = oma.find(PackageDefinition.class, this.getPackageDefinition().getId());
+            if (opti.isPresent()) {
                 PackageDefinition packageDefinition = (PackageDefinition) opti.get();
                 price = packageDefinition.getUnitPrice().getAmount();
                 this.setUnitPrice(Amount.of(price));
@@ -284,6 +286,7 @@ public class Contract extends BizEntity {
 
     /**
      * get the singlePrice from the contract. If the singlePrice is null, the singlePrice is fetched from the
+     *
      * @return untitPrice from the contract or - if null - from the packetDefinition
      */
     public BigDecimal getSolidSinglePrice() {
@@ -291,7 +294,7 @@ public class Contract extends BizEntity {
         price = this.getSinglePrice().getAmount();
         if (price == null) {
             Optional opti = oma.find(PackageDefinition.class, this.getPackageDefinition().getId());
-            if(opti.isPresent()) {
+            if (opti.isPresent()) {
                 PackageDefinition packageDefinition = (PackageDefinition) opti.get();
                 price = packageDefinition.getSinglePrice().getAmount();
                 this.setSinglePrice(Amount.of(price));
@@ -299,8 +302,6 @@ public class Contract extends BizEntity {
         }
         return price;
     }
-
-
 
     /**
      * checks the syntax of the given parameters
@@ -317,7 +318,8 @@ public class Contract extends BizEntity {
             if (!matcher.matches()) {
                 throw Exceptions.createHandled()
                                 .withNLSKey("woody.xrm.Contract.ParameterSyntaxError")
-                                .set("text", text).handle();
+                                .set("text", text)
+                                .handle();
             }
         }
         return;
@@ -331,21 +333,24 @@ public class Contract extends BizEntity {
         if (Strings.isEmpty(customerNr)) {
             throw Exceptions.createHandled()
                             .withNLSKey("woody.xrm.Contract.customerNrMissing")
-                            .set("value", company.getName()).handle();
+                            .set("value", company.getName())
+                            .handle();
         }
         try {
             int i = Integer.parseInt(customerNr);
 
             if (i <= 0) {
                 throw Exceptions.createHandled()
-                          .withNLSKey("woody.xrm.Contract.customerNrLessThanZero")
-                          .set("value", customerNr).handle();
+                                .withNLSKey("woody.xrm.Contract.customerNrLessThanZero")
+                                .set("value", customerNr)
+                                .handle();
             }
         } catch (NumberFormatException e) {
             throw Exceptions.createHandled()
-                            .withNLSKey("woody.xrm.Contract.customerError").set("value", customerNr).handle();
+                            .withNLSKey("woody.xrm.Contract.customerError")
+                            .set("value", customerNr)
+                            .handle();
         }
-
     }
 
     public EntityRef<Company> getCompany() {

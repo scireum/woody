@@ -8,11 +8,6 @@
 @args woody.xrm.Company company, String page
 @extends(view.wondergem.template.html, title: (company.toString()))
 
-@section(head) {
-
-<script src="/assets/wondergem/ace/ace.js" type="text/javascript"></script>
-}
-
 @section(breadcrumbs) {
     <li>
         <a href="@prefix/companies">@i18n("Company.plural")</a>
@@ -26,52 +21,35 @@
 
 <div class="row">
     @if (!company.isNew()) {
-    <div class="col-md-3">
-        @navbox() {
-            <li class="nav-header">@i18n("Model.details")</li>
-            <li>
-                Name: <b>@company.getName()</b>
-            </li>
-            <li>
-                Ort: @company.getAddress().getCity()
-            </li>
-            <li>
-                Nr.: @company.getCustomerNr()
-            </li>
+        <div class="col-md-3">
+            @navbox() {
+                <li class="nav-header">@i18n("Model.details")</li>
+                <li>
+                    Name: <b>@company.getName()</b>
+                </li>
+                <li>
+                    Ort: @company.getAddress().getCity()
+                </li>
+                <li>
+                    Nr.: @company.getCustomerNr()
+                </li>
 
 
-            <li class="nav-header"></li>
-            <li @if(page == "details") { class="active" }>
-                <a href="@prefix/company/@company.getId()" class="link">
-                    <i class="icon-users"></i>@i18n("Model.details")
+                <li class="nav-header"></li>
+                <li @if(page == "details") { class="active" }>
+                    <a href="@prefix/company/@company.getId()" class="link">
+                        <i class="icon-users"></i>@i18n("Model.details")
+                    </a>
+                </li>
+                <li @if(page == "persons") { class="active" }>
+                <a href="@prefix/company/@company.getId()/persons" class="link">
+                    <i class="icon-users"></i>@i18n("Person.plural")
                 </a>
-            </li>
-            <li @if(page == "accounting") { class="active" }>
-                <a href="@prefix/company/@company.getId()/acc" class="link">
-                    <i class="icon-users"></i>@i18n("Model.accounting")
-                </a>
-             </li>
-            <li @if(page == "persons") { class="active" }>
-            <a href="@prefix/company/@company.getId()/persons" class="link">
-                <i class="icon-users"></i>@i18n("Person.plural")
-            </a>
-            </li>
-            <li @if(page == "contracts") { class="active" }>
-            <a href="@prefix/company/@company.getId()/contracts" class="link">
-                <i class="icon-users"></i>@i18n("Contract.plural")
-            </a>
-            </li>
+                </li>
+            }
 
-    </div>
-            <!--
-
-            @if(page == "details") {@includeExtensions("company-details", company, page)}
-            @if(page == "accounting") {@includeExtensions("company-accounting", company, page)}
-
-           }
-           -->
-        <a href="@prefix/companies" class="btn btn-block">@i18n("NLS.back")</a>
-    </div>
+            <a href="@prefix/companies" class="btn btn-block">@i18n("NLS.back")</a>
+        </div>
     }
     <div class="@if (company.isNew()) { col-md-12 } else { col-md-9 }">
         @render
