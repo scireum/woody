@@ -41,7 +41,7 @@ public class ProductController extends BizController {
                 PageHelper.withQuery(oma.select(Product.class).orderAsc(Product.NAME)).forCurrentTenant();
         ph.withContext(ctx);
         ph.withSearchFields(Product.NAME, Product.ID);
-        ctx.respondWith().template("view/xrm/products.html", ph.asPage());
+        ctx.respondWith().template("view/sales/products.html", ph.asPage());
     }
 
     @LoginRequired
@@ -49,7 +49,7 @@ public class ProductController extends BizController {
     @Routed("/product/:1")
     public void product(WebContext ctx, String productId) {
         Product product = productHandler(ctx, productId, false);
-        ctx.respondWith().template("view/xrm/product-details.html", product);
+        ctx.respondWith().template("view/sales/product-details.html", product);
     }
 
     @LoginRequired
@@ -57,7 +57,7 @@ public class ProductController extends BizController {
     @Routed("/packageDefinition/:1")
     public void packageDefinition(WebContext ctx, String packageDefinitionId) {
         PackageDefinition packageDefinition = packageDefinitionHandler(ctx, packageDefinitionId, false);
-        ctx.respondWith().template("view/xrm/packageDefinition-details.html", packageDefinition);
+        ctx.respondWith().template("view/sales/packageDefinition-details.html", packageDefinition);
     }
 
     @LoginRequired
@@ -74,7 +74,7 @@ public class ProductController extends BizController {
         Optional oproduct = oma.find(Product.class, productId);
         Product product = (Product) oproduct.get();
         currentProduct = product;
-        ctx.respondWith().template("view/xrm/product-packageDefinitions.html", ph.asPage());
+        ctx.respondWith().template("view/sales/product-packageDefinitions.html", ph.asPage());
     }
 
     private Product currentProduct;

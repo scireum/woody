@@ -5,8 +5,8 @@
 *  Copyright by scireum GmbH
 *  http://www.scireum.de - info@scireum.de
 *@
-@import woody.xrm.Product
-@import woody.xrm.PackageDefinition
+@import woody.sales.Product
+@import woody.sales.PackageDefinition
 @args Page packageDefinitions
 @extends(view.wondergem.template.html, title: NLS.get("PackageDefinition.plural"))
 
@@ -30,7 +30,7 @@
                 <span class="muted">@i18n("PackageDefinition.product")</span>
             </th>
             <th>
-                @i18n("PackageDefinition.packetType")
+                @i18n("PackageDefinition.paketType")
             </th>
             <th>
                 @i18n("PackageDefinition.accountingUnit")
@@ -52,15 +52,15 @@
                 <span class="muted">@packageDefinition.getProduct().getValue().getName()</span>
             </td>
             <td>
-                @packageDefinition.getPacketType()
+                 @codeLists.getValue("pakettype", packageDefinition.getPaketType())
             </td>
             <td>
-                @packageDefinition.getAccountingUnit()
+                @codeLists.getValue("accountingUnit", packageDefinition.getAccountingUnit())
             </td>
-            <td>
+            <td align = "right">
                 @NLS.toUserString(packageDefinition.getSinglePrice() )
             </td>
-            <td>
+            <td  align = "right">
                 @NLS.toUserString(packageDefinition.getUnitPrice() )
             </td>
             <td class="col-md-2 align-center">

@@ -6,9 +6,9 @@
 *  http://www.scireum.de - info@scireum.de
 *  ??? @includeExtensions("view-company-details", company)
 *@
-@import woody.xrm.PackageDefinition
-@args PackageDefinition packageDefinition, woody.xrm.ProductController controller
-@extends(view.xrm.packageDefinition.html, packageDefinition, "details")
+@import woody.sales.PackageDefinition
+@args PackageDefinition packageDefinition, woody.sales.ProductController controller
+@extends(view.sales.packageDefinition.html, packageDefinition, "details")
 
 
 @editForm(("packageDefinition/" + packageDefinition.getIdAsString())) {
@@ -18,13 +18,17 @@
         labelKey: "PackageDefinition.name",
         required: true)
 
-        @codelistSelect(list:     "packettype",
-        value:    ppackageDefinition.getPacketType(),
-        labelKey: "PackageDefinition.packetType")
+        @codelistSelect(list:     "pakettype",
+        value:    packageDefinition.getPaketType(),
+        labelKey: "PackageDefinition.paketType")
 
-        @textfield(name:     "accountingUnit",
-        value:    packageDefinition.getAccountingUnit().toString(),
+        @codelistSelect(list:     "accountingUnit",
+        value:    packageDefinition.getAccountingUnit(),
         labelKey: "PackageDefinition.accountingUnit")
+
+        @codelistSelect(list:     "accountingProcedure",
+        value:    packageDefinition.getAccountingProcedure(),
+        labelKey: "PackageDefinition.accountingProcedure")
 
         @textfield(name:     "singlePrice",
         value:    NLS.toUserString(packageDefinition.getSinglePrice()),
@@ -39,7 +43,7 @@
         labelKey: "PackageDefinition.defaultPosition")
 
         @textarea(name:     "description",
-        value:    packageDefinition.getPacketType(),
+        value:    packageDefinition.getDescription(),
         labelKey: "PackageDefinition.description")
 
         @textarea(name:     "parameter",

@@ -6,13 +6,13 @@
 *  http://www.scireum.de - info@scireum.de
 *  ??? @includeExtensions("view-company-details", company)
 *@
-@import woody.xrm.Contract
-@import woody.xrm.AccountingIntervalType
-@import woody.xrm.PackageDefinition
-@import woody.xrm.Product
-@import woody.xrm.ContractSinglePriceType
+@import woody.sales.Contract
+@import woody.sales.AccountingIntervalType
+@import woody.sales.PackageDefinition
+@import woody.sales.Product
+@import woody.sales.ContractSinglePriceType
 @args Contract contract, List<PackageDefinition> pdList, woody.xrm.CompanyController controller
-@extends(view.xrm.contract.html, contract, "details")
+@extends(view.sales.contract.html, contract, "details")
 
 
 @editForm(("contract/" + contract.getIdAsString())) {

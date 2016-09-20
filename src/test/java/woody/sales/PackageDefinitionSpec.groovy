@@ -41,10 +41,10 @@ class PackageDefinitionSpec extends BaseSpecification {
         pd.getProduct().setValue(p);
         pd.setName("<PaketDef1_Product2>");
         pd.setDescription("this is packetDefinition 1 of the product 2");
-        pd.setAccountingProcedure(AccountingProcedure.RIVAL);
-        pd.setAccountingUnit(AccountingUnitType.MONTH);
+        pd.setAccountingProcedure(PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL);
+        pd.setAccountingUnit(PackageDefinition.ACCOUNTINGUNIT_MONTH);
         pd.setDefaultPosition(10);
-        pd.setPacketType(PacketType.STANDARD);
+        pd.setPacketType(PackageDefinition.PAKETTYPE_STANDARD);
         pd.setUnitPrice(Amount.of(500D));
         pd.setSinglePrice(Amount.of(0D));
         oma.update(pd);

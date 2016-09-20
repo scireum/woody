@@ -6,8 +6,8 @@
 *  http://www.scireum.de - info@scireum.de
 *@
 @import woody.xrm.Company
-@import woody.xrm.Contract
-@args Page contracts
+@import woody.sales.Contract
+@args Company company, Page contracts, String suggestions
 @extends(view.wondergem.template.html, title: NLS.get("Contract.plural"))
 
 @section(breadcrumbs) {
@@ -71,7 +71,7 @@
             </td>
             <td>
                 @if(contract.getEndDate() == null) {offen} else
-                    {NLS.toUserString(contract.getEndDate())}
+                    {@NLS.toUserString(contract.getEndDate())}
             </td>
             <td>
                 @contract.getCompany().getValue().getName()

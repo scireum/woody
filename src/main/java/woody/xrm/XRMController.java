@@ -27,6 +27,7 @@ import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import sirius.web.services.JSONStructuredOutput;
 import woody.core.tags.Tagged;
+import woody.sales.Contract;
 
 import java.util.Optional;
 
@@ -149,8 +150,45 @@ public class XRMController extends BizController {
 
     @LoginRequired
     @Permission(MANAGE_XRM)
+    @Routed("/company/:1/contracts")
+    public void companyContracts(WebContext ctx, String companyId) {
+        Company company = findForTenant(Company.class, companyId);
+        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+        SmartQuery<Contract> query = oma.select(Contract.class)
+                                      .eq(Contract.COMPANY, company)
+                                      .orderAsc(Contract.ACCOUNTINGGROUP)
+                                      .orderAsc(Contract.STARTDATE);
+
+        Tagged.applyTagSuggestions(Contract.class, search, query);
+        PageHelper<Contract> ph = PageHelper.withQuery(query);
+        ph.withContext(ctx);
+        ctx.respondWith()
+           .template("view/sales/company-contracts.html", company, ph.asPage(), search.getSuggestionsString());
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/contracts")
+    // ToDo: Wofür ist dieser Code? - Analog zur Methode persons
+    public void contracts(WebContext ctx) {
+        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+        SmartQuery<Contract> query = oma.select(Contract.class)
+                                      .fields(Contract.COMPANY.join(Company.ID))
+                                      .eq(Contract.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
+                                      .orderAsc(Contract.STARTDATE)
+                                      .orderAsc(Contract.ENDDATE);
+
+        Tagged.applyTagSuggestions(Contract.class, search, query);
+        PageHelper<Contract> ph = PageHelper.withQuery(query);
+        ph.withContext(ctx);
+        ctx.respondWith().template("view/sales/contract.html", ph.asPage(), search.getSuggestionsString());
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
     @Routed("/persons")
     public void persons(WebContext ctx) {
+        // ToDo: Wofür ist dieser Code?
         MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Person> query = oma.select(Person.class)
                                       .fields(Person.ID,
@@ -182,7 +220,7 @@ public class XRMController extends BizController {
     @LoginRequired
     @Permission(MANAGE_XRM)
     @Routed("/company/:1/person/:2/delete")
-    public void deletePerson(WebContext ctx, String companyId, String personId) {//TODO
+    public void deletePerson(WebContext ctx, String companyId, String personId) {//TODO ???
         Optional<Person> person = tryFind(Person.class, personId);
         if (person.isPresent()) {
             assertTenant(person.get().getCompany().getValue());
