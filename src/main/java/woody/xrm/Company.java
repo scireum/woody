@@ -13,13 +13,19 @@ import sirius.biz.model.ContactData;
 import sirius.biz.tenants.TenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
+import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
+import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.Part;
+import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
+import sirius.web.mails.Mails;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
+import woody.sales.Contract;
 
 /**
  * Created by aha on 06.10.15.
@@ -79,6 +85,20 @@ public class Company extends TenantAware {
     private final ContactData contactData = new ContactData(true);
     public static final Column CONTACTDATA = Column.named("contactData");
 
+    // TODO mit aha verifiziern: hier oder wo anders?
+
+    @NullAllowed
+    @Autoloaded
+    @Length(50)
+    private String mainPhoneNr;
+    public static final Column MAINPHONENR = Column.named("mainPhoneNr");
+
+    @NullAllowed
+    @Autoloaded
+    @Length(50)
+    private String mainMailAddress;
+    public static final Column MAINMAILADDRESS = Column.named("mainMailAddress");
+
     private final Tagged tags = new Tagged(this);
     public static final Column TAGS = Column.named("tags");
 
@@ -93,6 +113,84 @@ public class Company extends TenantAware {
             return super.toString();
         }
     }
+
+
+    @Part
+    private static Mails mails;
+
+
+    @BeforeSave
+    protected void onSave() {
+        // check the presence of a customer-number if contracts are existing
+        long count = oma.select(Contract.class).eq(Contract.COMPANY, this).count();
+        if (count > 0 && Strings.isEmpty(customerNr)) {
+            throw Exceptions.createHandled()
+                            .withNLSKey("Company.ContractsArePresent.CustomerNrIsMissing")
+                            .handle();
+        }
+        this.setMainPhoneNr(normalizePhoneNumber(this.getMainPhoneNr()));
+
+        //check the mainMailAddress
+        if(Strings.isFilled(this.getMainMailAddress())) {
+            // mimimal: a.b
+            if (this.getMainMailAddress().length() < 3) {
+                throw Exceptions.createHandled()
+                                .withNLSKey("Model.mainMailAddressToShort")
+                                .set("value", this.getMainMailAddress())
+                                .handle();
+            } else {
+                // cut out the @   aa@bbbbb.cc ---> bbbbb.cc
+                int pos = this.getMainMailAddress().indexOf("@");
+                if (pos > -1) {
+                    this.setMainPhoneNr(this.getMainMailAddress().substring(pos + 1));
+                }
+                // check the presence of the "."
+                pos = this.getMainMailAddress().indexOf(".");
+                // missing   or  at the last index
+                if(pos == -1 || pos == this.getMainMailAddress().length() - 1) {
+                    throw Exceptions.createHandled()
+                                    .withNLSKey("Model.mainMailAddressError")
+                                    .set("value", this.getMainMailAddress())
+                                    .handle();
+
+                }
+            }
+        }
+
+    }
+
+    private String normalizePhoneNumber(String number) {
+        if(Strings.isFilled(number)) {
+
+            number = number.replace(" ", "");
+            // (0) am Anfang durch 0 ersetzen
+            if(number.startsWith("(0)")) {
+                number = "0" + number.substring(3);
+            }
+            // (0 nach +49 o.ä. weglöschen
+            number = number.replace("(0", "");
+            // Aus +49 0049 machen
+            number = number.replace("+", "00");
+            // Alles außer Ziffern kommt raus.
+            number = number.replaceAll("[^\\d]", "");
+            // Ohne Ländervorwahl ist es Deutschland
+            if(number.startsWith("0") && !number.startsWith("00")) {
+                number = "0049" + number.substring(1);
+            }
+
+            // set "000" to "00"
+
+            for(int i=0; i<number.length()-1; i++)   {
+                if(!(number.substring(i, i+1).equals("0"))) {
+                    number = "00" + number.substring(i);
+                    break;
+                }
+            }
+
+        }
+        return number;
+    }
+
 
     public String getName() {
         return name;
@@ -160,5 +258,21 @@ public class Company extends TenantAware {
 
     public ContactData getContactData() {
         return contactData;
+    }
+
+    public String getMainPhoneNr() {
+        return mainPhoneNr;
+    }
+
+    public void setMainPhoneNr(String mainPhoneNr) {
+        this.mainPhoneNr = mainPhoneNr;
+    }
+
+    public String getMainMailAddress() {
+        return mainMailAddress;
+    }
+
+    public void setMainMailAddress(String mainMailAddress) {
+        this.mainMailAddress = mainMailAddress;
     }
 }
