@@ -23,11 +23,14 @@ import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
+import woody.BusinessException;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -181,7 +184,7 @@ public class Contract extends BizEntity {
     private static OMA oma;
 
     @BeforeSave
-    protected void onSave() {
+    protected void onSave() throws BusinessException {
         //completeParameter(this);
         checkParameterSyntax(this.getParameter());
         // check the customerNr of the company, because the customerNr is needed to account the contract
@@ -259,6 +262,52 @@ public class Contract extends BizEntity {
             if (getDescriptor().isChanged(this, getDescriptor().getProperty(PACKAGEDEFINITION))) {
                 int ggg = 1;
                 throw Exceptions.createHandled().withNLSKey("woody.xrm.Contract.noPackageDefinitionChange").handle();
+            }
+        }
+
+        List<Contract> contractList = oma
+                .select(Contract.class)
+                .eq(Contract.COMPANY, company)
+                .eq(Contract.ACCOUNTINGGROUP, accountingGroup)
+                .eq(Column.named(Contract.PACKAGEDEFINITION + "."
+                                 + PackageDefinition.PRODUCT), packageDefinition.getValue().getProduct())
+                .eq(Column.named(Contract.PACKAGEDEFINITION + "." + PackageDefinition.ACCOUNTINGPROCEDURE),
+                    PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL)
+                .orderAsc(Contract.STARTDATE).queryList();
+
+        if(isNew()) {
+            contractList.add(this);
+        } else {
+            List<Contract> contractList2 = new ArrayList<Contract>();
+            for(Contract c : contractList) {
+                contractList2.add(c);
+            }
+            for(Contract c: contractList2) {
+                if(c.getId() != this.getId()) {
+                    contractList.add(c);
+                } else {
+                    contractList.add(this);
+                }
+            }
+        }
+        try {
+            checkContractIsSingle(contractList);
+        } catch (BusinessException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void checkContractIsSingle(List<Contract> contractList) throws BusinessException {
+        if(contractList.size() == 1)     {return;}
+        for (int i=1; i<contractList.size(); i++) {
+            Contract c1 = contractList.get(i);
+            Contract c0 = contractList.get(i-1);
+            if(c0.getEndDate() == null) {
+                throw new BusinessException("Das Ende-Datum des abgelaufenen Vertrages "+c0.toString() + " fehlt.");
+            }
+            if(c1.getStartDate().isBefore(c0.getEndDate())) {
+                throw new BusinessException("Das Start-Datum des neuen Vertrages "+c1.toString() + " liegt vor dem Ende-Datum des abgelaufenen Vertrages " +c0.toString() + ".");
             }
         }
     }

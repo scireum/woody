@@ -91,7 +91,6 @@ public class AccountingServiceBean {
         }
 
         // create a interim-lineitem-List
-        // alte Lösung
         DataCollector<Lineitem> itemCollector = new DataCollector<Lineitem>() {
             @Override
             public void add(Lineitem entity) {
@@ -138,8 +137,7 @@ public class AccountingServiceBean {
                 }
             }
             // Step2: search for all different accountingGroups of this company
-            // and store them
-            // into the accGroupList
+            // and store them into the accGroupList
             List<Contract> contractListAll = oma
                     .select(Contract.class)
                     .eq(Contract.COMPANY, company)
@@ -184,8 +182,7 @@ public class AccountingServiceBean {
                         List<ContractToDos<Contract, Contract, Contract, Integer>> toDoList = checkContractList(contractList, referenceDate);
                         if (toDoList.size() > 0) {
                             // Step5: process the toDoList
-                            // listen! the InvoiceNr is a virtual invoiceNr for
-                            // collmex
+                            // listen! the InvoiceNr is a virtual invoiceNr for collmex.
                             // all invoiceNr are negative and a new invoiceNr is
                             // a new "smaller" negative number!
                             if (companyInvoiceNr != invoiceNr) {
@@ -205,8 +202,7 @@ public class AccountingServiceBean {
                     }
 
                     // Step6:look for volume-licences
-                    contractList = oma
-                            .select(Contract.class)
+                    contractList = oma.select(Contract.class)
                             .eq(Contract.COMPANY, company)
                             .eq(Contract.ACCOUNTINGGROUP, accGrp)
                             .eq(Column.named(
@@ -235,8 +231,6 @@ public class AccountingServiceBean {
             }
         }
 
-
-
         // build a activity-news
         double summe = 0D;
         int counter = 0;
@@ -258,15 +252,16 @@ public class AccountingServiceBean {
         } else {
             prodUmsatz = Amount.of(summe);
         }
-        // ToDo Meldung ausgeben
+
+        String text = MessageFormat.format(
+                "Lizenz-Abrechnung zum ReferenzDatum {0} im Modus {1} erstellt, {2} Rechnungspositionen, Netto-Umsatz: {3} EUR",
+                 NLS.toUserString(referenceDate),  dryRun == true ? "Test" : "Produktiv", NLS.toUserString(counter),
+                 NLS.toUserString(summe));
+        System.err.println(text);
+                // ToDo Meldung ausgeben
 //            ss.forBackendStream(
 //                    DisplayMarkdownFactory.FACTORY_NAME,
-//                    "Lizenz-Abrechnung",
-//                    MessageFormat
-//                            .format("Lizenz-Abrechnung zum ReferenzDatum {0} im Modus {1} erstellt, {2} Rechnungspositionen, Netto-Umsatz: {3} EUR",
-//                                    NLS.toUserString(referenceDate),
-//                                    dryRun == true ? "Test" : "Produktiv", NLS.toUserString(counter),
-//                                    NLS.toUserString(summe)))
+//                    "Lizenz-Abrechnung",  text)
 //              .loginRequired(true).setUser(Users.getCurrentUser()).publish();
 
         accountingDate = LocalDate.now();
@@ -836,7 +831,7 @@ public class AccountingServiceBean {
          * 02.3.2011 --> months = 1 start: 1.3.2011, next: 01.4.2011 --> months = 1
          * start: 1.3.2011, next: 02.4.2011 --> months = 2
          */
-
+    // ToDO: testen
     private int calculateMonths(LocalDate start, LocalDate next) {
         int startMonth = start.getMonthValue();
         int startYear = start.getYear();
@@ -870,13 +865,14 @@ public class AccountingServiceBean {
         private void processCommand(DataCollector<Lineitem> itemCollector,
                                     boolean dryRun, LocalDate referenceDate, Command command, Contract c0,
                                     Contract c1, Contract c2, Long invoiceNr) throws BusinessException {
-            boolean save = true;
+            boolean save = false;
             switch (command) {
                 case NEW_CONTRACT:    // Case 1, F1
                     LocalDate nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
                                          nextAccTo, INVOICE, referenceDate,
                                          AccountingServiceBean.NEWACCOUNTING, invoiceNr);
+                    save = true;
                     break;
                 case ACC_IS_PRESSENT_TO_IS_NULL:      // Case 1, F2
                     nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
@@ -889,9 +885,10 @@ public class AccountingServiceBean {
                         c1 = accountContract(itemCollector, dryRun, c1,
                                              from, nextAccTo, INVOICE, referenceDate,
                                              AccountingServiceBean.RUNNINGACCOUNTING, invoiceNr);
-                    } else {
-                        // because there is no accounting check the contractSinglePriceState
-                        checkContractSinglePriceState(c1);
+                        save = true;
+//                    } else {
+//                        // because there is no accounting check the contractSinglePriceState
+//                        checkContractSinglePriceState(c1);
                     }
                     break;
                 case TO_IS_PRESENT_ACC_IS_NULL:   // case 1, F3
@@ -899,9 +896,9 @@ public class AccountingServiceBean {
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
                                          nextAccTo, INVOICE, referenceDate,
                                          AccountingServiceBean.RUNNINGACCOUNTING, invoiceNr);
+                    save = true;
                     break;
                 case FINISHED_CONTRACT: // case 1, F4, finished contract, do nothing
-                    save = false;
                     break;
                 case ACC_IS_BEFORE_TO:  // case 1, F5
                     if (c1.getAccountedTo().isBefore(referenceDate)) {  // 17.1.2016: no accounting if accountedTo > referenceDate
@@ -911,23 +908,25 @@ public class AccountingServiceBean {
                                              c1.getAccountedTo(), nextAccTo, INVOICE,               // 17.2.2016
                                              referenceDate, AccountingServiceBean.RUNNINGACCOUNTING,
                                              invoiceNr);
-                    } else {
-                        // because there is no accounting check the contractSinglePriceState
-                        checkContractSinglePriceState(c1);
+                        save = true;
+//                    } else {
+//                        // because there is no accounting check the contractSinglePriceState
+//                        checkContractSinglePriceState(c1);
                     }
                     break;
                 case ACC_IS_AFTER_TO: // case 1, F6
                     if(c1.getEndDate() != null) {
                         // 16.2.2016: No accounting if the referenceDate < endDate
                         if(referenceDate.isBefore(c1.getEndDate())) {
-                            save = false;
                             break;
                         }
                     }
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getEndDate(),
                                          c1.getAccountedTo(), CREDIT, referenceDate,
                                          AccountingServiceBean.CREDITACCOUNTING, invoiceNr);
+                    save = true;
                     break;
+/* -------------------------------------------------------------------------------------------------------------------
                 case ACC_IS_NULL_TO_IS_NULL:  // case 2, F7
                     if (c2 != null) {
                         c1.setEndDate(c2.getStartDate());
@@ -1016,6 +1015,7 @@ public class AccountingServiceBean {
                         checkContractSinglePriceState(c1);
                     }
                     break;
+*/
             }
 
             if (!dryRun && save) {
@@ -1107,7 +1107,8 @@ public class AccountingServiceBean {
          * FINISHED_CONTRACT,          F4: from---c1---acc-to:		acc = to: the contract is accounted to "to" --> do nothing
          * ACC_IS_BEFORE_TO,           F5: from---c1---acc----to:	acc < to: INVOICE   from = acc, to = to --> from---c1---nacc----to, nacc = to "Abrechnung des Pakets"
          * ACC_IS_AFTER_TO,            F6: from---c1---to----acc:	acc > to: CREDIT  from = to, to = acc --> from---c1---nacc----to nacc = to "Gutschrift für das Paket"
-         *
+         * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+         * Not in woody implemented!
          * CASE2: two contracts are concerned
          * ACC_IS_NULL_TO_IS_NULL,               F7: from---c1---null---null: c1.INVOICE, c1.from ---> c2.from
          *                                                            from---c2---null---null: c2.INVOICE, c2.from ---> c2.nextAccTo
@@ -1139,109 +1140,120 @@ public class AccountingServiceBean {
         private List<ContractToDos<Contract, Contract, Contract, Integer>> checkContractList(
                 List<Contract> contractList, LocalDate referenceDate) {
             List<ContractToDos<Contract, Contract, Contract, Integer>> toDoList = new ArrayList<ContractToDos<Contract, Contract, Contract, Integer>>();
-            Command command;
-            if (contractList.size() == 1) {// Only one contract
-                Contract c = contractList.get(0);
-                command = analyzeContract(c, referenceDate);
-                if (command != Command.FINISHED_CONTRACT && command != Command.NOTHING) {
-                    ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                            null, c, null, command);
-                    toDoList.add(toDo);
-                }
-            } else { // multiple contracts
-                for (int i = 0; i < contractList.size(); i++) {
-                    int k = i + 1;
-                    int m = i - 1;
-                    Contract c1 = contractList.get(i);
-                    Contract c0 = null;
-                    Contract c2 = null;
-                    if (k < contractList.size()) {
-                        c2 = contractList.get(k);
-                    }
-                    if (m >= 0) {
-                        c0 = contractList.get(m);
-                    }
-                    Command command1 = analyzeContract(c1, referenceDate);
-                    if (command1 == Command.NOTHING) {
-                        continue;
-                    }
-                    if (command1 == Command.FINISHED_CONTRACT) {
-                        continue;
-                    }
-                    if (command1 == Command.NEW_CONTRACT) {
-                        ContractToDos<Contract, Contract, Contract, Integer> toDo = null;
-                        if (i == 0) {
-                            toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                    c0, c1, c2, Command.NEW_CONTRACT);
-                        } else {
-                            toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                    c0, c1, c2, Command.ACC_IS_NULL_TO_IS_NULL);
-                        }
-                        toDoList.add(toDo);
-                    }
-                    if (command1 == Command.ACC_IS_PRESSENT_TO_IS_NULL) {
-                        if (c2 != null) {
-                            if (c2.getStartDate().isBefore(c1.getAccountedTo())) {
-                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                        c0, c1, c2,
-                                        Command.ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC);
-                                toDoList.add(toDo);
-                            } else {
-                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                        c0, c1, c2,
-                                        Command.ACC_IS_PRESENT_CONTRACT2_AFTER_ACC);
-                                toDoList.add(toDo);
-                            }
-                        } else { // c2 == null
-                            ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                    c0, c1, c2, Command.ACC_IS_PRESSENT_TO_IS_NULL);
-                            toDoList.add(toDo);
 
-                        }
-                    }
-                    if (command1 == Command.TO_IS_PRESENT_ACC_IS_NULL) {
-                        ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                c0, c1, c2, Command.ACC_IS_NULL_TO_IS_PRESENT);
-                        toDoList.add(toDo);
-                    }
-                    if (command1 == Command.ACC_IS_BEFORE_TO) {
-                        ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                c0, c1, c2,
-                                Command.ACC_IS_PRESENT_CONTRACT2_AFTER_ACC);
-                        toDoList.add(toDo);
-                    }
-                    if (command1 == Command.ACC_IS_AFTER_TO) {
-                        if(c2 != null) {
-                            if (c1.getEndDate().isBefore(c2.getStartDate())) {    // are the contacts in touch?
-                                //not in touch, there is a gap between the contracts
-                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                        c0, c1, c2,
-                                        Command.ACC_IS_AFTER_TO);
-                                toDoList.add(toDo);
-                            } else {
-                                // the contracts are in touch
-                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                        c0, c1, c2,
-                                        Command.ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC);
-                                toDoList.add(toDo);
-                            }
-                        }
-                        if(c0 != null ){ // 17.2.2016
-                            ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-                                    c0, c1, c2,
-                                    Command.ACC_IS_AFTER_TO);
-                            toDoList.add(toDo);
-
-                        }
-                    }
-
-                }
+            for (Contract c : contractList) {
+                Command command = analyzeContract(c, referenceDate);
+                ContractToDos<Contract, Contract, Contract, Integer> toDo =
+                        new ContractToDos<Contract, Contract, Contract, Integer>(null, c, null, command);
+                toDoList.add(toDo);
             }
+// alte Lösung
+//            Command command;
+//            if (contractList.size() == 1) {// Only one contract
+//                Contract c = contractList.get(0);
+//                command = analyzeContract(c, referenceDate);
+//                if (command != Command.FINISHED_CONTRACT && command != Command.NOTHING) {
+//                    ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                            null, c, null, command);
+//                    toDoList.add(toDo);
+//                }
+//            } else {
+                // TODO: noch notwendig? klären
+                // multiple contracts
+//                for (int i = 0; i < contractList.size(); i++) {
+//                    int k = i + 1;
+//                    int m = i - 1;
+//                    Contract c1 = contractList.get(i);
+//                    Contract c0 = null;
+//                    Contract c2 = null;
+//                    if (k < contractList.size()) {
+//                        c2 = contractList.get(k);
+//                    }
+//                    if (m >= 0) {
+//                        c0 = contractList.get(m);
+//                    }
+//                    Command command1 = analyzeContract(c1, referenceDate);
+//                    if (command1 == Command.NOTHING) {
+//                        continue;
+//                    }
+//                    if (command1 == Command.FINISHED_CONTRACT) {
+//                        continue;
+//                    }
+//                    if (command1 == Command.NEW_CONTRACT) {
+//                        ContractToDos<Contract, Contract, Contract, Integer> toDo = null;
+//                        if (i == 0) {
+//                            toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                    c0, c1, c2, Command.NEW_CONTRACT);
+//                        } else {
+//                            toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                    c0, c1, c2, Command.ACC_IS_NULL_TO_IS_NULL);
+//                        }
+//                        toDoList.add(toDo);
+//                    }
+//                    if (command1 == Command.ACC_IS_PRESSENT_TO_IS_NULL) {
+//                        if (c2 != null) {
+//                            if (c2.getStartDate().isBefore(c1.getAccountedTo())) {
+//                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                        c0, c1, c2,
+//                                        Command.ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC);
+//                                toDoList.add(toDo);
+//                            } else {
+//                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                        c0, c1, c2,
+//                                        Command.ACC_IS_PRESENT_CONTRACT2_AFTER_ACC);
+//                                toDoList.add(toDo);
+//                            }
+//                        } else { // c2 == null
+//                            ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                    c0, c1, c2, Command.ACC_IS_PRESSENT_TO_IS_NULL);
+//                            toDoList.add(toDo);
+//
+//                        }
+//                    }
+//                    if (command1 == Command.TO_IS_PRESENT_ACC_IS_NULL) {
+//                        ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                c0, c1, c2, Command.ACC_IS_NULL_TO_IS_PRESENT);
+//                        toDoList.add(toDo);
+//                    }
+//                    if (command1 == Command.ACC_IS_BEFORE_TO) {
+//                        ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                c0, c1, c2,
+//                                Command.ACC_IS_PRESENT_CONTRACT2_AFTER_ACC);
+//                        toDoList.add(toDo);
+//                    }
+//                    if (command1 == Command.ACC_IS_AFTER_TO) {
+//                        if(c2 != null) {
+//                            if (c1.getEndDate().isBefore(c2.getStartDate())) {    // are the contacts in touch?
+//                                //not in touch, there is a gap between the contracts
+//                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                        c0, c1, c2,
+//                                        Command.ACC_IS_AFTER_TO);
+//                                toDoList.add(toDo);
+//                            } else {
+//                                // the contracts are in touch
+//                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                        c0, c1, c2,
+//                                        Command.ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC);
+//                                toDoList.add(toDo);
+//                            }
+//                        }
+//                        if(c0 != null ){ // 17.2.2016
+//                            ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
+//                                    c0, c1, c2,
+//                                    Command.ACC_IS_AFTER_TO);
+//                            toDoList.add(toDo);
+//
+//                        }
+//                    }
+//
+//                }
+//            }
             return toDoList;
         }
 
-        /**
-         * analyzes the given contract and calculates a command fpr accounting this contract.
+
+    /**
+         * analyzes the given contract and calculates a command for accounting this contract.
          */
         private Command analyzeContract(Contract c, LocalDate referenceDate) {
             if (c == null) {
@@ -1264,7 +1276,7 @@ public class AccountingServiceBean {
                         return Command.NOTHING;
                     }
                     if (c.getAccountedTo().isBefore(c.getEndDate())) {
-                        command = Command.ACC_IS_BEFORE_TO; // acc < to
+                        command = Command.ACC_IS_BEFORE_TO; // acc < to --> INVOICE
                     } else {
                         command = Command.ACC_IS_AFTER_TO; // acc > to -->CREDIT
                     }
@@ -1880,7 +1892,7 @@ public class AccountingServiceBean {
         }
 
 //        @Override
-    // toDO klären, ob das noch gebraucht wird
+    // toDO klären, ob das noch gebraucht wird. Hinweis: eher nicht. im CRM keine Nutzanwendung
 //        public List<Lineitem> getLineitems() {
 //
 //            if (lineitemList == null) {
@@ -1893,7 +1905,7 @@ public class AccountingServiceBean {
 //            return lineitemList;
 //        }
 
-    // TODO: Migrieren
+    // TODO: Migrieren? Hinweis: list wird im CRM nur vom ocm.fs.VFile verwendet
 //        @Override
 //        public void list(VFile parent, ChildCollector collector) {
 //            collector.add(new DirectoryWrapper(parent, "SYS", Path.getPath(
