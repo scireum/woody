@@ -16,7 +16,9 @@ import sirius.biz.web.BizController;
 import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
+import sirius.kernel.commons.DataCollector;
 import sirius.kernel.di.std.Framework;
+import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
 import sirius.web.controller.DefaultRoute;
@@ -26,9 +28,13 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import sirius.web.services.JSONStructuredOutput;
+import woody.BusinessException;
 import woody.core.tags.Tagged;
 import woody.sales.Contract;
+import woody.sales.AccountingServiceBean;
+import woody.sales.Lineitem;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 /**
@@ -39,6 +45,27 @@ import java.util.Optional;
 public class XRMController extends BizController {
 
     private static final String MANAGE_XRM = "permission-manage-xrm";
+
+    @Part
+    private AccountingServiceBean asb;
+
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/licenceAccounting")
+    public void licenceAccounting(WebContext ctx) {
+        LocalDate referenceDate = LocalDate.of(2017,1,4);
+        boolean dryRun = true;
+        boolean foreignCountry = false;
+        try {
+            DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
+                                                                             /*TaskMonitor monitor,*/ foreignCountry);
+            throw new BusinessException("Abrechnung fertig");
+        } catch (BusinessException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @DefaultRoute
     @LoginRequired

@@ -8,6 +8,9 @@
 
 package woody.sales;
 
+import sirius.kernel.di.std.Register;
+
+
 import sirius.db.mixing.Column;
 import sirius.db.mixing.Constraint;
 import sirius.db.mixing.OMA;
@@ -15,6 +18,7 @@ import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.DataCollector;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
+import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.Formatter;
 import sirius.kernel.nls.NLS;
@@ -47,7 +51,8 @@ import java.util.Optional;
  * Created by gerhardhaufler on 18.09.16.
  */
 
-public class AccountingServiceBean {
+@Register(classes = AccountingServiceBean.class)
+public class AccountingServiceBean   {
     public static final String LINEITEM_PATH = "lineitemPath";
 
     public static final String NEWACCOUNTING = "newAccounting";
@@ -80,11 +85,14 @@ public class AccountingServiceBean {
 
     private static final String LINEITEMNAME = "lineitem.csv";
 
+//    @Override
+//    public DataCollector<Lineitem> accountAllContracts(final boolean dryRun, LocalDate referenceDate, Company givenCompany,
+//                                                       /*TaskMonitor monitor,*/ boolean foreignCountry) throws BusinessException {
 
-    public DataCollector<Lineitem> accountAllContracts(final boolean dryRun, LocalDate referenceDate, Company givenCompany,
-                                                       /*TaskMonitor monitor,*/ boolean foreignCountry) throws BusinessException {
+    public DataCollector<Lineitem> accountAllContracts(boolean dryRun,LocalDate referenceDate,Company givenCompany,
+    boolean foreignCountry) throws BusinessException {
 
-        if (referenceDate == null) {
+            if (referenceDate == null) {
             throw Exceptions.createHandled()
                             .withNLSKey("AccountingServiceBean.referenceDateIsNull")
                             .handle();
@@ -119,11 +127,13 @@ public class AccountingServiceBean {
         Long invoiceNr = getMinInvoiceNr();
         // Step1: process the companyList
         int ggg = 0;
+        System.err.println("=========================================================") ;
         for (Company company : companyList) {
-//			System.err.println("Firma: " + company.getName());
+			System.err.println("Firma: " + company.getName());
+//            System.err.flush();      // bringt nichts
             String name = company.getName() ;
-            if (company.getName().startsWith("Testfirma14")) {
-//			if("10346".equals(company.getCustomerNr())) {
+//            if (company.getName().startsWith("Testfirma14")) {
+			if("10959".equals(company.getCustomerNr())) {
                 ggg = 1;
                 name = name +company.getName() ;
             }
@@ -168,11 +178,8 @@ public class AccountingServiceBean {
                             .select(Contract.class)
                             .eq(Contract.COMPANY, company)
                             .eq(Contract.ACCOUNTINGGROUP, accGrp)
-                            .eq(Column.named(Contract.PACKAGEDEFINITION + "."
-                                        + PackageDefinition.PRODUCT), product)
-                            .eq(Column.named(Contract.PACKAGEDEFINITION
-                                + "."
-                                + PackageDefinition.ACCOUNTINGPROCEDURE),
+                            .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.PRODUCT), product)
+                            .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.ACCOUNTINGPROCEDURE),
                                 PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL)
                             .orderAsc(Contract.STARTDATE).queryList();
 
@@ -205,9 +212,7 @@ public class AccountingServiceBean {
                     contractList = oma.select(Contract.class)
                             .eq(Contract.COMPANY, company)
                             .eq(Contract.ACCOUNTINGGROUP, accGrp)
-                            .eq(Column.named(
-                                Contract.PACKAGEDEFINITION + "."
-                                + PackageDefinition.PRODUCT), product)
+                            .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.PRODUCT), product)
                             .orderAsc(Contract.STARTDATE).queryList();
                     if(contractList.size() > 0) {
                         for (Contract contract : contractList) {
@@ -231,10 +236,12 @@ public class AccountingServiceBean {
             }
         }
 
+        System.err.println("=========================================================") ;
+
         // build a activity-news
         double summe = 0D;
         int counter = 0;
-
+        System.err.println("---------------------------------------------------------") ;
         for ( Lineitem lineitem : itemCollector.getData() ) {
             counter++;
             Double discount = lineitem.getPositionDiscount().getAmount().doubleValue();
@@ -246,7 +253,12 @@ public class AccountingServiceBean {
             Double quantity = lineitem.getQuantity().getAmount().doubleValue();
             Double amount = quantity * price;
             summe = summe + amount;
+            String text = lineitem.getCompanyName() + ";" + lineitem.getCustomerNr() + ";" + NLS.toUserString(amount);
+            text = text + ";" + lineitem.getPackageName() + ";" +  lineitem.getPositionType();
+            System.err.println(text);
         }
+
+        System.err.println("---------------------------------------------------------") ;
         if (dryRun) {
             testUmsatz = Amount.of(summe);
         } else {
@@ -461,7 +473,7 @@ public class AccountingServiceBean {
             // write a lineitem
             writeLineitem(itemCollector, contract, referenceDate, months,
                           lineitemPrice, description, "MON", contract
-                                  .getPackageDefinition().toString(), isCredit,
+                                  .getPackageDefinition().getValue().toString(), isCredit,
                           positionDiscount, discountAmount, invoiceNr);
             // set the new accountedTo-date
             if (paymentDirection == AccountingServiceBean.INVOICE) {
@@ -530,7 +542,7 @@ public class AccountingServiceBean {
             // account the single price for a rival contract
             writeLineitem(itemCollector, contract, referenceDate, 1, singlePrice,
                           MessageFormat.format("einmalige Einrichtungskosten für {0}",
-                                               contract.getPackageDefinition().toString()), "PCE",
+                                               contract.getPackageDefinition().getValue().toString()), "PCE",
                           contract.getPackageDefinition().toString(), false, Amount.ZERO, Amount.ZERO,
                           invoiceNr);
         }
@@ -553,8 +565,8 @@ public class AccountingServiceBean {
             writeLineitem(itemCollector, contract, referenceDate, amount,
                           singlePrice, MessageFormat.format(
                             "einmalige Kosten für {0} {1} {2}", amount, piece,
-                            contract.getPackageDefinition().toString()), "PCE",
-                          contract.getPackageDefinition().toString(), false, Amount.ZERO, Amount.ZERO,
+                            contract.getPackageDefinition().getValue().toString()), "PCE",
+                          contract.getPackageDefinition().getValue().toString(), false, Amount.ZERO, Amount.ZERO,
                           invoiceNr);
         }
 
@@ -654,7 +666,7 @@ public class AccountingServiceBean {
                 }
                 return Formatter
                         .create("${headline}. Ihr Ansprechpartner: ${contractPartner}. ${additionalInfos}Bisher abgerechnet: ${accountedTo} Gemäß dem Vertrag vom ${signingDate} ${stellen} wir ${quantityType} vom ${from} bis zum ${to} = ${months} Monate kostenlos bei.").set("headline", headlineMessage)
-                        .set("contractPartner", contract.getContractPartner())
+                        .set("contractPartner", contract.getContractPartner().getValue())
                         .setDirect("additionalInfos", additionalInfos, false)
                         .set("accountedTo", accToS)
                         .set("signingDate", contract.getSigningDate())
@@ -664,7 +676,7 @@ public class AccountingServiceBean {
             } else {
                 return Formatter
                         .create("${headline}. Ihr Ansprechpartner: ${contractPartner}. ${additionalInfos}Bisher abgerechnet: ${accountedTo} Gemäß dem Vertrag vom ${signingDate} ${paymentType} wir ${quantityType} vom ${from} bis zum ${to} = ${months} Monate  je ${unitPrice} EUR." ).set("headline", headlineMessage)
-                        .set("contractPartner", contract.getContractPartner())
+                        .set("contractPartner", contract.getContractPartner().getValue())
                         .setDirect("additionalInfos", additionalInfos, false)
                         .set("accountedTo", accToS)
                         .set("signingDate", contract.getSigningDate())
@@ -706,7 +718,7 @@ public class AccountingServiceBean {
                 }
 
             }
-            return headlineText + " " + contract.getPackageDefinition().toString();
+            return headlineText + " " + contract.getPackageDefinition().getValue().toString();
         }
 
         /**
@@ -838,7 +850,7 @@ public class AccountingServiceBean {
         int nextMonth = next.getMonthValue();
         int nextYear = next.getYear();
         int nextInt = nextYear * 12 + nextMonth;
-        int startInt = startYear * 12 + startYear;
+        int startInt = startYear * 12 + startMonth;
         int months = nextInt - startInt;
         if(next.getDayOfMonth() > start.getDayOfMonth())  {
             months = months + 1;
@@ -2122,8 +2134,8 @@ public class AccountingServiceBean {
                 if (contract.getId() != givenContract.getId()) {
                     // check only rival contracts (Task #5710)
                     if (PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL.equals(contract
-                                                                 .getPackageDefinition().getValue().getAccountingProcedure())) {
-                        if (product.equals(contract.getPackageDefinition().getValue().getProduct())) {
+                                     .getPackageDefinition().getValue().getAccountingProcedure())) {
+                        if (product.equals(contract.getPackageDefinition().getValue().getProduct().getValue())) {
                             switch (mode) {
                                 case AccountingServiceBean.COUNT_CONTRACTS_WITHOUT_THIS_CONTRACT:
                                     count++;
@@ -2234,6 +2246,12 @@ public class AccountingServiceBean {
             pw.println(sb.toString());
 
         }
+
+
+
+
+
+
 
 	/*   19.2.2016 alte Version, stillgelegt
 

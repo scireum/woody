@@ -56,9 +56,13 @@
             <td>
                 @if(contract.getQuantity() == null) {1} else {@contract.getQuantity()}
             </td>
-            <td>
+@*            <td>
                 <a class="link" href="@prefix/contract/@contract.getId()">@contract.getPackageDefinition().getValue().getName()</a>
             </td>
+*@            <td>
+                <a class="link" href="/company/@company.getId()/contract/@contract.getId()">@contract.getPackageDefinition().getValue().getName()</a>
+            </td>
+
             <td>
                 @contract.getPackageDefinition().getValue().getProduct().getValue().getName()
             </td>

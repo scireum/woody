@@ -51,15 +51,15 @@ public class Lineitem extends BizEntity {
     public static final String LINEITEMSTATUS_ACCOUNTED = "ACCOUNTED"; // Abgerechnet (in Collmex)
     public static final String LINEITEMSTATUS_IS_ZERO = "S_ZERO";    // Wert ist null, keine Abrechnung
 
-
-    private String lineitemType = LINEITEMTYPE_LA;
     @Length(2)
     @NotNull
+    private String lineitemType = LINEITEMTYPE_LA;
     public static final Column LINEITEMTYPE = Column.named("lineitemType");
 
     private LocalDateTime lineitemDate;
     public static final Column LINEITEMDATE = Column.named("lineitemDate");
 
+    @Length(255)
     private String companyName;
     public static final Column COMPANYNAME = Column.named("companyName");
 
@@ -68,7 +68,7 @@ public class Lineitem extends BizEntity {
     private String customerNr;
     public static final Column CUSTOMERNR = Column.named("customerNr");
 
-    @Length(20)
+
     private Long invoiceNr;
     public static final Column INVOICENR = Column.named("invoiceNr");
 
@@ -80,6 +80,7 @@ public class Lineitem extends BizEntity {
     private Amount price;
     public static final Column PRICE = Column.named("price");
 
+    @Length(255)
     private String packageName;
     public static final Column PACKAGENAME = Column.named("packageName");
 

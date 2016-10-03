@@ -20,7 +20,10 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
+import woody.xrm.Company;
+import woody.xrm.Person;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -113,6 +116,41 @@ public class ProductController extends BizController {
             showDeletedMessage();
         }
         products(ctx);
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/company/:1/contract/:2")
+    public void contract(WebContext ctx, String companyId, String contractId) {
+        Company company = findForTenant(Company.class, companyId);
+        Contract contract = find(Contract.class, contractId);
+        Long productId =  contract.getPackageDefinition().getValue().getProduct().getId();
+        assertNotNew(company);
+        setOrVerify(contract, contract.getCompany(), company);
+        List<PackageDefinition>  pdList = oma.select(PackageDefinition.class)
+                .eq(PackageDefinition.PRODUCT, productId).queryList();
+
+        if (ctx.isPOST()) {
+            try {
+                boolean wasNew = contract.isNew();
+                load(ctx, contract);
+                oma.update(contract);
+//                contract.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
+                showSavedMessage();
+                if (wasNew) {
+                    ctx.respondWith()
+                       .redirectTemporarily(WebContext.getContextPrefix()
+                                            + "/company/"
+                                            + company.getId()
+                                            + "/contract/"
+                                            + contract.getId());
+                    return;
+                }
+            } catch (Throwable e) {
+                UserContext.handle(e);
+            }
+        }
+        ctx.respondWith().template("view/sales/contract-details.html", company, contract, pdList);
     }
 
     private PackageDefinition packageDefinitionHandler(WebContext ctx,
