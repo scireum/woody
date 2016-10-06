@@ -183,6 +183,9 @@ public class Contract extends BizEntity {
     @Part
     private static OMA oma;
 
+    @Part
+    private static AccountingServiceBean asb;
+
     @BeforeSave
     protected void onSave() throws BusinessException {
         //completeParameter(this);
@@ -216,33 +219,26 @@ public class Contract extends BizEntity {
         // check the singlePrice. If the singlePrice is null, fetch the singlePrice from the packetDefinition
         if (getSinglePrice() == null) {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
-                                                     .eq(PackageDefinition.ID,
-                                                         this.getPackageDefinition().getValue().getId())
-                                                     .queryFirst();
+                       .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
             if (packageDefinition != null) {
-                if (packageDefinition.getSinglePrice().isFilled()) {
+                if (packageDefinition.getSinglePrice() != null)  {
                     this.setSinglePrice(packageDefinition.getSinglePrice());
                 }
             }
         }
 
-// ToDo   wieder aktivieren
-        // check the singlePriceState
-//       as.get().checkContractSinglePriceState(this);
+        //check the singlePriceState
+        asb.checkContractSinglePriceState(this);
 
         // check the start and end-date in relation to now. A warning is generated if the duration is > 180 days
         if (getStartDate() != null && (LocalDate.now().minusDays(180).isAfter(getStartDate()) || LocalDate.now()
-                                                                                                          .minusDays(180)
-                                                                                                          .isBefore(
-                                                                                                                  getStartDate()))) {
+                   .minusDays(180).isBefore(getStartDate()))) {
 
             //  ToDo Warnung ausgeben  Datum liegt 1/2 Jahr in der Vergangenheit oder Zukunft.
 
         }
         if (getEndDate() != null && (LocalDate.now().minusDays(180).isAfter(getEndDate()) || LocalDate.now()
-                                                                                                      .minusDays(180)
-                                                                                                      .isBefore(
-                                                                                                              getEndDate()))) {
+                  .minusDays(180).isBefore(getEndDate()))) {
 
             //  ToDo Warnung ausgeben  Datum liegt 1/2 Jahr in der Vergangenheit oder Zukunft.
 
@@ -264,36 +260,38 @@ public class Contract extends BizEntity {
                 throw Exceptions.createHandled().withNLSKey("woody.xrm.Contract.noPackageDefinitionChange").handle();
             }
         }
-
-        List<Contract> contractList = oma
-                .select(Contract.class)
-                .eq(Contract.COMPANY, company)
-                .eq(Contract.ACCOUNTINGGROUP, accountingGroup)
-                .eq(Column.named(Contract.PACKAGEDEFINITION + "."
-                                 + PackageDefinition.PRODUCT), packageDefinition.getValue().getProduct())
-                .eq(Column.named(Contract.PACKAGEDEFINITION + "." + PackageDefinition.ACCOUNTINGPROCEDURE),
-                    PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL)
-                .orderAsc(Contract.STARTDATE).queryList();
-
+        // ToDo:Testen
         if(isNew()) {
-            contractList.add(this);
-        } else {
-            List<Contract> contractList2 = new ArrayList<Contract>();
-            for(Contract c : contractList) {
-                contractList2.add(c);
-            }
-            for(Contract c: contractList2) {
-                if(c.getId() != this.getId()) {
-                    contractList.add(c);
-                } else {
-                    contractList.add(this);
+            Product product = packageDefinition.getValue().getProduct().getValue();
+            List<Contract> contractList = oma.select(Contract.class)
+                                             .eq(Contract.COMPANY, company)
+                                             .eq(Contract.ACCOUNTINGGROUP, accountingGroup)
+                                             .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.PRODUCT), product)
+                                             .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.ACCOUNTINGPROCEDURE),
+                                                 PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL)
+                                             .orderAsc(Contract.STARTDATE)
+                                             .queryList();
+
+            if (isNew()) {
+                contractList.add(this);
+            } else {
+                List<Contract> contractList2 = new ArrayList<Contract>();
+                for (Contract c : contractList) {
+                    contractList2.add(c);
+                }
+                for (Contract c : contractList2) {
+                    if (c.getId() != this.getId()) {
+                        contractList.add(c);
+                    } else {
+                        contractList.add(this);
+                    }
                 }
             }
-        }
-        try {
-            checkContractIsSingle(contractList);
-        } catch (BusinessException e) {
-            e.printStackTrace();
+            try {
+                checkContractIsSingle(contractList);
+            } catch (BusinessException e) {
+                e.printStackTrace();
+            }
         }
     }
 

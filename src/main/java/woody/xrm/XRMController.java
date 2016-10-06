@@ -52,14 +52,29 @@ public class XRMController extends BizController {
 
     @LoginRequired
     @Permission(MANAGE_XRM)
+    @Routed("/exportLineitems")
+    public void exportLineitems(WebContext ctx) {
+
+        try {
+            asb.exportLicenceLineitems(1000,null);
+            int vvv = 1;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
     @Routed("/licenceAccounting")
     public void licenceAccounting(WebContext ctx) {
         LocalDate referenceDate = LocalDate.of(2017,1,4);
-        boolean dryRun = true;
+        boolean dryRun = false;
         boolean foreignCountry = false;
         try {
             DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
                                                                              /*TaskMonitor monitor,*/ foreignCountry);
+            int vvv = 1;
             throw new BusinessException("Abrechnung fertig");
         } catch (BusinessException e) {
             e.printStackTrace();

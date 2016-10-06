@@ -85,10 +85,15 @@ public class AccountingServiceBean   {
 
     private static final String LINEITEMNAME = "lineitem.csv";
 
-//    @Override
-//    public DataCollector<Lineitem> accountAllContracts(final boolean dryRun, LocalDate referenceDate, Company givenCompany,
-//                                                       /*TaskMonitor monitor,*/ boolean foreignCountry) throws BusinessException {
-
+    /**
+     * accounts all contracts from all companies.
+     * @param dryRun           true = account the contract but no update for the contract
+     * @param referenceDate    Stichtag
+     * @param givenCompany     null = all companies or one company
+     * @param foreignCountry   true = only foreign contries are accounted
+     * @return                 all lineitems from the accounting
+     * @throws BusinessException
+     */
     public DataCollector<Lineitem> accountAllContracts(boolean dryRun,LocalDate referenceDate,Company givenCompany,
     boolean foreignCountry) throws BusinessException {
 
@@ -98,7 +103,7 @@ public class AccountingServiceBean   {
                             .handle();
         }
 
-        // create a interim-lineitem-List
+        // create a lineitem-List
         DataCollector<Lineitem> itemCollector = new DataCollector<Lineitem>() {
             @Override
             public void add(Lineitem entity) {
@@ -112,6 +117,7 @@ public class AccountingServiceBean   {
         prodUmsatz = null;
         testUmsatz = null;
 
+        //create a list wit the companies
         // is a company given?
         List<Company> companyList = new ArrayList<Company>();
         if (givenCompany != null) {
@@ -123,17 +129,18 @@ public class AccountingServiceBean   {
                              .orderAsc(Company.NAME).queryList();
         }
 
+        // create a list with all products
         List<Product> productList = oma.select(Product.class).queryList();
         Long invoiceNr = getMinInvoiceNr();
+
         // Step1: process the companyList
         int ggg = 0;
         System.err.println("=========================================================") ;
         for (Company company : companyList) {
 			System.err.println("Firma: " + company.getName());
-//            System.err.flush();      // bringt nichts
             String name = company.getName() ;
 //            if (company.getName().startsWith("Testfirma14")) {
-			if("10959".equals(company.getCustomerNr())) {
+			if("10174".equals(company.getCustomerNr())) {
                 ggg = 1;
                 name = name +company.getName() ;
             }
@@ -357,8 +364,9 @@ public class AccountingServiceBean   {
             if(contract.getStartDate().isAfter(referenceDate)) {
                 // the startDate is after the referenceDate ---> account this contract not at this time
                 return Command.NOTHING;
-
-
+            }
+            if(contract.getStartDate().equals(contract.getEndDate())) {
+                return Command.FINISHED_CONTRACT;
             }
             if (contract.getAccountedTo() == null) {
                 return Command.NEW_CONTRACT;
@@ -367,12 +375,6 @@ public class AccountingServiceBean   {
                     if (contract.getEndDate().equals(contract.getAccountedTo())) {
                         return Command.FINISHED_CONTRACT;
                     }
-                    // Fehler 10.3.2016   Gutschrift wäre erst nach AccountedTo erteilt worden.
-//				if(referenceDate.before(contract.getAccountedTo())) {
-//					// the referenceDate is before the AccountedTo ---> account this contract not at this time
-//					System.err.println (contract.toString());
-//					return Command.NOTHING;
-// 				}
 
                     if (contract.getAccountedTo().isBefore(contract.getEndDate())) {
                         return Command.ACC_IS_BEFORE_TO;
@@ -400,8 +402,7 @@ public class AccountingServiceBean   {
             }
             boolean flagAccountSinglePriceDone = false;
 
-            // check is the single-price-state not OPEN
-            // valid
+            // check is the single-price-state not OPEN valid
             if (ContractSinglePriceType.OPEN.equals(contract.getSinglePriceState())) {
                 throw new BusinessException(
                         MessageFormat
@@ -439,7 +440,8 @@ public class AccountingServiceBean   {
             int months = calculateMonths(from, to);
             // check if the months to account = zero or negative
             if (months <= 0) {
-                return contract;
+                throw new BusinessException(contract.toString() + ", from: " + NLS.toUserString(from) +
+                                            " ist größer als to: " + NLS.toUserString(to));
             }
             Amount unitPrice = getUnitPrice(contract);
             // te positionPrice is the unitPrice * amount of licences
@@ -581,8 +583,7 @@ public class AccountingServiceBean   {
             Lineitem lineitem = new Lineitem();
             lineitem.setLineitemType(Lineitem.LINEITEMTYPE_LA);
             // check the absolute discount and calculate the accountingPrice
-            // listen: collmex can calculate a percent-discount but never a absolute
-            // discount,
+            // listen: collmex can calculate a percent-discount but never a absolute discount,
             // so we do it here - yes we can!
             if (discountAbsolut.getAmount().doubleValue() > 0D && price.getAmount().doubleValue() > 0D) {
                 lineitem.setPrice(Amount.of(price.getAmount().subtract(discountAbsolut.getAmount())));
@@ -856,20 +857,7 @@ public class AccountingServiceBean   {
             months = months + 1;
         }
         return months;
-
-        // alte Lösung:
-//            Calendar startC = Tools.asCalendar(start);
-//            Calendar nextC = Tools.asCalendar(next);
-//            if (nextC.get(Calendar.DAY_OF_MONTH) != 1) {
-//                do {
-//                    nextC.add(Calendar.DAY_OF_MONTH, 1);
-//                } while (nextC.get(Calendar.DAY_OF_MONTH) != 1);
-//            }
-//            int startYM = startC.get(Calendar.YEAR) * 12
-//                          + startC.get(Calendar.MONTH);
-//            int nextYM = nextC.get(Calendar.YEAR) * 12 + nextC.get(Calendar.MONTH);
-//            return nextYM - startYM;
-        }
+     }
 
         /**
          * process the given Command for the given contracts
@@ -898,9 +886,6 @@ public class AccountingServiceBean   {
                                              from, nextAccTo, INVOICE, referenceDate,
                                              AccountingServiceBean.RUNNINGACCOUNTING, invoiceNr);
                         save = true;
-//                    } else {
-//                        // because there is no accounting check the contractSinglePriceState
-//                        checkContractSinglePriceState(c1);
                     }
                     break;
                 case TO_IS_PRESENT_ACC_IS_NULL:   // case 1, F3
@@ -916,14 +901,10 @@ public class AccountingServiceBean   {
                     if (c1.getAccountedTo().isBefore(referenceDate)) {  // 17.1.2016: no accounting if accountedTo > referenceDate
                         nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
                         c1 = accountContract(itemCollector, dryRun, c1,
-//							c1.getAccountedTo(), c1.getEndDate(), INVOICE,         // alt
                                              c1.getAccountedTo(), nextAccTo, INVOICE,               // 17.2.2016
                                              referenceDate, AccountingServiceBean.RUNNINGACCOUNTING,
                                              invoiceNr);
                         save = true;
-//                    } else {
-//                        // because there is no accounting check the contractSinglePriceState
-//                        checkContractSinglePriceState(c1);
                     }
                     break;
                 case ACC_IS_AFTER_TO: // case 1, F6
@@ -938,96 +919,6 @@ public class AccountingServiceBean   {
                                          AccountingServiceBean.CREDITACCOUNTING, invoiceNr);
                     save = true;
                     break;
-/* -------------------------------------------------------------------------------------------------------------------
-                case ACC_IS_NULL_TO_IS_NULL:  // case 2, F7
-                    if (c2 != null) {
-                        c1.setEndDate(c2.getStartDate());
-                    }
-                    nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
-                    c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
-                                         nextAccTo, INVOICE, referenceDate,
-                                         AccountingServiceBean.RUNNINGACCOUNTING, invoiceNr);
-                    break;
-                case ACC_IS_NULL_TO_IS_PRESENT:  // case 2, F8  + F8a
-                    nextAccTo =  getNextAccountedTo(c1, c2, referenceDate);      // 17.2.2016
-//				Date minDate = null;                                         // alt
-//				if (c2 == null) {
-//					minDate = c1.getEndDate();
-//				} else {
-//					c2.getStartDate();
-//				}
-
-                    c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
-//						minimumDate(c1.getEndDate(), minDate), INVOICE,         // alt
-                                         nextAccTo, INVOICE,                                     // 17.2.2016
-                                         referenceDate, AccountingServiceBean.NEWACCOUNTING, invoiceNr);
-//				c1.setEndDate(minimumDate(c1.getEndDate(), minDate));           wird bereits bei getNextAccountedTo gemacht
-                    break;
-                case ACC_IS_PRESENT_CONTRACT2_AFTER_ACC:   // case 2, F9
-                    if (c1.getAccountedTo().isBefore(referenceDate)) {  // 17.1.2016: no accounting if accountedTo > referenceDate
-                        nextAccTo =  getNextAccountedTo(c1, c2, referenceDate);      // 17.2.2016
-//					if (c2 == null) {                                            // alt
-//						minDate = c1.getEndDate();
-//					} else {
-//						minDate = c2.getStartDate();
-//					}
-                        c1 = accountContract(itemCollector, dryRun, c1,
-//							c1.getAccountedTo(), minimumDate(minDate, c1.getEndDate()),     // alt
-                                             c1.getAccountedTo(), nextAccTo,	INVOICE, referenceDate,         // 17.2.2016
-                                             AccountingServiceBean.RUNNINGACCOUNTING, invoiceNr);
-//					if (c1.getEndDate() == null) {                              // wird bereits bei getNextAccountedTo gemacht
-//						c1.setEndDate(minDate); // No endDate is present --> set the endDate as c2.StartDate
-//					} else {
-//						if (c2 == null) {
-//							// do nothing
-//						} else {
-//							if (c1.getEndDate().after(c2.getStartDate())) { // endDate is present.
-//								c1.setEndDate(c2.getStartDate());
-//							}
-//						}
-//					}
-                    } else {
-                        // because there is no accounting check the contractSinglePriceState
-                        checkContractSinglePriceState(c1);
-                    }
-                    break;
-                case ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC:    // case 2, F10
-//              12.03.2016 Fehlerverbesserung: durch den rechten verbesserten OR-Term ist die if-Abfrage immer wahr, kann also entfallen!
-//				if (c1.getAccountedTo().before(referenceDate) || c1.getEndDate() != null) {  // 17.1.2016: no accounting if accountedTo > referenceDate
-                    LocalDate minDate = null;
-                    if (c2 == null) {
-                        minDate = c1.getEndDate();
-                    } else {
-                        minDate = c2.getStartDate();
-                    }
-                    c1 = accountContract(itemCollector, dryRun, c1, minDate,
-                                         c1.getAccountedTo(), CREDIT, referenceDate,
-                                         AccountingServiceBean.CREDITACCOUNTING, invoiceNr);
-                    c1.setEndDate(minDate);
-//				} else {
-                    // because there is no accounting check the contractSinglePriceState
-//					checkContractSinglePriceState(c1);
-//				}
-                    break;
-                case NOTHING:
-                    save = false;
-                    break;
-                case C1_START_BEFORE_C0_ACC:
-                    if (c0.getAccountedTo().isBefore(referenceDate)) {  // 17.1.2016: no accounting if accountedTo > referenceDate
-                        c0 = accountContract(itemCollector, dryRun, c0, c1.getStartDate(),
-                                             c0.getAccountedTo(), CREDIT, referenceDate,
-                                             AccountingServiceBean.CREDITACCOUNTING, invoiceNr);
-                        c0.setEndDate(c1.getStartDate());
-                        if (!dryRun) {
-                            c0 = saveContract(c0);
-                        }
-                        save = false;
-                    } else {
-                        // because there is no accounting check the contractSinglePriceState
-                        checkContractSinglePriceState(c1);
-                    }
-                    break;
-*/
             }
 
             if (!dryRun && save) {
@@ -1036,37 +927,6 @@ public class AccountingServiceBean   {
         }
 
 
-        /**
-         * returns the minimum of date1 and date2
-         */
-	/*  17.2.2016
-	private Date minimumDate(Date date1, Date date2) {
-		if (date1 == null) {
-			return date2;
-		}
-		if (date2 == null) {
-			return date1;
-		}
-		if (date1.before(date2)) {
-			return date1;
-		}
-		return date2;
-	}
-*/
-        /**
-         * creates a invoice for the given contract
-         */
-	/*  17.2.2016 nicht mehr notwendig
-	private Contract prepareInvoiceRunningAccount(
-			DataCollector<Lineitem> itemCollector, boolean dryRun,
-			Date referenceDate, Contract c1, Contract c2, Long invoiceNr) {
-		Date nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
-		c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
-				nextAccTo, INVOICE, referenceDate,
-				AccountingService.RUNNINGACCOUNTING, invoiceNr);
-		return c1;
-	}
-*/
         /**
          * calculate the next accountedTo-Date in relation to the given startDate
          * and the given referenceDate
@@ -1087,9 +947,6 @@ public class AccountingServiceBean   {
                     nextAccTo = c2.getStartDate(); // next accounting date is only
                     // the startDate of the second contract
                     c1.setEndDate(nextAccTo); // 17.2.2016 set the endDate to the next accounting Date / c2.startDate
-//				if (c1.getEndDate() == null) {                                                // alt
-//					c1.setEndDate(nextAccTo); // set the endDate to the next accounting Date
-//				}
                 }
             }
             return nextAccTo;
@@ -1120,27 +977,6 @@ public class AccountingServiceBean   {
          * ACC_IS_BEFORE_TO,           F5: from---c1---acc----to:	acc < to: INVOICE   from = acc, to = to --> from---c1---nacc----to, nacc = to "Abrechnung des Pakets"
          * ACC_IS_AFTER_TO,            F6: from---c1---to----acc:	acc > to: CREDIT  from = to, to = acc --> from---c1---nacc----to nacc = to "Gutschrift für das Paket"
          * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-         * Not in woody implemented!
-         * CASE2: two contracts are concerned
-         * ACC_IS_NULL_TO_IS_NULL,               F7: from---c1---null---null: c1.INVOICE, c1.from ---> c2.from
-         *                                                            from---c2---null---null: c2.INVOICE, c2.from ---> c2.nextAccTo
-         *
-         * ACC_IS_NULL_TO_IS_PRESENT,            F8: from---c1---null---to:      INVOICE, c1.from ---> c2.from
-         *                                                              from---c2---null---null: INVOICE, c2.from ---> c2.nextAccTo
-         *
-         * ACC_IS_NULL_TO_IS_PRESENT,            F8a:from---c1---null---to:      INVOICE, c1.from ---> c1.to
-         *                                                                    from---c2---null---null: INVOICE, c2.from ---> c2.nextAccTo
-         *
-         * ACC_IS_PRESENT_CONTRACT2_AFTER_ACC,   F9: from---c1---acc---null:     INVOICE, c1.acc ---> c2.from
-         *                                                           from---c2---null---null INVOICE, c2.from ---> c2.nextAccTo
-         *
-         * ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC, F10: from---c1---acc---null:    CREDIT, c2.from <--- c1.acc,
-         *                                                    from---c2---null---null INVOICE, c2.from ---> c2.nextAccTo
-         *
-         *                                      F11:
-         * ACC_IS_AFTER_TO -----------------------> from---c1-------to-----acc:    CREDIT, c1.to <--- c1.acc,
-         * ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC ----------------------------> from---c1---null---null INVOICE, c1.from ---> c1.nextAccTo
-         *
          */
 
 
@@ -1159,112 +995,11 @@ public class AccountingServiceBean   {
                         new ContractToDos<Contract, Contract, Contract, Integer>(null, c, null, command);
                 toDoList.add(toDo);
             }
-// alte Lösung
-//            Command command;
-//            if (contractList.size() == 1) {// Only one contract
-//                Contract c = contractList.get(0);
-//                command = analyzeContract(c, referenceDate);
-//                if (command != Command.FINISHED_CONTRACT && command != Command.NOTHING) {
-//                    ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                            null, c, null, command);
-//                    toDoList.add(toDo);
-//                }
-//            } else {
-                // TODO: noch notwendig? klären
-                // multiple contracts
-//                for (int i = 0; i < contractList.size(); i++) {
-//                    int k = i + 1;
-//                    int m = i - 1;
-//                    Contract c1 = contractList.get(i);
-//                    Contract c0 = null;
-//                    Contract c2 = null;
-//                    if (k < contractList.size()) {
-//                        c2 = contractList.get(k);
-//                    }
-//                    if (m >= 0) {
-//                        c0 = contractList.get(m);
-//                    }
-//                    Command command1 = analyzeContract(c1, referenceDate);
-//                    if (command1 == Command.NOTHING) {
-//                        continue;
-//                    }
-//                    if (command1 == Command.FINISHED_CONTRACT) {
-//                        continue;
-//                    }
-//                    if (command1 == Command.NEW_CONTRACT) {
-//                        ContractToDos<Contract, Contract, Contract, Integer> toDo = null;
-//                        if (i == 0) {
-//                            toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                    c0, c1, c2, Command.NEW_CONTRACT);
-//                        } else {
-//                            toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                    c0, c1, c2, Command.ACC_IS_NULL_TO_IS_NULL);
-//                        }
-//                        toDoList.add(toDo);
-//                    }
-//                    if (command1 == Command.ACC_IS_PRESSENT_TO_IS_NULL) {
-//                        if (c2 != null) {
-//                            if (c2.getStartDate().isBefore(c1.getAccountedTo())) {
-//                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                        c0, c1, c2,
-//                                        Command.ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC);
-//                                toDoList.add(toDo);
-//                            } else {
-//                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                        c0, c1, c2,
-//                                        Command.ACC_IS_PRESENT_CONTRACT2_AFTER_ACC);
-//                                toDoList.add(toDo);
-//                            }
-//                        } else { // c2 == null
-//                            ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                    c0, c1, c2, Command.ACC_IS_PRESSENT_TO_IS_NULL);
-//                            toDoList.add(toDo);
-//
-//                        }
-//                    }
-//                    if (command1 == Command.TO_IS_PRESENT_ACC_IS_NULL) {
-//                        ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                c0, c1, c2, Command.ACC_IS_NULL_TO_IS_PRESENT);
-//                        toDoList.add(toDo);
-//                    }
-//                    if (command1 == Command.ACC_IS_BEFORE_TO) {
-//                        ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                c0, c1, c2,
-//                                Command.ACC_IS_PRESENT_CONTRACT2_AFTER_ACC);
-//                        toDoList.add(toDo);
-//                    }
-//                    if (command1 == Command.ACC_IS_AFTER_TO) {
-//                        if(c2 != null) {
-//                            if (c1.getEndDate().isBefore(c2.getStartDate())) {    // are the contacts in touch?
-//                                //not in touch, there is a gap between the contracts
-//                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                        c0, c1, c2,
-//                                        Command.ACC_IS_AFTER_TO);
-//                                toDoList.add(toDo);
-//                            } else {
-//                                // the contracts are in touch
-//                                ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                        c0, c1, c2,
-//                                        Command.ACC_IS_PRESENT_CONTRACT2_BEFORE_ACC);
-//                                toDoList.add(toDo);
-//                            }
-//                        }
-//                        if(c0 != null ){ // 17.2.2016
-//                            ContractToDos<Contract, Contract, Contract, Integer> toDo = new ContractToDos<Contract, Contract, Contract, Integer>(
-//                                    c0, c1, c2,
-//                                    Command.ACC_IS_AFTER_TO);
-//                            toDoList.add(toDo);
-//
-//                        }
-//                    }
-//
-//                }
-//            }
             return toDoList;
         }
 
 
-    /**
+        /**
          * analyzes the given contract and calculates a command for accounting this contract.
          */
         private Command analyzeContract(Contract c, LocalDate referenceDate) {
@@ -1277,6 +1012,9 @@ public class AccountingServiceBean   {
             }
 
             Command command;
+            if(c.getStartDate().equals(c.getEndDate())) {
+                return Command.FINISHED_CONTRACT;
+            }
             if (c.getAccountedTo() != null) {
                 if (c.getEndDate() != null) {
                     if (c.getAccountedTo().equals(c.getEndDate())) {
@@ -1309,9 +1047,6 @@ public class AccountingServiceBean   {
             return command;
         }
 
-//        @Part
-//        private SocialService ss;
-
 
         private Amount sum = Amount.ZERO;
         private int counter = 0;
@@ -1324,12 +1059,16 @@ public class AccountingServiceBean   {
             counter = counter + value;
         }
 
-//        @Override
         public void exportLicenceLineitems(int maxLineitemsDefault, String filter) throws Exception {
-
+            if(maxLineitemsDefault <= 0) {
+                maxLineitemsDefault = 300;
+            }
+            if(filter == null) {
+                filter = "";
+            }
             sum = Amount.ZERO;
             counter = 0;
-            // get all new lineitems
+            // get all lineitems with status "NEW' and Type "LA"
             List<Lineitem> lineitemList = oma
                     .select( Lineitem.class)
                     .eq(Lineitem.STATUS, Lineitem.LINEITEMSTATUS_NEW)
@@ -1349,29 +1088,31 @@ public class AccountingServiceBean   {
                 return;
             }
             int counterNew = lineitemList.size();
-            // check, modify and save lineitems with the amount = 0 or < 0: set the CollmexCredit-Flag
+            // check, modify and save these lineitems where the sum of the invoice = 0,00 EUR; set the CollmexCredit-Flag
             int counterNull = 0;
             counterNull = counterNull + checkLineitems(lineitemList);
             lineitemList.clear();
 
-            // get all new lineitems after modifying and save
+            // get all lineitems with status "NEW' and Type "LA" after modifying
             lineitemList = oma
                     .select(Lineitem.class)
                     .eq(Lineitem.STATUS, Lineitem.LINEITEMSTATUS_NEW)
                     .eq(Lineitem.LINEITEMTYPE, Lineitem.LINEITEMTYPE_LA)
                     .orderDesc(Lineitem.INVOICENR)
-                    .orderAsc(Lineitem.POSITION).queryList();
+                    .orderAsc(Lineitem.POSITION)
+                    .queryList();
             boolean filterFlag = false;
-            if(filter.toLowerCase().contains("ausl")) {
-                filterFlag = true;
-                filter = "Ausland";
+            if(Strings.isFilled(filter)) {
+                if (filter.toLowerCase().contains("ausl")) {
+                    filterFlag = true;
+                    filter = "Ausland";
+                }
+                if (filter.toLowerCase().contains("nein")) {
+                    filterFlag = false;
+                } else {
+                    filterFlag = true;
+                }
             }
-            if(filter.toLowerCase().contains("nein"))  {
-                filterFlag = false;
-            }  else {
-                filterFlag = true;
-            }
-
             // filter the lineitems. Is no filter given --> add all lineitems to the lineitemFilteredList
             List<Lineitem> lineitemFilteredList =new ArrayList<Lineitem>();
             for(Lineitem l:lineitemList) {
@@ -1398,14 +1139,15 @@ public class AccountingServiceBean   {
                     lineitemFilteredList.add(l);
                 }
             }
+
+            // process the lineitemFilteredList --> write the lineitems in groups (size= maxLineDefault) to a outputList
+            // Each group is written in a separate file
             List <Lineitem> outputList = new ArrayList<Lineitem>();
             List<File> filenames = new ArrayList<File>();
             long invoiceNr = 0;
-            int fileNr =0;
-            File file=null;
+            int fileNr = 0;
+            File file = null;
             Lineitem l = null;
-            // process the lineitemFilteredList --> write the lineitems in groups (size= maxLineDefault) to a outputList
-            // Each group is written in a separate file
             int maxLineitems = maxLineitemsDefault;
             for(int k =0;  k < lineitemFilteredList.size(); k++)   {
                 maxLineitems--;
@@ -1441,7 +1183,7 @@ public class AccountingServiceBean   {
                         fileNr++;
                         file = createCsvFilename("lineitems", fileNr);
                         filenames.add(file);
-                        writeToFile(outputList, file, counter);
+                        writeToFile(outputList, file);
                         outputList.clear();
                         maxLineitems = maxLineitemsDefault;
                     }
@@ -1459,7 +1201,7 @@ public class AccountingServiceBean   {
                 fileNr++;
                 file = createCsvFilename("lineitems", fileNr);
                 filenames.add(file);
-                writeToFile(outputList, file, counter);
+                writeToFile(outputList, file);
             }
 
             // build a activity-news
@@ -1481,6 +1223,7 @@ public class AccountingServiceBean   {
                                 NLS.toUserString(sum),
                                 file.getAbsoluteFile(),
                                 fileNameLast, filter);
+                System.err.println(message);
             }
             // ToDo meldung machen
 //            ss.forBackendStream(
@@ -1494,13 +1237,18 @@ public class AccountingServiceBean   {
          *  write the lineitems in the outputList to a new file
          */
 
-        private void writeToFile(List<Lineitem> outputList, File file, int counter ) throws Exception{
+        private void writeToFile(List<Lineitem> outputList, File file ) throws Exception{
             PrintWriter pw = null;
             try {
                 Amount sum = Amount.ZERO;
                 pw = createPrintWriter(file);
                 for (Lineitem lineitem : outputList) {
-                    sum = sum.add(generateCollmexInvoiceLine(pw, lineitem, null));
+                    Amount value = generateCollmexInvoiceLine(pw, lineitem, null);
+                    sum = sum.add(value);
+//                    For testing:
+//                    String text = lineitem.getCompanyName() + ";" + lineitem.getCustomerNr() + ";" + NLS.toUserString(value);
+//                    text = text + ";" + lineitem.getPackageName() + ";" +  lineitem.getPositionType() + ";" + lineitem.getStatus();
+//                    System.err.println(text);
                 }
                 addToSum(sum);
                 pw.flush(); // flush the printwriter to get all data to the file
@@ -1516,9 +1264,7 @@ public class AccountingServiceBean   {
         private PrintWriter createPrintWriter (File file) throws Exception {
             FileOutputStream output = null;
             output = new FileOutputStream(file);
-       //     Writer fw = new OutputStreamWriter(output, Tools.ISO_8859_1);
             Writer fw = new OutputStreamWriter(output, Charset.forName("ISO-8859-1"));
-
             PrintWriter pw = new PrintWriter(fw);
             return pw;
         }
@@ -1568,7 +1314,7 @@ public class AccountingServiceBean   {
                 finalDiscountSum = finalDiscountSum.add(item.getFinalDiscountAmount());
                 // calculate the price
                 Amount price = item.getPrice().decreasePercent(item.getPositionDiscount());
-                // ToDO testen ob das die Multiplikation ist
+
                 price = price.times(item.getQuantity());
 
                 // add the price to the sum
@@ -1620,6 +1366,9 @@ public class AccountingServiceBean   {
             }
             if (flag) {
 //			System.err.println("Neu: "+item.getCompanyName() + "  " + item.getPackageName() + "   " + item.getStatus() + "   " + NLS.toMachineString(item.getFinalDiscountSum()) + "   " + NLS.toUserString(item.isCollmexCredit())) ;
+            if(item.getClearingDate() == null) {
+                item.setClearingDate(LocalDateTime.now());
+            }
                 oma.update(item);
             }
             return item;
@@ -1644,7 +1393,6 @@ public class AccountingServiceBean   {
         /**
          * creates a string like YYYYMMDD_hhmmss_name "-" is the given space
          */
-//        @Override
         public String dateTimeFilename(String space, Calendar cal) {
             if(cal == null) {
                 cal = Calendar.getInstance();
@@ -1663,7 +1411,6 @@ public class AccountingServiceBean   {
          * extends a number to two decimals
          */
         private String twoDecimals(String value) {
-
             if (value.length() < 2) {
                 value = "0" + value;
             }
@@ -1886,7 +1633,8 @@ public class AccountingServiceBean   {
             pw.println(sb.toString());
 
             // Step 5: set status and the clearingDate
-            lineitem.setStatus(Lineitem.LINEITEMSTATUS_ACCOUNTED);
+            // ToDo wieder einbauen.
+//            lineitem.setStatus(Lineitem.LINEITEMSTATUS_ACCOUNTED);
             lineitem.setClearingDate(LocalDateTime.now());
             oma.update(lineitem);
             // Step 6: calculate the position-sum
@@ -1925,7 +1673,7 @@ public class AccountingServiceBean   {
 //
 //        }
 
-//        @Override
+
         public void checkContractSinglePriceState(Contract givenContract) throws BusinessException {
             PackageDefinition pd = givenContract.getPackageDefinition().getValue();
             String ap = pd.getAccountingProcedure();
@@ -2172,22 +1920,22 @@ public class AccountingServiceBean   {
             return count;
         }
 
-//        @Override
+
         public Amount getProdUmsatz() {
             return prodUmsatz;
         }
 
-//        @Override
+
         public Amount getTestUmsatz() {
             return testUmsatz;
         }
 
-//        @Override
+
         public LocalDate getAccountingDate() {
             return accountingDate;
         }
 
- //       @Override
+
         public void generateCollmexKundenCsv() throws BusinessException, Exception   {
             List<Company> companyList = oma.select(Company.class)
                                            // ToDo Constraint fixen
@@ -2248,58 +1996,6 @@ public class AccountingServiceBean   {
         }
 
 
-
-
-
-
-
-	/*   19.2.2016 alte Version, stillgelegt
-
-	@Override
-	public void collmexKundenCheck() {
-		String filenameCollmex = "";
-		PrintWriter pw = null;
-		try {
-			// file with the collmex-customer-data
-
-			filenameCollmex = Configuration.find(ConfigValue.class,
-					"collmexKunden").getValue();
-			if (Tools.emptyString(filenameCollmex)) {
-				throw new BusinessException(
-						"Unter >collmexKunden< wurde in der Konfiguration kein Eintrag gefunden");
-			}
-			filenameCollmex = Configuration.find(ConfigValue.class,
-					"collmexKunden").getValue();
-			// store the outputfile in the same directory
-			String filenameOut = dateTimeFilename("_") + "CollmexCrmTest.txt";
-			int pos = filenameCollmex.lastIndexOf(File.separator);
-			filenameOut = filenameCollmex.substring(0, pos + 1) + filenameOut;
-			File fileOut = new File(filenameOut);
-			FileOutputStream output = new FileOutputStream(fileOut);
-			Writer fw = new OutputStreamWriter(output, Tools.ISO_8859_1);
-			pw = new PrintWriter(fw);
-			try {
-				collmexVersusCrm(filenameCollmex, pw);
-				crmVersusCollmex(filenameCollmex, pw);
-
-				pw.flush(); // flush the printwriter to get all data to the file
-				// build a activity-news
-				ss.forBackendStream(
-						DisplayMarkdownFactory.FACTORY_NAME,
-						"CRM",
-						MessageFormat.format(
-								"Vergleich Collmex - CRM, Datei: {0}",
-								fileOut.getAbsoluteFile())).loginRequired(true)
-						.setUser(Users.getCurrentUser()).publish();
-			} finally {
-				pw.close();
-			}
-		} catch (Exception e) {
-			throw Incidents.handle(e);
-		}
-
-	}
-	*/
 
         /**
          * check CRM-Data (as master-data) against collmex-data
