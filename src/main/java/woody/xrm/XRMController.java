@@ -28,12 +28,12 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import sirius.web.services.JSONStructuredOutput;
-import woody.BusinessException;
-import woody.core.tags.Tagged;
-import woody.sales.Contract;
-import woody.sales.AccountingServiceBean;
-import woody.sales.Lineitem;
 
+import woody.core.tags.Tagged;
+import woody.offers.Offer;
+import woody.sales.AccountingService;
+import woody.sales.Lineitem;
+import woody.sales.Contract;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -47,7 +47,7 @@ public class XRMController extends BizController {
     private static final String MANAGE_XRM = "permission-manage-xrm";
 
     @Part
-    private AccountingServiceBean asb;
+    private AccountingService asb;
 
 
     @LoginRequired
@@ -69,16 +69,11 @@ public class XRMController extends BizController {
     @Routed("/licenceAccounting")
     public void licenceAccounting(WebContext ctx) {
         LocalDate referenceDate = LocalDate.of(2017,1,4);
-        boolean dryRun = false;
+        boolean dryRun = true;
         boolean foreignCountry = false;
-        try {
             DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
                                                                              /*TaskMonitor monitor,*/ foreignCountry);
             int vvv = 1;
-            throw new BusinessException("Abrechnung fertig");
-        } catch (BusinessException e) {
-            e.printStackTrace();
-        }
     }
 
 
@@ -164,6 +159,7 @@ public class XRMController extends BizController {
     @Permission(MANAGE_XRM)
     @Routed(value = "/persons/suggest", jsonCall = true)
     public void personsSuggest(WebContext ctx, JSONStructuredOutput out) {
+        int i = 12;
         MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Person.class, q, c));
     }
 
@@ -207,6 +203,8 @@ public class XRMController extends BizController {
         ctx.respondWith()
            .template("view/sales/company-contracts.html", company, ph.asPage(), search.getSuggestionsString());
     }
+
+
 
     @LoginRequired
     @Permission(MANAGE_XRM)

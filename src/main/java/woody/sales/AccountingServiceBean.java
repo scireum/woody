@@ -10,19 +10,15 @@ package woody.sales;
 
 import sirius.kernel.di.std.Register;
 
-
-import sirius.db.mixing.Column;
-import sirius.db.mixing.Constraint;
 import sirius.db.mixing.OMA;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.DataCollector;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
-import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.Formatter;
 import sirius.kernel.nls.NLS;
-import woody.BusinessException;
+
 import woody.sales.ContractToDos.Command;
 import woody.xrm.Company;
 
@@ -32,17 +28,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -51,33 +42,11 @@ import java.util.Optional;
  * Created by gerhardhaufler on 18.09.16.
  */
 
-@Register(classes = AccountingServiceBean.class)
-public class AccountingServiceBean   {
-    public static final String LINEITEM_PATH = "lineitemPath";
-
-    public static final String NEWACCOUNTING = "newAccounting";
-    public static final String RUNNINGACCOUNTING = "runningAccounting";
-    public static final String CREDITACCOUNTING = "creditAccounting";
-
-    public static final String COLLMEX_NULL = "(NULL)";
-
-    /**
-     * do not touch these constants !!!
-     */
-    public static final int INVOICE = 1;
-    public static final int CREDIT = -1;
-
-    public static final int COUNT_CONTRACTS_WITHOUT_THIS_CONTRACT = 1;
-    public static final int COUNT_CONTRACTS_THIS_ACCOUNT = 2;
-    public static final int COUNT_CONTRACTS_ACCOUNT_NOW = 3;
-    public static final int COUNT_CONTRACTS_OLD_ACCOUNT = 4;
-    public static final int COUNT_CONTRACTS_NO_ACCOUNT = 5;
-
+@Register(classes = AccountingService.class)
+public class AccountingServiceBean implements AccountingService {
 
     @Part
     protected OMA oma;
-
-    //private List<Lineitem> lineitemList;
 
     private Amount prodUmsatz = null;
     private Amount testUmsatz = null;
@@ -92,16 +61,20 @@ public class AccountingServiceBean   {
      * @param givenCompany     null = all companies or one company
      * @param foreignCountry   true = only foreign contries are accounted
      * @return                 all lineitems from the accounting
-     * @throws BusinessException
      */
+    @Override
     public DataCollector<Lineitem> accountAllContracts(boolean dryRun,LocalDate referenceDate,Company givenCompany,
-    boolean foreignCountry) throws BusinessException {
+    boolean foreignCountry)  {
 
             if (referenceDate == null) {
             throw Exceptions.createHandled()
                             .withNLSKey("AccountingServiceBean.referenceDateIsNull")
                             .handle();
         }
+        String text = MessageFormat.format(
+                "Start Lizenz-Abrechnung zum ReferenzDatum {0} im Modus {1}",
+                NLS.toUserString(referenceDate),  dryRun == true ? "Test" : "Produktiv");
+        System.err.println(text);
 
         // create a lineitem-List
         DataCollector<Lineitem> itemCollector = new DataCollector<Lineitem>() {
@@ -134,16 +107,13 @@ public class AccountingServiceBean   {
         Long invoiceNr = getMinInvoiceNr();
 
         // Step1: process the companyList
-        int ggg = 0;
-        System.err.println("=========================================================") ;
         for (Company company : companyList) {
-			System.err.println("Firma: " + company.getName());
+//			System.err.println("Firma: " + company.getName());
             String name = company.getName() ;
 //            if (company.getName().startsWith("Testfirma14")) {
-			if("10174".equals(company.getCustomerNr())) {
-                ggg = 1;
-                name = name +company.getName() ;
-            }
+//			if("10174".equals(company.getCustomerNr())) {
+//                name = name +company.getName() ;
+//            }
 //                if (monitor != null) {
 //                    monitor.setTitle("Firma: " + company.getName(), false);
 //                }
@@ -243,41 +213,39 @@ public class AccountingServiceBean   {
             }
         }
 
-        System.err.println("=========================================================") ;
-
         // build a activity-news
-        double summe = 0D;
+        Amount summe = Amount.ZERO;
         int counter = 0;
         System.err.println("---------------------------------------------------------") ;
         for ( Lineitem lineitem : itemCollector.getData() ) {
             counter++;
-            Double discount = lineitem.getPositionDiscount().getAmount().doubleValue();
+            Amount discount = lineitem.getPositionDiscount();
             if (discount == null) {
-                discount = 0D;
+                discount = Amount.ZERO;
             }
-            Double price = lineitem.getPrice().getAmount().doubleValue();
-            price = price * (100D - discount) / 100;
-            Double quantity = lineitem.getQuantity().getAmount().doubleValue();
-            Double amount = quantity * price;
-            summe = summe + amount;
-            String text = lineitem.getCompanyName() + ";" + lineitem.getCustomerNr() + ";" + NLS.toUserString(amount);
+            Amount price = lineitem.getPrice();
+            price = price.decreasePercent(discount);
+            Amount quantity = lineitem.getQuantity();
+            Amount amount = quantity.times(price);
+            summe = summe.add(amount);
+            text = lineitem.getCompanyName() + ";" + lineitem.getCustomerNr() + ";" + NLS.toUserString(amount);
             text = text + ";" + lineitem.getPackageName() + ";" +  lineitem.getPositionType();
             System.err.println(text);
         }
 
         System.err.println("---------------------------------------------------------") ;
         if (dryRun) {
-            testUmsatz = Amount.of(summe);
+            testUmsatz = summe;
         } else {
-            prodUmsatz = Amount.of(summe);
+            prodUmsatz = summe;
         }
 
-        String text = MessageFormat.format(
+        text = MessageFormat.format(
                 "Lizenz-Abrechnung zum ReferenzDatum {0} im Modus {1} erstellt, {2} Rechnungspositionen, Netto-Umsatz: {3} EUR",
                  NLS.toUserString(referenceDate),  dryRun == true ? "Test" : "Produktiv", NLS.toUserString(counter),
                  NLS.toUserString(summe));
         System.err.println(text);
-                // ToDo Meldung ausgeben
+                // ToDo Meldung ausgeben ss.forBackendStream(
 //            ss.forBackendStream(
 //                    DisplayMarkdownFactory.FACTORY_NAME,
 //                    "Lizenz-Abrechnung",  text)
@@ -288,7 +256,7 @@ public class AccountingServiceBean   {
     }
 
 
-
+        @Override
         public Long exportTest() {
             Long count = oma.select(Lineitem.class).eq(Lineitem.STATUS, Lineitem.LINEITEMSTATUS_NEW).count();
             accountingDate = LocalDate.now();
@@ -330,18 +298,6 @@ public class AccountingServiceBean   {
 */
 
         }
-
-	/*
-	private Date addToDate(Date date) {
-		if(date != null) {
-            Calendar cal = Tools.asCalendar(date);
-            cal = Tools.clearTimeFields(cal);
-            cal.add(Calendar.YEAR, 4);
-            date = cal.getTime();
-        }
-		return date;
-	}
-	*/
 
         /**
          * gets the last (the smallest) virtual invoiceNr
@@ -394,7 +350,7 @@ public class AccountingServiceBean   {
         private Contract accountContract(DataCollector<Lineitem> itemCollector,
                                          boolean dryRun, Contract contract, LocalDate from, LocalDate to,
                                          int paymentDirection, LocalDate referenceDate, String headline,
-                                         Long invoiceNr) throws BusinessException {
+                                         Long invoiceNr) {
 
             // check the noAccountingFlag of the contract
             if (contract.isNoAccounting()) {
@@ -404,31 +360,32 @@ public class AccountingServiceBean   {
 
             // check is the single-price-state not OPEN valid
             if (ContractSinglePriceType.OPEN.equals(contract.getSinglePriceState())) {
-                throw new BusinessException(
-                        MessageFormat
-                                .format("Fehler: beim Vertrag {0} ist der Status >{1}< ---> keine Abrechnung",
-                                        NLS.toUserString(contract),
-                                        ContractSinglePriceType.OPEN));
-            }
+                throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.errorSinglePriceState")
+                                .set("contract", contract.toString())
+                                .set("state", ContractSinglePriceType.OPEN).handle();            }
             // check the singlePriceState of this contract
             checkContractSinglePriceState(contract);
             // is accTo present? --> the contract was accounted in the past
             // Ziel ist diesen Code zu ersetzen
             if (contract.getAccountedTo() != null) {
                 // check the value 'from': from is in a Invoice never .before(accountedTo)
-                if ((from.isBefore(contract.getAccountedTo()) && (paymentDirection == AccountingServiceBean.INVOICE))) {
-                    throw  new BusinessException(contract.toString() + "Parameter-Fehler: from before accountedTo") ;
+                if ((from.isBefore(contract.getAccountedTo()) && (paymentDirection == AccountingService.INVOICE))) {
+                    throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.paramError1")
+                                    .set("contract", contract.toString()).handle();
+
                 }
                 // check accTo: never account when referenceDate is before accTo
-                if ((referenceDate.isBefore(contract.getAccountedTo()) && (paymentDirection == AccountingServiceBean.INVOICE))) {
-                    throw new BusinessException(contract.toString() + "Parameter-Fehler: referenceDate before accountedTo") ;
+                if ((referenceDate.isBefore(contract.getAccountedTo()) && (paymentDirection == AccountingService.INVOICE))) {
+                    throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.paramError2")
+                                    .set("contract", contract.toString()).handle();
                 }
             } else { // this is a new contract, because it was not accounted in the past
                 if (referenceDate.isBefore(contract.getStartDate())) {
-                    throw new BusinessException(contract.toString() + "Parameter-Fehler: referenceDate before startDate");
+                    throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.paramError3")
+                                    .set("contract", contract.toString()).handle();
                 }
                 // check if there is to account a single price
-                Amount singlePrice = getSinglePrice(contract);
+                Amount singlePrice = getSolidSinglePrice(contract);
                 if (ContractSinglePriceType.ACCOUNT_NOW.equals(contract
                                                                        .getSinglePriceState())) {
                     accountSinglePrice(itemCollector, contract, referenceDate,
@@ -440,28 +397,39 @@ public class AccountingServiceBean   {
             int months = calculateMonths(from, to);
             // check if the months to account = zero or negative
             if (months <= 0) {
-                throw new BusinessException(contract.toString() + ", from: " + NLS.toUserString(from) +
-                                            " ist größer als to: " + NLS.toUserString(to));
+                throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.fromGreaterTo")
+                                .set("contract", contract.toString())
+                                .set("from", NLS.toUserString(from))
+                                .set("to", NLS.toUserString(to)).handle();
             }
-            Amount unitPrice = getUnitPrice(contract);
-            // te positionPrice is the unitPrice * amount of licences
+            // ToDo Berechnungen testen
+            Amount unitPrice = getSolidUnitPrice(contract);
+            // the positionPrice is the unitPrice * quantity of licences
             Amount positionPrice = unitPrice;
-            // check whether there is a amount (for more than one licence)
+            // check whether there is a quantity (for more than one licence)
             if (contract.getQuantity() != null) {
                 if (contract.getQuantity() > 0) {
-                    positionPrice = Amount.of(unitPrice.getAmount().multiply(BigDecimal.valueOf(contract.getQuantity())));
+                    positionPrice  = unitPrice.times(Amount.of(contract.getQuantity()));
+                    Amount positionPrice1 = Amount.of(unitPrice.getAmount().multiply(BigDecimal.valueOf(contract.getQuantity())));
                 }
             }
-            positionPrice = round2(positionPrice);
+            positionPrice = round(positionPrice,2);
 
-            Amount positionDiscount = getPositionDiscount(contract);
-            Amount discountAmount = getFinalDiscountAmount(contract);
-            BigDecimal discountX = positionPrice.getAmount().multiply(positionDiscount.getAmount().divide(BigDecimal.valueOf(100L)));
-            Amount discount = round2(Amount.of(discountX));
+            Amount positionDiscount = getSolidPositionDiscount(contract);
+            if(positionDiscount.isPositive()) {
+                int gggg = 1;
+            }
+            Amount discountAmount = getSolidFinalDiscountAmount(contract);
+            if(discountAmount.isPositive()) {
+                int hhh = 1;
+            }
+            Amount reducedPrice = positionPrice.decreasePercent(getSolidPositionDiscount(contract));
+            Amount discount = positionPrice.subtract(reducedPrice);
+            discount = round(discount, 2);
             // build the lineitem-data
             boolean isCredit = false;
             Amount lineitemPrice = positionPrice;
-            if (paymentDirection == AccountingServiceBean.CREDIT) {
+            if (paymentDirection == AccountingService.CREDIT) {
                 BigDecimal lp = lineitemPrice.getAmount();
                 lp = lp.multiply(Amount.MINUS_ONE.getAmount());
                 lineitemPrice = Amount.of(lp);
@@ -472,13 +440,14 @@ public class AccountingServiceBean   {
                                                            referenceDate, months, isCredit, positionPrice, headline);
             description = checkDiscounts(description, discount, positionDiscount,
                                          discountAmount);
-            // write a lineitem
+
+           // write a lineitem
             writeLineitem(itemCollector, contract, referenceDate, months,
                           lineitemPrice, description, "MON", contract
                                   .getPackageDefinition().getValue().toString(), isCredit,
                           positionDiscount, discountAmount, invoiceNr);
             // set the new accountedTo-date
-            if (paymentDirection == AccountingServiceBean.INVOICE) {
+            if (paymentDirection == AccountingService.INVOICE) {
                 contract.setAccountedTo(to);
             } else {
                 contract.setAccountedTo(from);
@@ -494,13 +463,12 @@ public class AccountingServiceBean   {
          */
         private void accountSinglePrice(DataCollector<Lineitem> itemCollector,
                                         Contract contract, LocalDate referenceDate, Long invoiceNr,
-                                        Amount singlePrice) throws BusinessException {
+                                        Amount singlePrice) {
             // check: is the single price not null or = 0
             if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
-                throw new BusinessException(
-                        MessageFormat
-                                .format("Bei dem Vertrag {0} soll der einmalige Preis abgerechnet werden, dieser ist jedoch = null oder < 1",
-                                        NLS.toUserString(contract)));
+                throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenoValidPrice")
+                        .set("abr", contract.getAccountingGroup())
+                        .set("contract", contract.toString()).handle();
             }
             if (PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL.equals(contract.getPackageDefinition().getValue()
                                                          .getAccountingProcedure())) {
@@ -519,27 +487,24 @@ public class AccountingServiceBean   {
          */
         private void accountSinglePriceRival(DataCollector<Lineitem> itemCollector,
                                              Contract contract, LocalDate referenceDate, Long invoiceNr,
-                                             Amount singlePrice) throws BusinessException {
+                                             Amount singlePrice)  {
             // check: is the single price only one time accounted - with the given
             // contract and not with the older contracts
             int count = countOldRivalContracts(contract.getPackageDefinition().getValue()
-                                                       .getProduct().getValue(), AccountingServiceBean.COUNT_CONTRACTS_ACCOUNT_NOW,
+                                                       .getProduct().getValue(), AccountingService.COUNT_CONTRACTS_ACCOUNT_NOW,
                                                contract);
             if (count > 0) {
-                throw new BusinessException(
-                        MessageFormat
-                                .format("Bei dem Vertrag {0} soll der einmalige Preis abgerechnet werden, dieser soll bei anderen Verträgen auch abgerechnet werden",
-                                        NLS.toUserString(contract)));
+                throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlepriceAlsoOtherContracts")
+                        .set("contract", contract.toString()).handle();
             }
             // check: is the single price already with the older contracts accounted
             count = countOldRivalContracts(contract.getPackageDefinition().getValue()
-                                                   .getProduct().getValue(), AccountingServiceBean.COUNT_CONTRACTS_THIS_ACCOUNT,
+                                                   .getProduct().getValue(), AccountingService.COUNT_CONTRACTS_THIS_ACCOUNT,
                                            contract);
             if (count > 0) {
-                throw new BusinessException(
-                        MessageFormat
-                                .format("Bei dem Vertrag {0} soll der einmalige Preis abgerechnet werden, dieser ist bei anderen Verträgen bereits abgerechnet.",
-                                        NLS.toUserString(contract)));
+                throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenNoAccountingDone")
+                                .set("abr", contract.getAccountingGroup())
+                                .set("contract", contract.toString()).handle();
             }
             // account the single price for a rival contract
             writeLineitem(itemCollector, contract, referenceDate, 1, singlePrice,
@@ -554,7 +519,7 @@ public class AccountingServiceBean   {
          */
         private void accountSinglePriceVolume(
                 DataCollector<Lineitem> itemCollector, Contract contract,
-                LocalDate referenceDate, Long invoiceNr, Amount singlePrice) throws BusinessException {
+                LocalDate referenceDate, Long invoiceNr, Amount singlePrice)  {
             // account the single price for a volume or add-on contract
             Integer amount = contract.getQuantity();
             if (amount == null) {
@@ -579,7 +544,7 @@ public class AccountingServiceBean   {
                                    Contract contract, LocalDate referenceDate, int months, Amount price,
                                    String description, String measurement, String packageName,
                                    boolean isCredit, Amount positionDiscount, Amount discountAbsolut,
-                                   Long invoiceNr) throws BusinessException {
+                                   Long invoiceNr) {
             Lineitem lineitem = new Lineitem();
             lineitem.setLineitemType(Lineitem.LINEITEMTYPE_LA);
             // check the absolute discount and calculate the accountingPrice
@@ -599,13 +564,13 @@ public class AccountingServiceBean   {
             } else {
                 lineitem.setPositionType(lineitem.getLineitemCollmexNormalposition());
             }
-            lineitem.setLineitemDate(LocalDateTime.of(referenceDate, LocalTime.now()));
+            lineitem.setLineitemDate(referenceDate);
             lineitem.setCompanyName(contract.getCompany().getValue().getName());
             String customerNr = contract.getCompany().getValue().getCustomerNr();
             if (Strings.isEmpty(customerNr)) {
                 // no accounting witout a customerNr!!!
-                throw new BusinessException("Kundennummer für "
-                                            + lineitem.getCompanyName() + " fehlt");
+                throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.customerNrMissing")
+                        .set("company", lineitem.getCompanyName()).handle();
             }
             lineitem.setCustomerNr(customerNr);
             lineitem.setMeasurement(measurement);
@@ -627,13 +592,13 @@ public class AccountingServiceBean   {
 
         private String checkDiscounts(String description, Amount discount,
                                       Amount discountPercent, Amount discountAbsolute) {
-            if (discount.getAmount().doubleValue() > 0D) {
+            if (discount.isPositive()) {
                 description += MessageFormat
                         .format(" Es wird ein Rabatt von {0}% = {1} EUR/Monat berücksichtigt.",
                                 NLS.toUserString(discountPercent),
                                 NLS.toUserString(discount));
             }
-            if (discountAbsolute.getAmount().doubleValue() > 0D) {
+            if (discountAbsolute.isPositive()) {
                 description += MessageFormat.format(
                         " Es wird ein Nachlass von {0} EUR/Monat berücksichtigt.",
                         NLS.toUserString(discountAbsolute));
@@ -646,7 +611,7 @@ public class AccountingServiceBean   {
          */
         private String getDescriptionForContract(Contract contract, LocalDate from,
                                                  LocalDate to, LocalDate referenceDate, int months, boolean isCredit,
-                                                 Amount unitPrice, String headline) throws BusinessException {
+                                                 Amount unitPrice, String headline) {
             String accToS = "noch nicht.";
             String quantityType = getQuantityType(contract);
             if (contract.getAccountedTo() != null) {
@@ -662,7 +627,7 @@ public class AccountingServiceBean   {
             }
             if (unitPrice.getAmount().doubleValue() == 0D) {
                 String stellen = "stellen";
-                if (AccountingServiceBean.CREDITACCOUNTING.equals(headline)) {
+                if (AccountingService.CREDITACCOUNTING.equals(headline)) {
                     stellen = "stellten";
                 }
                 return Formatter
@@ -690,7 +655,7 @@ public class AccountingServiceBean   {
 
         private String getHeadlineMessage(String headline, Contract contract) {
             String headlineText = "";
-            if (AccountingServiceBean.NEWACCOUNTING.equals(headline)) {
+            if (AccountingService.NEWACCOUNTING.equals(headline)) {
                 if (isQuantityPresentAndGreater1(contract)) {
                     headlineText = Formatter
                             .create("Abrechnung der ${quantity} neuen Pakete:").set("quantity", contract.getQuantity())
@@ -699,7 +664,7 @@ public class AccountingServiceBean   {
                     headlineText = "Abrechnung des neuen Pakets:";
                 }
             }
-            if (AccountingServiceBean.RUNNINGACCOUNTING.equals(headline)) {
+            if (AccountingService.RUNNINGACCOUNTING.equals(headline)) {
                 if (isQuantityPresentAndGreater1(contract)) {
                     headlineText = Formatter
                             .create("Abrechnung der ${quantity} Pakete:")
@@ -709,7 +674,7 @@ public class AccountingServiceBean   {
                 }
 
             }
-            if (AccountingServiceBean.CREDITACCOUNTING.equals(headline)) {
+            if (AccountingService.CREDITACCOUNTING.equals(headline)) {
                 if (isQuantityPresentAndGreater1(contract)) {
                     headlineText = Formatter
                             .create("Gutschrift für die bisher genutzen ${quantity} Pakete:").set("quantity", contract.getQuantity())
@@ -740,14 +705,14 @@ public class AccountingServiceBean   {
          * die 2 Pakete je 2,00 EUR         two packages with price = 	 * 2,00 EUR
          * </code>
          */
-        private String getQuantityType(Contract contract) throws BusinessException{
+        private String getQuantityType(Contract contract) {
             if (contract.getQuantity() != null) {
                 String s = "";
                 if (contract.getQuantity() > 1) {
                     s = Formatter.create("die ${quantity} Pakete")
                                  .set("quantity", contract.getQuantity()).format();
                 }
-                Amount unitPrice = getUnitPrice(contract);
+                Amount unitPrice = getSolidUnitPrice(contract);
                 if (unitPrice != null && unitPrice.getAmount().doubleValue() > 0D) {
                     s = s
                         + Formatter.create(" je ${unitPrice} EUR")
@@ -769,19 +734,16 @@ public class AccountingServiceBean   {
         /**
          * rounds the value to two decimals
          */
-        private Amount round2(Amount value) {
-            // TODO bessere Lösung
+        private Amount round(Amount value, int scale) {
            BigDecimal a = value.getAmount();
-           a = a.multiply(BigDecimal.valueOf(100L));
-           a = a.divide(BigDecimal.valueOf(100L));
+           a = a.setScale(scale, BigDecimal.ROUND_HALF_EVEN);
            return Amount.of(a);
-           // alte Lösung:  return Math.round(value * 100D) / 100.;
         }
 
         /**
          * get the discountPercent
          */
-        private Amount getPositionDiscount(Contract contract) {
+        private Amount getSolidPositionDiscount(Contract contract) {
             Amount discount = contract.getDiscountPercent();
             if (discount == null) {
                 discount = Amount.ZERO;
@@ -792,7 +754,7 @@ public class AccountingServiceBean   {
         /**
          * get the discountAbsolute
          */
-        private Amount getFinalDiscountAmount(Contract contract) {
+        private Amount getSolidFinalDiscountAmount(Contract contract) {
             Amount discount = contract.getDiscountAbsolute();
             if (discount == null) {
                 discount = Amount.ZERO;
@@ -800,7 +762,8 @@ public class AccountingServiceBean   {
             return discount;
         }
 
-        public Amount getUnitPrice(Contract contract) throws BusinessException {
+        @Override
+        public Amount getSolidUnitPrice(Contract contract) {
             Amount price = null;
             try {
                 price = contract.getUnitPrice();
@@ -812,13 +775,14 @@ public class AccountingServiceBean   {
                     contract.setUnitPrice(price);
                 }
             } catch (Exception e) {
-                throw new BusinessException("Fehler beim Zugriff auf den UnitPrice des Vertrag "
-                                            + contract.toString());
+                throw Exceptions.createHandled().withNLSKey("AccoungServiceBean.solidUnitPrice")
+                                .set("contract", contract.toString()).handle();
             }
             return price;
         }
 
-        public Amount getSinglePrice(Contract contract) throws BusinessException {
+        @Override
+        public Amount getSolidSinglePrice(Contract contract) {
             Amount price = null;
             try {
                 price = contract.getSinglePrice();
@@ -831,9 +795,8 @@ public class AccountingServiceBean   {
                     contract.setSinglePrice(price);
                 }
             } catch (Exception e) {
-                throw new BusinessException(
-                        "Exception bei der Abrechnung des SinglePrice bei dem Vertrag "
-                        + contract.toString());
+                throw Exceptions.createHandled().withNLSKey("AccoungServiceBean.solidSinglePrice")
+                        .set("contract", contract.toString()).handle();
             }
             return price;
         }
@@ -844,7 +807,7 @@ public class AccountingServiceBean   {
          * 02.3.2011 --> months = 1 start: 1.3.2011, next: 01.4.2011 --> months = 1
          * start: 1.3.2011, next: 02.4.2011 --> months = 2
          */
-    // ToDO: testen
+    // ToDO: testen  calculateMonths(LocalDate start, LocalDate next)
     private int calculateMonths(LocalDate start, LocalDate next) {
         int startMonth = start.getMonthValue();
         int startYear = start.getYear();
@@ -864,14 +827,14 @@ public class AccountingServiceBean   {
          */
         private void processCommand(DataCollector<Lineitem> itemCollector,
                                     boolean dryRun, LocalDate referenceDate, Command command, Contract c0,
-                                    Contract c1, Contract c2, Long invoiceNr) throws BusinessException {
+                                    Contract c1, Contract c2, Long invoiceNr) {
             boolean save = false;
             switch (command) {
                 case NEW_CONTRACT:    // Case 1, F1
                     LocalDate nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
                                          nextAccTo, INVOICE, referenceDate,
-                                         AccountingServiceBean.NEWACCOUNTING, invoiceNr);
+                                         AccountingService.NEWACCOUNTING, invoiceNr);
                     save = true;
                     break;
                 case ACC_IS_PRESSENT_TO_IS_NULL:      // Case 1, F2
@@ -884,7 +847,7 @@ public class AccountingServiceBean   {
                     if (nextAccTo.isAfter(c1.getAccountedTo()) && referenceDate.isAfter(c1.getAccountedTo())) {     // 17.1.2016: no accounting if accountedTo > referenceDate
                         c1 = accountContract(itemCollector, dryRun, c1,
                                              from, nextAccTo, INVOICE, referenceDate,
-                                             AccountingServiceBean.RUNNINGACCOUNTING, invoiceNr);
+                                             AccountingService.RUNNINGACCOUNTING, invoiceNr);
                         save = true;
                     }
                     break;
@@ -892,7 +855,7 @@ public class AccountingServiceBean   {
                     nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
                                          nextAccTo, INVOICE, referenceDate,
-                                         AccountingServiceBean.RUNNINGACCOUNTING, invoiceNr);
+                                         AccountingService.RUNNINGACCOUNTING, invoiceNr);
                     save = true;
                     break;
                 case FINISHED_CONTRACT: // case 1, F4, finished contract, do nothing
@@ -902,7 +865,7 @@ public class AccountingServiceBean   {
                         nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
                         c1 = accountContract(itemCollector, dryRun, c1,
                                              c1.getAccountedTo(), nextAccTo, INVOICE,               // 17.2.2016
-                                             referenceDate, AccountingServiceBean.RUNNINGACCOUNTING,
+                                             referenceDate, AccountingService.RUNNINGACCOUNTING,
                                              invoiceNr);
                         save = true;
                     }
@@ -916,7 +879,7 @@ public class AccountingServiceBean   {
                     }
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getEndDate(),
                                          c1.getAccountedTo(), CREDIT, referenceDate,
-                                         AccountingServiceBean.CREDITACCOUNTING, invoiceNr);
+                                         AccountingService.CREDITACCOUNTING, invoiceNr);
                     save = true;
                     break;
             }
@@ -1059,7 +1022,8 @@ public class AccountingServiceBean   {
             counter = counter + value;
         }
 
-        public void exportLicenceLineitems(int maxLineitemsDefault, String filter) throws Exception {
+        @Override
+        public void exportLicenceLineitems(int maxLineitemsDefault, String filter) {
             if(maxLineitemsDefault <= 0) {
                 maxLineitemsDefault = 300;
             }
@@ -1077,7 +1041,7 @@ public class AccountingServiceBean   {
                     .orderAsc(Lineitem.POSITION).queryList();
 
             if (lineitemList.size() <= 0) {
-                // ToDO Meldung machen
+                // ToDO Meldung machen   ss.forBackendStream(
 //                ss.forBackendStream(
 //                        DisplayMarkdownFactory.FACTORY_NAME,
 //                        "Lizenz-Abrechnung",MessageFormat.format(
@@ -1225,7 +1189,7 @@ public class AccountingServiceBean   {
                                 fileNameLast, filter);
                 System.err.println(message);
             }
-            // ToDo meldung machen
+            // ToDo meldung machen    ss.forBackendStream(
 //            ss.forBackendStream(
 //                    DisplayMarkdownFactory.FACTORY_NAME,
 //                    "Lizenz-Abrechnung",message)
@@ -1237,7 +1201,7 @@ public class AccountingServiceBean   {
          *  write the lineitems in the outputList to a new file
          */
 
-        private void writeToFile(List<Lineitem> outputList, File file ) throws Exception{
+        private void writeToFile(List<Lineitem> outputList, File file ) {
             PrintWriter pw = null;
             try {
                 Amount sum = Amount.ZERO;
@@ -1254,7 +1218,7 @@ public class AccountingServiceBean   {
                 pw.flush(); // flush the printwriter to get all data to the file
 
             } catch (Exception e) {
-                throw e;
+                Exceptions.handle(e) ;
             } finally {
                 pw.close();
             }
@@ -1379,9 +1343,9 @@ public class AccountingServiceBean   {
         /**
          * creates a filename like YYYYMMDD_hhmmss_<nr>_name
          */
-       // @Override
+        @Override
         public File createCsvFilename(String name, int nr) {
-            String s = dateTimeFilename("_",null);
+            String s = dateTimeFilename("_", null);
             if(nr >=0) {
                 s = s + NLS.toUserString(nr)+ "_";
             }
@@ -1393,19 +1357,24 @@ public class AccountingServiceBean   {
         /**
          * creates a string like YYYYMMDD_hhmmss_name "-" is the given space
          */
-        public String dateTimeFilename(String space, Calendar cal) {
-            if(cal == null) {
-                cal = Calendar.getInstance();
-            }String s = NLS.toUserString(cal.get(Calendar.YEAR));
-            s += twoDecimals(NLS.toUserString(cal.get(Calendar.MONTH) + 1));
-            s += twoDecimals(NLS.toUserString(cal.get(Calendar.DAY_OF_MONTH)));
+        @Override
+        public String dateTimeFilename(String space, LocalDateTime dateTime) {
+            if(dateTime == null) {
+                dateTime = LocalDateTime.now();
+            }
+            if(Strings.isEmpty(space)) {
+                space = "_";
+            }
+            String s = NLS.toUserString(dateTime.getYear());
+            s += twoDecimals(NLS.toUserString(dateTime.getMonthValue()));
+            s += twoDecimals(NLS.toUserString(dateTime.getDayOfMonth()));
             s += space;
-            s += twoDecimals(NLS.toUserString(cal.get(Calendar.HOUR_OF_DAY)));
-            s += twoDecimals(NLS.toUserString(cal.get(Calendar.MINUTE)));
-            s += twoDecimals(NLS.toUserString(cal.get(Calendar.SECOND)));
+            s += twoDecimals(NLS.toUserString(dateTime.getHour()));
+            s += twoDecimals(NLS.toUserString(dateTime.getSecond()));
             s += space;
             return s;
         }
+
 
         /**
          * extends a number to two decimals
@@ -1424,7 +1393,7 @@ public class AccountingServiceBean   {
                                                   Lineitem lineitem, LocalDate invoiceDate) {
             Amount sum = Amount.ZERO;
 
-            // step 2: generate a csv-line for the export in Collmex-Notation
+            // generate a csv-line for the export in Collmex-Notation
             final int csvLae = 82; // field #1 - #82
             String[] csv = new String[csvLae + 1]; // csv[0] - csv[82],
             // csv[0] is not used
@@ -1561,10 +1530,15 @@ public class AccountingServiceBean   {
             // Falls nicht angegeben, wird die
             // Beschreibung aus dem Produkt
             // übernommen.
-            csv[72] = lineitem.getMeasurement(); // 72 Mengeneinheit C 3 ISO Codes.
+            String measurement = lineitem.getMeasurement();
+            if("PT".equals(measurement)) {
+                measurement= "DAY";    // Anpassung PT --> DAY wg. Collmex
+            }
+            csv[72] = measurement; // 72 Mengeneinheit C 3 ISO Codes.
+            // DAY = Personentag
             // PCE = Stück,
             // MON = Monat, Falls nicht
-            // angegeben, wird die Mengeneinheit vom Produkt
+            // angegeben, wird die Mengeneinheit vom in Collmex gespeicherten Produkt
             // übernommen.
             if(Lineitem.LINEITEMTYPE_LA.equals(lineitem.getLineitemType()))  {
                 int quantity =lineitem.getQuantity().getAmount().intValue();
@@ -1633,7 +1607,7 @@ public class AccountingServiceBean   {
             pw.println(sb.toString());
 
             // Step 5: set status and the clearingDate
-            // ToDo wieder einbauen.
+            // ToDo wieder einbauen.  lineitem.setStatus(Lineitem.LINEITEMSTATUS_ACCOUNTED);
 //            lineitem.setStatus(Lineitem.LINEITEMSTATUS_ACCOUNTED);
             lineitem.setClearingDate(LocalDateTime.now());
             oma.update(lineitem);
@@ -1641,7 +1615,6 @@ public class AccountingServiceBean   {
             sum = lineitem.getPrice();
             sum = sum.decreasePercent(lineitem.getPositionDiscount());
             sum = sum.times (lineitem.getQuantity());
-            // System.err.println(lineitem.getCompanyName() + "   " + sum);
             addToCounter(1);
             return sum;
         }
@@ -1665,7 +1638,7 @@ public class AccountingServiceBean   {
 //            return lineitemList;
 //        }
 
-    // TODO: Migrieren? Hinweis: list wird im CRM nur vom ocm.fs.VFile verwendet
+    // TODO: Migrieren? Hinweis: list wird im CRM nur vom ocm.fs.VFile verwendet   public void list(VFile parent, ChildCollector collector)
 //        @Override
 //        public void list(VFile parent, ChildCollector collector) {
 //            collector.add(new DirectoryWrapper(parent, "SYS", Path.getPath(
@@ -1673,8 +1646,8 @@ public class AccountingServiceBean   {
 //
 //        }
 
-
-        public void checkContractSinglePriceState(Contract givenContract) throws BusinessException {
+        @Override
+        public void checkContractSinglePriceState(Contract givenContract)  {
             PackageDefinition pd = givenContract.getPackageDefinition().getValue();
             String ap = pd.getAccountingProcedure();
             if (ap.equals(PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL)) {
@@ -1686,7 +1659,7 @@ public class AccountingServiceBean   {
         }
 
         private void checkContractSinglePriceStateVolume(Contract givenContract,
-                                                         PackageDefinition pd) throws BusinessException {
+                                                         PackageDefinition pd)  {
             Amount singlePrice = pd.getSinglePrice();
 
             if (givenContract.getSinglePrice() == null) {     //TASK 7362
@@ -1701,37 +1674,27 @@ public class AccountingServiceBean   {
                     break;
                 case ACCOUNT_NOW:
                     if (givenContract.getAccountedTo() != null) {
-                        throw new BusinessException(
-                                MessageFormat
-                                        .format("Abrechnungsgruppe: {0}, der einmaliger Preis soll mit diesem neuen Vertrag: {1} abgerechnet werden, dieser Vertrag ist jedoch bereits bis zum {2} abgerechnet.",
-                                                addApostroph(givenContract
-                                                                     .getAccountingGroup()),
-                                                addApostroph(NLS
-                                                                     .toUserString(givenContract)),
-                                                NLS.toUserString(givenContract
-                                                                         .getAccountedTo())));
+                        throw Exceptions.createHandled()
+                                        .withNLSKey("AccountingServiceBean.singlePriceIsAccounted")
+                                        .set("abr", givenContract.getAccountingGroup())
+                                        .set("contract", givenContract.toString())
+                                        .set("accTo", NLS.toUserString(givenContract.getAccountedTo()))
+                                        .handle();
                     }
                     if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
-                        throw new BusinessException(
-                                MessageFormat
-                                        .format("Abrechnungsgruppe: {0}, bei dem Vertrag {1} soll der einmalige Preis abgerechnet werden, dieser ist jedoch = null oder < 1",
-                                                addApostroph(givenContract
-                                                                     .getAccountingGroup()),
-                                                addApostroph(NLS
-                                                                     .toUserString(givenContract))));
+                        throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenoValidPrice")
+                                        .set("abr", givenContract.getAccountingGroup())
+                                        .set("contract", givenContract.toString()).handle();
                     }
 
                     break;
                 case THIS_ACCOUNT:
                     if (givenContract.getAccountedTo() == null) {
-                        throw new BusinessException(
-                                MessageFormat
-                                        .format("Abrechnungsgruppe: {0}, der einmaliger Preis soll mit diesem Vertrag: {1} abgerechnet worden sein, aber bisher ist keine Abrechnung erfolgt (accountedTo = null",
-                                                addApostroph(givenContract
-                                                                     .getAccountingGroup()),
-                                                addApostroph(NLS
-                                                                     .toUserString(givenContract))));
+                        throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenNoAccountingDone")
+                                        .set("abr", givenContract.getAccountingGroup())
+                                        .set("contract", givenContract.toString()).handle();
                     }
+
                     break;
                 case OLD_ACCOUNT:
                     break;
@@ -1741,8 +1704,7 @@ public class AccountingServiceBean   {
         /**
          * checks the singlePriceState of the given rival contract
          */
-        private void checkContractSinglePriceStateRival(Contract givenContract, PackageDefinition pd)
-                throws BusinessException {
+        private void checkContractSinglePriceStateRival(Contract givenContract, PackageDefinition pd) {
             // get the singleprice from the package-definition
             Amount singlePrice = pd.getSinglePrice();
             // if a singleprice in the contract is present, take this one
@@ -1761,12 +1723,12 @@ public class AccountingServiceBean   {
                 case ACCOUNT_NOW: // the single price is accounted with this account
                     // check: no other contracts with state "account now"
                     checkOldRivalContracts(product, givenContract,
-                                           AccountingServiceBean.COUNT_CONTRACTS_ACCOUNT_NOW,
+                                           AccountingService.COUNT_CONTRACTS_ACCOUNT_NOW,
                                            ContractSinglePriceType.ACCOUNT_NOW, 0);
                     // check: no other contracts with state
                     // "account with this account"
                     checkOldRivalContracts(product, givenContract,
-                                           AccountingServiceBean.COUNT_CONTRACTS_THIS_ACCOUNT,
+                                           AccountingService.COUNT_CONTRACTS_THIS_ACCOUNT,
                                            ContractSinglePriceType.THIS_ACCOUNT, 0);
                     // TASK 5863: Prüfung herausgenommen
                     // // check: no contract with state OLD_ACCOUNT is present
@@ -1776,46 +1738,33 @@ public class AccountingServiceBean   {
 
                     // check: this contract should be not accounted
                     if (givenContract.getAccountedTo() != null) {
-                        throw new BusinessException(
-                                MessageFormat
-                                        .format("Abrechnungsgruppe: {0}, der einmaliger Preis soll mit diesem neuen Vertrag: {1} abgerechnet werden, dieser Vertrag ist jedoch bereits bis zum {2} abgerechnet.",
-                                                addApostroph(givenContract
-                                                                     .getAccountingGroup()),
-                                                addApostroph(NLS
-                                                                     .toUserString(givenContract)),
-                                                NLS.toUserString(givenContract
-                                                                         .getAccountedTo())));
+                        throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePriceIsAccounted")
+                                .set("abr", givenContract.getAccountingGroup())
+                                .set("contract", givenContract.toString())
+                                .set("accTo", NLS.toUserString(givenContract.getAccountedTo())).handle();
                     }
                     // check: a real singleprice shoud be existent
                     if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
-                        throw new BusinessException(
-                                MessageFormat
-                                        .format("Abrechnungsgruppe: {0}, bei dem Vertrag {1} soll der einmalige Preis abgerechnet werden, dieser ist jedoch = null oder < 1",
-                                                addApostroph(givenContract
-                                                                     .getAccountingGroup()),
-                                                addApostroph(NLS
-                                                                     .toUserString(givenContract))));
+                        throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenoValidPrice")
+                                  .set("abr", givenContract.getAccountingGroup())
+                                  .set("contract", givenContract.toString()).handle();
                     }
 
                     break;
                 case THIS_ACCOUNT: // the singleprice was accounted with this account
                     // check: no other contract with this state is existent
                     checkOldRivalContracts(product, givenContract,
-                                           AccountingServiceBean.COUNT_CONTRACTS_THIS_ACCOUNT,
+                                           AccountingService.COUNT_CONTRACTS_THIS_ACCOUNT,
                                            ContractSinglePriceType.THIS_ACCOUNT, 0);
                     // check: no other contract with the state "account now" is existent
                     checkOldRivalContracts(product, givenContract,
-                                           AccountingServiceBean.COUNT_CONTRACTS_ACCOUNT_NOW,
+                                           AccountingService.COUNT_CONTRACTS_ACCOUNT_NOW,
                                            ContractSinglePriceType.ACCOUNT_NOW, 0);
                     // check: was there accounting before? if not --> error
                     if (givenContract.getAccountedTo() == null) {
-                        throw new BusinessException(
-                                MessageFormat
-                                        .format("Abrechnungsgruppe: {0}, der einmaliger Preis soll mit diesem Vertrag: {1} abgerechnet worden sein, aber bisher ist keine Abrechnung erfolgt (accountedTo = null",
-                                                addApostroph(givenContract
-                                                                     .getAccountingGroup()),
-                                                addApostroph(NLS
-                                                                     .toUserString(givenContract))));
+                        Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenNoAccountingDone")
+                                  .set("abr", givenContract.getAccountingGroup())
+                                  .set("contract", givenContract.toString()).handle();
                     }
                     break;
                 case OLD_ACCOUNT: // this is a other old contract
@@ -1823,27 +1772,22 @@ public class AccountingServiceBean   {
                     // or a other contract with state "account now" existent
                     // or one ore more contracts with state "no account" existent
                     if (countOldRivalContracts(product,
-                                               AccountingServiceBean.COUNT_CONTRACTS_THIS_ACCOUNT,
+                                               AccountingService.COUNT_CONTRACTS_THIS_ACCOUNT,
                                                givenContract) != 1) {
                         if (countOldRivalContracts(product,
-                                                   AccountingServiceBean.COUNT_CONTRACTS_ACCOUNT_NOW,
+                                                   AccountingService.COUNT_CONTRACTS_ACCOUNT_NOW,
                                                    givenContract) != 1) {
                             if (countOldRivalContracts(product,
-                                                       AccountingServiceBean.COUNT_CONTRACTS_NO_ACCOUNT,
+                                                       AccountingService.COUNT_CONTRACTS_NO_ACCOUNT,
                                                        givenContract) < 1) {
-                                throw new BusinessException(
-                                        MessageFormat
-                                                .format("In der Abrechnungsgruppe {0} sind für den Vertrag: {1} mit dem Status {2} kein anderer Vertrag mit Status {3} oder {4} vorhanden.",
-                                                        addApostroph(givenContract
-                                                                             .getAccountingGroup()),
-                                                        addApostroph(NLS
-                                                                             .toUserString(givenContract)),
-                                                        addApostroph(ContractSinglePriceType.OLD_ACCOUNT
-                                                                             .toString()),
-                                                        addApostroph(ContractSinglePriceType.ACCOUNT_NOW
-                                                                             .toString()),
-                                                        addApostroph(ContractSinglePriceType.THIS_ACCOUNT
-                                                                             .toString())));
+                                throw Exceptions.createHandled()
+                                          .withNLSKey("AccountingServiceBean.singlePricenNoOtherContract")
+                                          .set("abr", givenContract.getAccountingGroup())
+                                          .set("contract", givenContract.toString())
+                                          .set("state1", ContractSinglePriceType.OLD_ACCOUNT.toString())
+                                          .set("state2", ContractSinglePriceType.ACCOUNT_NOW.toString())
+                                          .set("state3", ContractSinglePriceType.THIS_ACCOUNT.toString())
+                                          .handle();
                             }
                         }
                     }
@@ -1857,20 +1801,18 @@ public class AccountingServiceBean   {
 
         private void checkOldRivalContracts(Product product,
                                             Contract givenContract, int mode, ContractSinglePriceType source,
-                                            int checkCount) throws BusinessException {
+                                            int checkCount)  {
             int count = countOldRivalContracts(product, mode, givenContract);
             if ((count != checkCount)) {
-                throw new BusinessException(
-                        MessageFormat
-                                .format("In der Abrechnungsgruppe: {0}, wurden für den Vertrag: {1} {2} Altverträge mit dem Status {3} gefunden.",
-                                        addApostroph(givenContract
-                                                             .getAccountingGroup()),
-                                        addApostroph(NLS
-                                                             .toUserString(givenContract)),
-                                        count, addApostroph(source.toString())));
+                throw Exceptions.createHandled().withSystemErrorMessage("AccountingServiceBean.singlePrice.manyOldContracts")
+                        .set("abr", givenContract.getAccountingGroup())
+                        .set("contract", givenContract.toString())
+                        .set("count", NLS.toUserString(count) )
+                        .set("state", source.toString()).handle();
             }
         }
 
+        @Override
         public int countOldRivalContracts(Product product, int mode,
                                           Contract givenContract) {
             List<Contract> companyContractList = oma
@@ -1885,28 +1827,28 @@ public class AccountingServiceBean   {
                                      .getPackageDefinition().getValue().getAccountingProcedure())) {
                         if (product.equals(contract.getPackageDefinition().getValue().getProduct().getValue())) {
                             switch (mode) {
-                                case AccountingServiceBean.COUNT_CONTRACTS_WITHOUT_THIS_CONTRACT:
+                                case AccountingService.COUNT_CONTRACTS_WITHOUT_THIS_CONTRACT:
                                     count++;
                                     break;
-                                case AccountingServiceBean.COUNT_CONTRACTS_THIS_ACCOUNT:
+                                case AccountingService.COUNT_CONTRACTS_THIS_ACCOUNT:
                                     if (contract.getSinglePriceState().equals(
                                             ContractSinglePriceType.THIS_ACCOUNT)) {
                                         count++;
                                     }
                                     break;
-                                case AccountingServiceBean.COUNT_CONTRACTS_ACCOUNT_NOW:
+                                case AccountingService.COUNT_CONTRACTS_ACCOUNT_NOW:
                                     if (contract.getSinglePriceState().equals(
                                             ContractSinglePriceType.ACCOUNT_NOW)) {
                                         count++;
                                     }
                                     break;
-                                case AccountingServiceBean.COUNT_CONTRACTS_OLD_ACCOUNT:
+                                case AccountingService.COUNT_CONTRACTS_OLD_ACCOUNT:
                                     if (contract.getSinglePriceState().equals(
                                             ContractSinglePriceType.OLD_ACCOUNT)) {
                                         count++;
                                     }
                                     break;
-                                case AccountingServiceBean.COUNT_CONTRACTS_NO_ACCOUNT:
+                                case AccountingService.COUNT_CONTRACTS_NO_ACCOUNT:
                                     if (contract.getSinglePriceState().equals(
                                             ContractSinglePriceType.NO_ACCOUNTING)) {
                                         count++;
@@ -1921,29 +1863,28 @@ public class AccountingServiceBean   {
         }
 
 
-        public Amount getProdUmsatz() {
+        private Amount getProdUmsatz() {
             return prodUmsatz;
         }
 
 
-        public Amount getTestUmsatz() {
+        private Amount getTestUmsatz() {
             return testUmsatz;
         }
 
 
-        public LocalDate getAccountingDate() {
+        private LocalDate getAccountingDate() {
             return accountingDate;
         }
 
-
-        public void generateCollmexKundenCsv() throws BusinessException, Exception   {
+        @Override
+        public void generateCollmexKundenCsv()    {
             List<Company> companyList = oma.select(Company.class)
-                                           // ToDo Constraint fixen
+                                           // ToDo Constraint fixen  .where(new Constraint.(Company.CUSTOMERNR), "", true)
              //                              .where(new Constraint.(Company.CUSTOMERNR), "", true)
                                            .orderAsc(Company.CUSTOMERNR).queryList();
             if (companyList.size() <= 0) {
-                throw new BusinessException(
-                        "In der Tabelle 'company' wurden keine Firmen zum exportieren gefunden");
+                throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.noCompanyToExport").handle();
             }
             // export them to the file
             File file = createCsvFilename("kunden", -1);
@@ -1963,7 +1904,7 @@ public class AccountingServiceBean   {
                     }
                     pw.flush(); // flush the printwriter to get all data to the file
                     // build a activity-news
-                    // ToDo Meldung machen
+                    // ToDo Meldung machen ss.forBackendStream(
 //                    ss.forBackendStream(
 //                            DisplayMarkdownFactory.FACTORY_NAME,
 //                            "Export für Collmex",
@@ -1976,11 +1917,12 @@ public class AccountingServiceBean   {
                     pw.close();
                 }
             } catch (Exception e) {
-                throw e;
+                Exceptions.handle(e);
             }
         }
 
-        private void printKundenCsvLine(PrintWriter pw, Company company) {
+
+    private void printKundenCsvLine(PrintWriter pw, Company company) {
             StringBuilder sb = new StringBuilder();
             sb.append("CMXKND;");
             sb.append(company.getCustomerNr());

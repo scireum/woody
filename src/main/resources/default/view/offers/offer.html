@@ -1,0 +1,56 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@args woody.offers.Offer offer, String page
+@extends(view.wondergem.template.html, title: (offer.toString()))
+
+@section(head) {
+    <script src="/assets/wondergem/ace/ace.js" type="text/javascript"></script>
+}
+
+@section(breadcrumbs) {
+    <li>
+        <a href="@prefix/company-offers">@i18n("Offer.plural")</a>
+    </li>
+    <li>
+        <a href="@prefix/offer/@offer.getId()">@offer</a>
+    </li>
+}
+
+@pageHeader("Contract")
+
+<div class="row">
+    @if (!offer.isNew()) {
+    <div class="col-md-3">
+        @navbox() {
+            <li class="nav-header">@i18n("Model.details")</li>
+            <li>
+                <b>@offer.toString()</b>
+            </li>
+
+            <li class="nav-header"></li>
+            <li @if(page == "details") { class="active" }>
+                <a href="@prefix/offer/@offer.getId()" class="link">
+                    <i class="icon-users"></i>@i18n("Model.details")
+                </a>
+            </li>
+
+    </div>
+
+    <!--
+            if(page == "details") {includeExtensions("offer-details", offer, page)}
+
+        }
+     -->
+
+    <a href="@prefix/company/@offer.getCompany().getValue().getId()/offers" class="btn btn-block">@i18n("NLS.back")</a>
+</div>
+    }
+    <div class="@if (offer.isNew()) { col-md-12 } else { col-md-9 }">
+        @render
+    </div>
+</div>

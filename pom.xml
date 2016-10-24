@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+ <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Made with all the love in the world
   ~ by scireum in Remshalden, Germany
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.scireum</groupId>
             <artifactId>sirius-biz</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.2</version>
         </dependency>
 
         <dependency>
@@ -35,6 +35,11 @@
             <version>LATEST</version>
             <type>test-jar</type>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.scireum</groupId>
+            <artifactId>sirius-kernel</artifactId>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>com.scireum</groupId>

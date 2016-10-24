@@ -31,6 +31,7 @@ public class EmployeeController extends BizController {
     @LoginRequired
     @Permission(UserAccountController.PERMISSION_MANAGE_USER_ACCOUNTS)
     public void employee(WebContext ctx, String accountId) {
+        // ToDo Beispiel currentUser().as(Employee.class).
         UserAccount userAccount = find(UserAccount.class, accountId);
         assertTenant(userAccount);
         assertNotNew(userAccount);

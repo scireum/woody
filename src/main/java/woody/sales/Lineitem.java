@@ -8,7 +8,7 @@
 
 package woody.sales;
 
-import com.sun.istack.internal.NotNull;
+
 import sirius.biz.model.BizEntity;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.annotations.Length;
@@ -18,7 +18,6 @@ import sirius.kernel.nls.NLS;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * Created by gerhardhaufler on 18.09.16.
@@ -52,11 +51,10 @@ public class Lineitem extends BizEntity {
     public static final String LINEITEMSTATUS_IS_ZERO = "S_ZERO";    // Wert ist null, keine Abrechnung
 
     @Length(2)
-    @NotNull
     private String lineitemType = LINEITEMTYPE_LA;
     public static final Column LINEITEMTYPE = Column.named("lineitemType");
 
-    private LocalDateTime lineitemDate;
+    private LocalDate lineitemDate;
     public static final Column LINEITEMDATE = Column.named("lineitemDate");
 
     @Length(255)
@@ -127,11 +125,11 @@ public class Lineitem extends BizEntity {
     private String description;
     public static final Column DESCRIPTION = Column.named("description");
 
-    public LocalDateTime getLineitemDate() {
+    public LocalDate getLineitemDate() {
         return lineitemDate;
     }
 
-    public void setLineitemDate(LocalDateTime lineitemDate) {
+    public void setLineitemDate(LocalDate lineitemDate) {
         this.lineitemDate = lineitemDate;
     }
 

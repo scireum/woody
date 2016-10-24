@@ -38,6 +38,10 @@ public class Product extends TenantAware {
     public static final Column ARTICLE = Column.named("article");
 
     @Autoloaded
+    private ProductType productType = ProductType.SERVICE;
+    public static final Column PRODUCTTYPE = Column.named("productType");
+
+    @Autoloaded
     private Boolean collectBugs = false;
     public static final Column COLLECTBUGS = Column.named("collectBugs");
 
@@ -110,5 +114,13 @@ public class Product extends TenantAware {
 
     public void setArticle(String article) {
         this.article = article;
+    }
+
+    public ProductType getProductType() {
+        return productType;
+    }
+
+    public void setProductType(ProductType productType) {
+        this.productType = productType;
     }
 }

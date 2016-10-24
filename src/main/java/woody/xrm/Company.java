@@ -8,6 +8,9 @@
 
 package woody.xrm;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
+import com.google.common.io.BaseEncoding;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
 import sirius.biz.tenants.TenantAware;
@@ -121,6 +124,7 @@ public class Company extends TenantAware {
 
     @BeforeSave
     protected void onSave() {
+
         // check the presence of a customer-number if contracts are existing
         long count = oma.select(Contract.class).eq(Contract.COMPANY, this).count();
         if (count > 0 && Strings.isEmpty(customerNr)) {

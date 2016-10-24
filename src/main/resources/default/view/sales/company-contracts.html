@@ -23,6 +23,10 @@
     <a class="btn btn-primary" href="@prefix/contract/new">@i18n("Model.create")</a>
 }
 
+@magicsearch(contracts, ("company/" + company.getId() + "/contracts"), "contracts/suggest", suggestions) {
+<a class="btn btn-primary" href="/company/@company.getId()/contract/new">@i18n("Model.create")</a>
+}
+
 @table(contracts) {
     <thead>
         <tr>

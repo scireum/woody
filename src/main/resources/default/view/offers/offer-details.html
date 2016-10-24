@@ -1,0 +1,42 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+
+@import woody.xrm.Company
+@import woody.offers.Offer
+@import woody.offers.OfferState
+
+@args Company company, Offer offer
+@extends(view.offers.offer.html, offer, "details")
+
+@editForm(("company/" + company.getIdAsString() + "/offer/" + offer.getIdAsString())) {
+    <div class="row">
+
+      @textfield( span: "3", name:     "number",
+      value:    offer.getNumber(),
+      labelKey: "Offer.number",
+      readOnly: true )
+
+      @textfield(span: "4", name:     "keyword",    value:    offer.getKeyword(),
+      labelKey: "Offer.keyword",   required:true)
+
+      @singleSelect(span: "4", name: "offerState",
+      labelKey: "Offer.state") {
+         @for(OfferState state : OfferState.values()) {
+            <option value="@state.name()" @if (state == offer.getState()) { selected="selected" }>@state.toString()</option>
+         }
+      }
+
+    </div>
+
+    }
+
+@formBar() {
+    @tracing(offer.getTrace())
+}
+
+

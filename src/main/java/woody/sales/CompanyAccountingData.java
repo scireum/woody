@@ -9,6 +9,7 @@
 package woody.sales;
 
 import sirius.biz.model.AddressData;
+import sirius.biz.model.BizEntity;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.Composite;
@@ -25,9 +26,9 @@ import woody.xrm.Company;
 /**
  * Created by gerhardhaufler on 22.09.16.
  */
-public class CompanyAccountingData extends Composite {
 
-    // TODO mit aha verifizieren
+// ToDo Composite oder BizEntity bei  CompanyAccountingData
+public class CompanyAccountingData extends BizEntity {
 
     private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column COMPANY = Column.named("company");
@@ -35,7 +36,7 @@ public class CompanyAccountingData extends Composite {
     @NullAllowed
     @Autoloaded
     private final AddressData invoiceAddress =
-            new AddressData(AddressData.Requirements.NOT_PARTIAL, NLS.get("CompanyAccountingData.invoiceAdress"));
+            new AddressData(AddressData.Requirements.NOT_PARTIAL, NLS.get("CompanyAccountingData.invoiceAddress"));
     public static final Column POSTBOXADDRESS = Column.named("invoiceAddress");
 
     @Trim
@@ -57,7 +58,35 @@ public class CompanyAccountingData extends Composite {
     private Amount ptPrice;
     public static final Column PTPRICE = Column.named("ptPrice");
 
+    public EntityRef<Company> getCompany() {
+        return company;
+    }
 
+    public AddressData getInvoiceAddress() {
+        return invoiceAddress;
+    }
 
+    public String getInvoiceMedium() {
+        return invoiceMedium;
+    }
 
+    public void setInvoiceMedium(String invoiceMedium) {
+        this.invoiceMedium = invoiceMedium;
+    }
+
+    public String getInvoiceMailAdr() {
+        return invoiceMailAdr;
+    }
+
+    public void setInvoiceMailAdr(String invoiceMailAdr) {
+        this.invoiceMailAdr = invoiceMailAdr;
+    }
+
+    public Amount getPtPrice() {
+        return ptPrice;
+    }
+
+    public void setPtPrice(Amount ptPrice) {
+        this.ptPrice = ptPrice;
+    }
 }
