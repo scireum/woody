@@ -7,29 +7,59 @@
 *@
 
 @import woody.xrm.Company
+@import woody.xrm.Person
 @import woody.offers.Offer
 @import woody.offers.OfferState
 
 @args Company company, Offer offer
-@extends(view.offers.offer.html, offer, "details")
+@extends(view.offers.offer.html, company, offer, "details")
 
 @editForm(("company/" + company.getIdAsString() + "/offer/" + offer.getIdAsString())) {
     <div class="row">
 
-      @textfield( span: "3", name:     "number",
-      value:    offer.getNumber(),
-      labelKey: "Offer.number",
-      readOnly: true )
+      @textfield( span: "3", name:     "number", value:    offer.getNumber(),
+      labelKey: "Offer.number", readOnly: true )
 
       @textfield(span: "4", name:     "keyword",    value:    offer.getKeyword(),
       labelKey: "Offer.keyword",   required:true)
+      @*
+          @textfield(span: "4", name: "state", value: offer.getState().toString(),
+          labelKey: "Offer.state")
 
-      @singleSelect(span: "4", name: "offerState",
-      labelKey: "Offer.state") {
-         @for(OfferState state : OfferState.values()) {
-            <option value="@state.name()" @if (state == offer.getState()) { selected="selected" }>@state.toString()</option>
-         }
-      }
+        @singleSelect(span: "4", name: "state",
+        labelKey: "Offer.state") {
+            @for(OfferState state : OfferState.values()) {
+                <option value="@state.name()" @if (state == offer.getState()) { selected="selected" }>@state.toString()</option>
+            }
+        }
+        *@
+
+    </div>
+
+    <div class="row">
+        @textfield(span: "4", name:     "date", value:    NLS.toUserString(offer.getDate()),
+        labelKey: "Offer.date", readOnly: true)
+
+        @singleSelect(span: "4", name: "person",
+        labelKey: "Offer.person") {
+            @for(Person person : company.queryPersons()) {
+                <option value="@person.getId()" @if (offer.getPerson().is(person)) { selected="selected" }>@person.toString()</option>
+            }
+        }
+
+        @singleSelect(span: "4", name: "buyer",
+        labelKey: "Offer.buyer") {
+            @for(Person person : company.queryPersons()) {
+                <option value="@person.getId()" @if (offer.getBuyer().is(person)) { selected="selected" }>@person.toString()</option>
+            }
+        }
+
+    </div>
+
+    <div class="row">
+        @textfield(name:     "reference",
+        value:    offer.getReference(),
+        labelKey: "Offer.reference")
 
     </div>
 

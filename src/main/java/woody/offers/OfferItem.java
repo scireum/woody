@@ -127,14 +127,11 @@ public class OfferItem extends BizEntity {
     public static final Column DISCOUNT = Column.named("discount");
 
     @NullAllowed
-    @Autoloaded
     @Numeric(scale = 2, precision = 15)
-// ToDo    @Param(name = ParamsFieldConstants.PARAM_READONLY, value = Column.named("true")
     private Amount price;
     public static final Column PRICE = Column.named("price");
 
     @NullAllowed
-    @Autoloaded
     @Numeric(scale = 2, precision = 15)
 //  ToDo    @Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")
     private Amount cyclicPrice;
@@ -161,8 +158,8 @@ public class OfferItem extends BizEntity {
 
     @NullAllowed
     @Autoloaded
-    private LocalDate developeDate;
-    public static final Column DEVELOPEDATE = Column.named("developeDate");
+    private LocalDate completionDate;
+    public static final Column DEVELOPEDATE = Column.named("completionDate");
 
     @NullAllowed
     @Autoloaded
@@ -177,16 +174,10 @@ public class OfferItem extends BizEntity {
 
 // ToDo            @Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true"),
     @NullAllowed
-    @Autoloaded
     @Length(2000)
     private String history;
     public static final Column HISTORY = Column.named("history");
 
-// ToDo asString noch notwendig?
-//    @Override
-//    protected void asString(StringBuilder sb) {
-//// ToDo        sb.append(getUnqiueObjectName())  ;
-//    }
 
     private boolean flagOneTimeHistory = true;
 
@@ -385,8 +376,8 @@ public class OfferItem extends BizEntity {
 
                 // the salesConfirmationDate is set when the mail with the salesConfirmation is send to the receiver
                 if (OfferItemState.DEVELOPED.equals(state)) {
-                    if (developeDate == null) {
-                        developeDate = LocalDate.now();
+                    if (completionDate == null) {
+                        completionDate = LocalDate.now();
                     }
                 }
                 if (OfferItemState.ACCEPTED.equals(state)) {
@@ -519,6 +510,13 @@ public class OfferItem extends BizEntity {
             return true;
         }
         return false;
+    }
+
+    public boolean showNextState() {
+        if(OfferItemState.UNUSED.equals(this.getState())) {return false;}
+        if(OfferItemState.CANCELED.equals(this.getState())) {return false;}
+        if(OfferItemState.COPY.equals(this.getState())) {return false;}
+        return true;
     }
 
     public EntityRef<Offer> getOffer() {
@@ -657,12 +655,12 @@ public class OfferItem extends BizEntity {
         this.salesConfirmationDate = salesConfirmationDate;
     }
 
-    public LocalDate getDevelopeDate() {
-        return developeDate;
+    public LocalDate getCompletionDate() {
+        return completionDate;
     }
 
-    public void setDevelopeDate(LocalDate developeDate) {
-        this.developeDate = developeDate;
+    public void setCompletionDate(LocalDate completionDate) {
+        this.completionDate = completionDate;
     }
 
     public LocalDate getAcceptanceDate() {

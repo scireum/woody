@@ -270,7 +270,7 @@ public class SendOfferView /* extends BasicView*/ {
             sb.append("Für Erläuterungen und Rückfragen stehen wir gerne zur Verfügung.") ;
             sb.append("\n\n");
             UserInfo userInfo = UserContext.getCurrentUser();
-            Employee employee = userInfo.as(Employee.class);
+      //      Employee employee = userInfo.as(Employee.class);
 
             //ToDo signatur
 //            sb.append(employee.getSignature()) ;        // neue Lösung gemäß CRM-48

@@ -24,6 +24,8 @@ import sirius.kernel.nls.Formatter;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
 
+import java.util.List;
+
 /**
  * Created by aha on 06.10.15.
  */
@@ -50,6 +52,8 @@ public class Person extends BizEntity {
     private String position;
     public static final Column POSITION = Column.named("position");
 
+    // ToDO: klären was mit birthday, it-Decider marketing-Decider usw. geschieht
+
     private final Tagged tags = new Tagged(this);
     public static final Column TAGS = Column.named("tags");
 
@@ -74,6 +78,7 @@ public class Person extends BizEntity {
             return super.toString();
         }
     }
+
 
     public String getLetterSalutation() {
         String text = "Sehr geehrte";

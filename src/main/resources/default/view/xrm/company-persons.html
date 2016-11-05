@@ -36,6 +36,11 @@
             <th>
                 @i18n("ContactData.mobile")
             </th>
+
+            <th>
+                @i18n("Person.offline")
+            </th>
+
             <th />
         </tr>
     </thead>
@@ -54,6 +59,11 @@
             </td>
             <td>
                 @person.getContact().getMobile()
+            </td>
+            <td>
+                @checkbox(span: "4", name: "offline",
+                value: person.isOffline(),
+                labelKey: "Person.offline")
             </td>
 
             <td class="col-md-2 align-center">

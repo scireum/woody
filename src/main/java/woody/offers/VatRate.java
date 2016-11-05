@@ -36,7 +36,6 @@ import java.time.LocalDate;
  */
 public class VatRate extends BizEntity {
 
-    private static final int MIN_OFFER_NR = 20001;
 
     @Autoloaded
     @Length(3)

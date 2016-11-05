@@ -27,7 +27,7 @@ public enum OfferItemState {
 
     @Override
     public String toString() {
-        return NLS.get(OfferItemState.class.getName() + "." + name());
+        return NLS.get(OfferItemState.class.getSimpleName() + "." + name());
     }
 
     public String getOfferItemStatePostFix() {

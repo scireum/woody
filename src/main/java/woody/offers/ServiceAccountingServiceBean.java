@@ -22,8 +22,10 @@ import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.health.Incident;
 import sirius.kernel.nls.NLS;
+import sirius.web.mails.Mails;
 import sirius.web.security.UserContext;
 
+import sirius.web.templates.Templates;
 import woody.core.employees.Employee;
 import woody.sales.AccountingService;
 import woody.sales.Lineitem;
@@ -58,9 +60,11 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
     @Part
     private AccountingService as;
 
+
+
     // ToDo Rechtsnachfolger für MailService
-//    @Part
-//    MailService mail;
+    @Part
+ private Mails mails;
 
     @Part
     protected OMA oma;
@@ -367,8 +371,9 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         context.set("person", person);
         Person buyer = offer.getBuyer().getValue();
         context.set("buyer", buyer);
-        Employee employee = offer.getEmployee();
-        context.set("employee", employee);
+        // ToDo: auf Employee umstellen.
+//        Employee employee = offer.getEmployee().as;
+//        context.set("employee", employee);
         context.set("priceBruttoSum", priceBruttoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
         context.set("priceNettoSum", priceNettoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
         context.set("priceVatSum", priceVatSum.toString(NumberFormat.TWO_DECIMAL_PLACES));

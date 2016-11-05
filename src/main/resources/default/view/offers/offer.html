@@ -5,37 +5,41 @@
 *  Copyright by scireum GmbH
 *  http://www.scireum.de - info@scireum.de
 *@
-@args woody.offers.Offer offer, String page
+@import woody.core.employees.Employee
+@args woody.xrm.Company company, woody.offers.Offer offer, String page
 @extends(view.wondergem.template.html, title: (offer.toString()))
 
-@section(head) {
-    <script src="/assets/wondergem/ace/ace.js" type="text/javascript"></script>
-}
 
 @section(breadcrumbs) {
     <li>
-        <a href="@prefix/company-offers">@i18n("Offer.plural")</a>
+        <a href="@prefix/companies">@i18n("Company.plural")</a>
     </li>
     <li>
-        <a href="@prefix/offer/@offer.getId()">@offer</a>
+        <a href="@prefix/company/@company.getId()">@company</a>
+    </li>
+    <li>
+        <a href="@prefix/company/@company.getId()/offers">@i18n("Offer.plural")</a>
+    </li>
+    <li>
+        <a href="@prefix/company/@company.getId()/offer/@offer.getId()">@offer</a>
     </li>
 }
 
-@pageHeader("Contract")
+@pageHeader("Offer")
 
 <div class="row">
     @if (!offer.isNew()) {
     <div class="col-md-3">
         @navbox() {
             <li class="nav-header">@i18n("Model.details")</li>
-            <li>
-                <b>@offer.toString()</b>
-            </li>
+            <li><b>Angebot: @offer.getNumber()</b></li>
+            <li><b>von: &nbsp; &nbsp;&nbsp;&nbsp; @offer.getEmployeeShortName()</b></li>
+            <li><b>Status: &nbsp; @offer.getState().toString()</b></li>
 
             <li class="nav-header"></li>
             <li @if(page == "details") { class="active" }>
-                <a href="@prefix/offer/@offer.getId()" class="link">
-                    <i class="icon-users"></i>@i18n("Model.details")
+                <a href="@prefix/company/@company.getId()/offer/@offer.getId()/offerItems" class="link">
+                    <i class="icon-users"></i>@i18n("OfferItem.plural")
                 </a>
             </li>
 

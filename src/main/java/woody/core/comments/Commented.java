@@ -18,6 +18,7 @@ import sirius.db.mixing.constraints.FieldOperator;
 import sirius.db.mixing.constraints.Or;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
+
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 
@@ -60,6 +61,7 @@ public class Commented extends Composite {
                   .where(Or.of(FieldOperator.on(Comment.PERSON_ENTITY).eq(UserContext.getCurrentUser().getUserId()),
                                FieldOperator.on(Comment.PUBLIC_VISIBLE).eq(true)))
                   .queryList();
+
     }
 
     public void addComment(String personName, String personEntity, String comment, boolean publicVisible) {
@@ -91,7 +93,7 @@ public class Commented extends Composite {
 
     public void addPublicCommentAsCurrentUser(String comment) {
         UserInfo currentUser = UserContext.getCurrentUser();
-        addComment(currentUser.getUserObject(UserAccount.class).getPerson().toString(),
+               addComment(currentUser.getUserObject(UserAccount.class).getPerson().toString(),
                    currentUser.getUserId(),
                    comment,
                    true);

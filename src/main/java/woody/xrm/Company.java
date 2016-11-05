@@ -13,6 +13,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
+import sirius.biz.model.PersonData;
 import sirius.biz.tenants.TenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -29,6 +30,8 @@ import sirius.web.mails.Mails;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
 import woody.sales.Contract;
+
+import java.util.List;
 
 /**
  * Created by aha on 06.10.15.
@@ -195,6 +198,12 @@ public class Company extends TenantAware {
         return number;
     }
 
+    public List<Person> queryPersons() {
+        return oma.select(Person.class).eq(Person.COMPANY, this)
+                  .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
+                  .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
+                  .queryList();
+    }
 
     public String getName() {
         return name;

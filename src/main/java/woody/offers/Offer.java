@@ -9,6 +9,8 @@
 package woody.offers;
 
 import sirius.biz.model.BizEntity;
+import sirius.biz.sequences.Sequences;
+import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
@@ -19,7 +21,6 @@ import sirius.db.mixing.annotations.Transient;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
-import sirius.kernel.nls.NLS;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 import woody.core.employees.Employee;
@@ -38,14 +39,11 @@ public class Offer extends BizEntity {
     private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column COMPANY = Column.named("company");
 
-
     @Unique
-//  ToDo           @Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true") })
     @Length(20)
     private String number;
     public static final Column NUMBER = Column.named("number");
 
-    @Autoloaded
     private OfferState state = OfferState.OPEN;
     public static final Column STATE = Column.named("state");
 
@@ -54,28 +52,21 @@ public class Offer extends BizEntity {
     private String keyword;
     public static final Column KEYWORD = Column.named("keyword");
 
-// ToDo    @FieldLink(source = "company", target = "company")
-    @Autoloaded
-    private final EntityRef<Person> person = EntityRef.on(Person.class, EntityRef.OnDelete.CASCADE);
+
+    private final EntityRef<Person> person = EntityRef.on(Person.class, EntityRef.OnDelete.REJECT);
     public static final Column PERSON = Column.named("person");
 
-// ToDo    @Params(@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "false"))
-    @Autoloaded
 
-// ToDO Employee ist extend Mixable --> Fehler bei  EntityRef.on(Employee.class
-//  private final EntityRef<Employee> employee = EntityRef.on(Employee.class, EntityRef.OnDelete.CASCADE);
-    private Employee employee;  // ToDo Testeintrag, damit es compiliert, muss wieder raus
+    private final EntityRef<UserAccount> employee = EntityRef.on(UserAccount.class, EntityRef.OnDelete.REJECT);
     public static final Column EMPLOYEE = Column.named("employee");
 
-// ToDo    @Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")
-    @Autoloaded
+
     private LocalDate date;
     public static final Column DATE = Column.named("date");
 
-// ToDo    @FieldLink(source = "company", target = "company")
     @Autoloaded
     @NullAllowed
-    private final EntityRef<Person> buyer = EntityRef.on(Person.class, EntityRef.OnDelete.CASCADE);
+    private final EntityRef<Person> buyer = EntityRef.on(Person.class, EntityRef.OnDelete.REJECT);
     public static final Column BUYER = Column.named("buyer");
 
     @Autoloaded
@@ -92,25 +83,34 @@ public class Offer extends BizEntity {
     private boolean licenceItemPresent;
     public static final Column LICENCEITEMPRESENT = Column.named("licenceItemPresent");
 
-
-    protected void asString(StringBuilder sb) {
-        sb.append("Angebot ") ;
-        sb.append(number);
-    }
+//    protected void asString(StringBuilder sb) {
+//        sb.append("Angebot ");
+//        sb.append(number);
+//    }
 
     public String toString() {
         String s = "Angebot ".concat(number);
         return s;
     }
+
+    public String getEmployeeShortName() {
+        UserAccount uac = this.getEmployee().getValue();
+        Employee employee = uac.as(Employee.class);
+        return employee.getShortName();
+    }
+
     @Part
     private static ServiceAccountingService sas;
 
+    @Part
+    private static Sequences sequences;
+
     @BeforeSave
-    protected void onSave()   {
+    protected void onSave() {
         // check te Role of the user
         // ToDo RechtsNachfolger für User.hasRole(CRM.GL)
-        UserInfo userInfo = UserContext.getCurrentUser() ;
-        userInfo.hasPermission("GL");
+        UserInfo userInfo = UserContext.getCurrentUser();
+        userInfo.assertPermission("GL");
 //        if (Users.hasRole(CRM.GL) || Users.hasRole(CRM.OFFER)) {
 //            // do nothing
 //        } else {
@@ -119,39 +119,29 @@ public class Offer extends BizEntity {
 
 //        }
         // Calculate the offer-number if the offer is new (id == 0)
-        if(this.getId() == 0 ) {
-
-// ToDo Rechtsnachfolger für PersistentSerialNumberGenerator.generateSerialNumber
-//            oma.transaction(new TXN() {
-//                @Override
-//                public void doWork(Session session) throws Exception {
-//                    number = PersistentSerialNumberGenerator.generateSerialNumber(session, "OFFER", MIN_OFFER_NR)  ;
-//                }
-//            });
-
+        if (this.isNew()) {
+            number = String.valueOf(sequences.generateId("OFFER"));
         }
-        int offerNr = -1;
-        try {
-            offerNr = Integer.parseInt(number);
-        }
-        catch(Exception e) {
-            throw Exceptions.createHandled().withNLSKey("Offer.numberWrong")
-                            .set("value", number).handle();
-        }
-
-        if(offerNr < MIN_OFFER_NR) {
-            throw Exceptions.createHandled().withNLSKey("Offer.numberToLess")
-                            .set("value", number).set("minOfferNr", MIN_OFFER_NR).handle();
-        }
+//        int offerNr = -1;
+//        try {
+//            offerNr = Integer.parseInt(number);
+//        } catch (Exception e) {
+//            throw Exceptions.createHandled().withNLSKey("Offer.numberWrong").set("value", number).handle();
+//        }
+//
+//        if (offerNr < MIN_OFFER_NR) {
+//            throw Exceptions.createHandled()
+//                            .withNLSKey("Offer.numberToLess")
+//                            .set("value", number)
+//                            .set("minOfferNr", MIN_OFFER_NR)
+//                            .handle();
+//        }
         // get the employee
-        if(employee == null) {
-            UserInfo userInfo1 = UserContext.getCurrentUser();
-            employee = userInfo1.as(Employee.class);
-            // ToDO testen ob das Ersatz für CRM.getCurrent   ist
-//            employee = CRM.getCurrent();
+        if (employee == null) {
+            employee.setId(userInfo.getUserObject(UserAccount.class).getId());
         }
         //set the offer-date
-        if(date == null) {
+        if (date == null) {
             date = LocalDate.now();
         }
 
@@ -191,12 +181,9 @@ public class Offer extends BizEntity {
         return person;
     }
 
-    // Todo wieder reinmachen
-    //   public EntityRef<Employee> getEmployee() {
-    //       return employee;
-    //}
-
-    public Employee getEmployee() {return employee;}
+    public EntityRef<UserAccount> getEmployee() {
+        return employee;
+    }
 
     public LocalDate getDate() {
         return date;
