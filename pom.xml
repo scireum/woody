@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.scireum</groupId>
         <artifactId>sirius-app-parent</artifactId>
-        <version>1.5</version>
+        <version>LATEST</version>
     </parent>
     <artifactId>woody</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.scireum</groupId>
             <artifactId>sirius-biz</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>LATEST</version>
         </dependency>
 
         <dependency>

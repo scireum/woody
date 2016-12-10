@@ -62,7 +62,7 @@ public class CSSUserManager extends GenericUserManager {
     private static Cache<String, Person> userAccountCache = CacheManager.createCache("css-users");
 
     @Override
-    protected UserInfo findUserByName(WebContext webContext, String user) {
+    public UserInfo findUserByName(WebContext webContext, String user) {
         if (Strings.isEmpty(user)) {
             return null;
         }
@@ -91,7 +91,7 @@ public class CSSUserManager extends GenericUserManager {
     }
 
     @Override
-    protected UserInfo findUserByCredentials(WebContext webContext, String user, String password) {
+    public UserInfo findUserByCredentials(WebContext webContext, String user, String password) {
         if (Strings.isEmpty(password)) {
             return null;
         }
