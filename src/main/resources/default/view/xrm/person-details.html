@@ -16,7 +16,8 @@
         @codelistSelect(span: "2", list: "salutations", name: "person_salutation", value: person.getPerson().getSalutation(), labelKey: "PersonData.salutation")
         @textfield(span: "2", name: "person_title", value: person.getPerson().getTitle(), labelKey: "PersonData.title")
         @textfield(span: "4", name: "person_lastname", value: person.getPerson().getLastname(), labelKey: "PersonData.lastname", required: true)
-        @textfield(span: "4", name: "person_firstname", value: person.getPerson().getFirstname(), labelKey: "PersonData.firstname")
+        @textfield(span: "3", name: "person_firstname", value: person.getPerson().getFirstname(), labelKey: "PersonData.firstname")
+        @checkbox(span: "1", name: "offline", value: person.isOffline(),labelKey: "Person.offline")
     </div>
 
     <div class="row">

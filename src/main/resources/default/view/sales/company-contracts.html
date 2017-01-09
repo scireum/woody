@@ -6,8 +6,8 @@
 *  http://www.scireum.de - info@scireum.de
 *@
 @import woody.xrm.Company
-@import woody.xrm.Contract
-@args Page contracts
+@import woody.sales.Contract
+@args Company company, Page contracts, String suggestions
 @extends(view.wondergem.template.html, title: NLS.get("Contract.plural"))
 
 @section(breadcrumbs) {
@@ -21,6 +21,10 @@
 
 @tableSearchHeader(contracts, "contracts") {
     <a class="btn btn-primary" href="@prefix/contract/new">@i18n("Model.create")</a>
+}
+
+@magicsearch(contracts, ("company/" + company.getId() + "/contracts"), "contracts/suggest", suggestions) {
+<a class="btn btn-primary" href="/company/@company.getId()/contract/new">@i18n("Model.create")</a>
 }
 
 @table(contracts) {
@@ -56,9 +60,13 @@
             <td>
                 @if(contract.getQuantity() == null) {1} else {@contract.getQuantity()}
             </td>
-            <td>
+@*            <td>
                 <a class="link" href="@prefix/contract/@contract.getId()">@contract.getPackageDefinition().getValue().getName()</a>
             </td>
+*@            <td>
+                <a class="link" href="/company/@company.getId()/contract/@contract.getId()">@contract.getPackageDefinition().getValue().getName()</a>
+            </td>
+
             <td>
                 @contract.getPackageDefinition().getValue().getProduct().getValue().getName()
             </td>
@@ -71,7 +79,7 @@
             </td>
             <td>
                 @if(contract.getEndDate() == null) {offen} else
-                    {NLS.toUserString(contract.getEndDate())}
+                    {@NLS.toUserString(contract.getEndDate())}
             </td>
             <td>
                 @contract.getCompany().getValue().getName()

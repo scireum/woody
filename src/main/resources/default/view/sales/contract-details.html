@@ -4,19 +4,18 @@
 *
 *  Copyright by scireum GmbH
 *  http://www.scireum.de - info@scireum.de
-*  ??? @includeExtensions("view-company-details", company)
 *@
-@import woody.xrm.Contract
-@import woody.xrm.AccountingIntervalType
-@import woody.xrm.PackageDefinition
-@import woody.xrm.Product
-@import woody.xrm.ContractSinglePriceType
-@args Contract contract, List<PackageDefinition> pdList, woody.xrm.CompanyController controller
-@extends(view.xrm.contract.html, contract, "details")
 
+@import woody.xrm.Company
+@import woody.sales.Contract
+@import woody.sales.AccountingIntervalType
+@import woody.sales.PackageDefinition
+@import woody.sales.Product
+@import woody.sales.ContractSinglePriceType
+@args Company company, Contract contract, List pdList
+@extends(view.sales.contract.html, contract, "details")
 
-@editForm(("contract/" + contract.getIdAsString())) {
-
+@editForm(("company/" + company.getIdAsString() + "/contract/" + contract.getIdAsString())) {
     <div class="row">
 
       @singleSelect(span: "4", name: "product",

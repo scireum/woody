@@ -20,7 +20,10 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
+import woody.xrm.Company;
+import woody.xrm.Person;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,7 +44,7 @@ public class ProductController extends BizController {
                 PageHelper.withQuery(oma.select(Product.class).orderAsc(Product.NAME)).forCurrentTenant();
         ph.withContext(ctx);
         ph.withSearchFields(Product.NAME, Product.ID);
-        ctx.respondWith().template("view/xrm/products.html", ph.asPage());
+        ctx.respondWith().template("view/sales/products.html", ph.asPage());
     }
 
     @LoginRequired
@@ -49,7 +52,7 @@ public class ProductController extends BizController {
     @Routed("/product/:1")
     public void product(WebContext ctx, String productId) {
         Product product = productHandler(ctx, productId, false);
-        ctx.respondWith().template("view/xrm/product-details.html", product);
+        ctx.respondWith().template("view/sales/product-details.html", product);
     }
 
     @LoginRequired
@@ -57,7 +60,7 @@ public class ProductController extends BizController {
     @Routed("/packageDefinition/:1")
     public void packageDefinition(WebContext ctx, String packageDefinitionId) {
         PackageDefinition packageDefinition = packageDefinitionHandler(ctx, packageDefinitionId, false);
-        ctx.respondWith().template("view/xrm/packageDefinition-details.html", packageDefinition);
+        ctx.respondWith().template("view/sales/packageDefinition-details.html", packageDefinition);
     }
 
     @LoginRequired
@@ -74,7 +77,7 @@ public class ProductController extends BizController {
         Optional oproduct = oma.find(Product.class, productId);
         Product product = (Product) oproduct.get();
         currentProduct = product;
-        ctx.respondWith().template("view/xrm/product-packageDefinitions.html", ph.asPage());
+        ctx.respondWith().template("view/sales/product-packageDefinitions.html", ph.asPage());
     }
 
     private Product currentProduct;
@@ -113,6 +116,41 @@ public class ProductController extends BizController {
             showDeletedMessage();
         }
         products(ctx);
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/company/:1/contract/:2")
+    public void contract(WebContext ctx, String companyId, String contractId) {
+        Company company = findForTenant(Company.class, companyId);
+        Contract contract = find(Contract.class, contractId);
+        Long productId =  contract.getPackageDefinition().getValue().getProduct().getId();
+        assertNotNew(company);
+        setOrVerify(contract, contract.getCompany(), company);
+        List<PackageDefinition>  pdList = oma.select(PackageDefinition.class)
+                .eq(PackageDefinition.PRODUCT, productId).queryList();
+
+        if (ctx.isPOST()) {
+            try {
+                boolean wasNew = contract.isNew();
+                load(ctx, contract);
+                oma.update(contract);
+//                contract.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
+                showSavedMessage();
+                if (wasNew) {
+                    ctx.respondWith()
+                       .redirectTemporarily(WebContext.getContextPrefix()
+                                            + "/company/"
+                                            + company.getId()
+                                            + "/contract/"
+                                            + contract.getId());
+                    return;
+                }
+            } catch (Throwable e) {
+                UserContext.handle(e);
+            }
+        }
+        ctx.respondWith().template("view/sales/contract-details.html", company, contract, pdList);
     }
 
     private PackageDefinition packageDefinitionHandler(WebContext ctx,

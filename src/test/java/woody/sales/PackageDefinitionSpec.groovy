@@ -37,17 +37,17 @@ class PackageDefinitionSpec extends BaseSpecification {
         p.setArticle("<Article2>")
         oma.update(p)
 
-        PackageDefinition pd = new PackageDefinition()
-        pd.getProduct().setValue(p)
-        pd.setName("<PaketDef1_Product2>")
-        pd.setDescription("this is packetDefinition 1 of the product 2")
-        pd.setAccountingProcedure(AccountingProcedure.RIVAL)
-        pd.setAccountingUnit(AccountingUnitType.MONTH)
-        pd.setDefaultPosition(10)
-        pd.setPacketType(PacketType.STANDARD)
-        pd.setUnitPrice(Amount.of(500D))
-        pd.setSinglePrice(Amount.of(0D))
-        oma.update(pd)
+        PackageDefinition pd = new PackageDefinition();
+        pd.getProduct().setValue(p);
+        pd.setName("<PaketDef1_Product2>");
+        pd.setDescription("this is packetDefinition 1 of the product 2");
+        pd.setAccountingProcedure(PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL);
+        pd.setAccountingUnit(PackageDefinition.ACCOUNTINGUNIT_MONTH);
+        pd.setDefaultPosition(10);
+        pd.setPacketType(PackageDefinition.PAKETTYPE_STANDARD);
+        pd.setUnitPrice(Amount.of(500D));
+        pd.setSinglePrice(Amount.of(0D));
+        oma.update(pd);
         when:
         PackageDefinition pd2 = oma.select(PackageDefinition.class).eq(PackageDefinition.ID, pd.getId()).queryFirst()
 

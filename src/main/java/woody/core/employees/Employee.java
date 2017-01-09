@@ -35,6 +35,13 @@ public class Employee extends Mixable {
     private String employeeNumber;
     public static final Column EMPLOYEE_NUMBER = Column.named("employeeNumber");
 
+    @Trim
+    @Length(6)
+    @NullAllowed
+    @Autoloaded
+    private String shortName;
+    public static final Column SHORTNAME = Column.named("shortName");
+
     @NullAllowed
     @Autoloaded
     private final EntityRef<UserAccount> mentor = EntityRef.on(UserAccount.class, EntityRef.OnDelete.SET_NULL);
@@ -73,6 +80,20 @@ public class Employee extends Mixable {
     @Autoloaded
     private final AddressData homeAddress = new AddressData(AddressData.Requirements.NONE, null);
     public static final Column HOME_ADDRESS = Column.named("homeAddress");
+
+    @BeforeSave
+    protected void checkIntegrity(UserAccount parent) {
+        if (getMentor().isFilled()) {
+            parent.assertSameTenant(() -> parent.getDescriptor()
+                                                .getProperty(Column.mixin(Employee.class).inner(MENTOR))
+                                                .getLabel(), getMentor().getValue());
+        }
+        if (getDepartment().isFilled()) {
+            parent.assertSameTenant(() -> parent.getDescriptor()
+                                                .getProperty(Column.mixin(Employee.class).inner(DEPARTMENT))
+                                                .getLabel(), getDepartment().getValue());
+        }
+    }
 
     public String getEmployeeNumber() {
         return employeeNumber;
@@ -126,17 +147,11 @@ public class Employee extends Mixable {
         return department;
     }
 
-    @BeforeSave
-    protected void checkIntegrity(UserAccount parent) {
-        if (getMentor().isFilled()) {
-            parent.assertSameTenant(() -> parent.getDescriptor()
-                                                .getProperty(Column.mixin(Employee.class).inner(MENTOR))
-                                                .getLabel(), getMentor().getValue());
-        }
-        if (getDepartment().isFilled()) {
-            parent.assertSameTenant(() -> parent.getDescriptor()
-                                                .getProperty(Column.mixin(Employee.class).inner(DEPARTMENT))
-                                                .getLabel(), getDepartment().getValue());
-        }
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 }

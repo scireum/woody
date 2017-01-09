@@ -1,3 +1,9 @@
 localhost:9000/companies
 Anmeldung: gha
            ghagha
+
+14.09.2016: - Pfad-Angaben in den Controllern auf die sales-Struktur angepasst
+18.09.2016: - Package-Definition: Pakettype (schreibweise korrigiert) und auf Code-List umgestellt, Klasse PacketType gelöscht.
+            - Codeliste pakettype erstellt
+            - Codeliste accountingProcedure erstellt und Klasse AccountingProcedure gelöscht
+            - Codeliste accountingUnit erstellt und Klasse AccountingUnit gelöscht

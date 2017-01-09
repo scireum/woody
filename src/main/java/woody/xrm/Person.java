@@ -20,8 +20,11 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.nls.Formatter;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
+
+import java.util.List;
 
 /**
  * Created by aha on 06.10.15.
@@ -49,11 +52,16 @@ public class Person extends BizEntity {
     private String position;
     public static final Column POSITION = Column.named("position");
 
+    // ToDO: klären was mit birthday, it-Decider marketing-Decider usw. geschieht
+
     private final Tagged tags = new Tagged(this);
     public static final Column TAGS = Column.named("tags");
 
     private final Commented comments = new Commented(this);
     public static final Column COMMENTS = Column.named("comments");
+
+    private final boolean offline = false;
+    public static final Column OFFLINE = Column.named("offline");
 
     @BeforeSave
     protected void verify() {
@@ -69,6 +77,22 @@ public class Person extends BizEntity {
         } else {
             return super.toString();
         }
+    }
+
+
+    public String getLetterSalutation() {
+        String text = "Sehr geehrte";
+        if ("SIR".equals(this.getPerson().getSalutation())) {
+            text = text.concat("r");
+        }
+        text = text.concat(",");
+        return Formatter.create("Sehr [${text} ][${salutation} ][${title} ][${firstname} ]${lastname}")
+                        .set("text", text)
+                        .set("salutation", this.getPerson().getTranslatedSalutation())
+                        .set("title", this.getPerson().getTitle())
+                        .set("firstname", this.getPerson().getFirstname())
+                        .set("lastname", this.getPerson().getLastname())
+                        .smartFormat();
     }
 
     public EntityRef<Company> getCompany() {
@@ -105,5 +129,9 @@ public class Person extends BizEntity {
 
     public Commented getComments() {
         return comments;
+    }
+
+    public boolean isOffline() {
+        return offline;
     }
 }

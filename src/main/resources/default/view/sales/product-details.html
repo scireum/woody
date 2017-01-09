@@ -6,9 +6,9 @@
 *  http://www.scireum.de - info@scireum.de
 *  ??? @includeExtensions("view-company-details", company)
 *@
-@import woody.xrm.Product
-@args Product prod, woody.xrm.ProductController controller
-@extends(view.xrm.product.html, prod, "details")
+@import woody.sales.Product
+@args Product prod, woody.sales.ProductController controller
+@extends(view.sales.product.html, prod, "details")
 
 
 @editForm(("product/" + prod.getIdAsString())) {

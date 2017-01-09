@@ -8,6 +8,9 @@
 
 package woody.sales;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
+import com.google.common.io.BaseEncoding;
 import sirius.biz.model.BizEntity;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -23,11 +26,14 @@ import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
+
 import woody.xrm.Company;
 import woody.xrm.Person;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -180,8 +186,24 @@ public class Contract extends BizEntity {
     @Part
     private static OMA oma;
 
+    @Part
+    private static AccountingService asb;
+
     @BeforeSave
     protected void onSave() {
+ //ToDo: wieder raus
+        String s = "Wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww1111wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww";
+        String a = BaseEncoding.base64().encode(Hashing.md5().hashString(s, Charsets.UTF_8).asBytes());
+        byte[] b = Hashing.md5().hashString(s, Charsets.UTF_8).asBytes();
+
+        StringBuilder sb = new StringBuilder(b.length * 2);
+        for (int i = 0; i < b.length; i++) {
+            sb.append(Character.forDigit((b[i] & 0xf0) >> 4, 16));
+            sb.append(Character.forDigit(b[i] & 0x0f, 16));
+        }
+        String c1 = sb.toString();
+
+
         //completeParameter(this);
         checkParameterSyntax(this.getParameter());
         // check the customerNr of the company, because the customerNr is needed to account the contract
@@ -200,9 +222,7 @@ public class Contract extends BizEntity {
         // check the unitPrice. If the unitPrice is null, fetch the unitPrice from the packetDefinition
         if (getUnitPrice() == null) {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
-                                                     .eq(PackageDefinition.ID,
-                                                         this.getPackageDefinition().getValue().getId())
-                                                     .queryFirst();
+                 .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
             if (packageDefinition != null) {
                 if (packageDefinition.getUnitPrice().isFilled()) {
                     this.setUnitPrice(packageDefinition.getUnitPrice());
@@ -213,33 +233,26 @@ public class Contract extends BizEntity {
         // check the singlePrice. If the singlePrice is null, fetch the singlePrice from the packetDefinition
         if (getSinglePrice() == null) {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
-                                                     .eq(PackageDefinition.ID,
-                                                         this.getPackageDefinition().getValue().getId())
-                                                     .queryFirst();
+                       .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
             if (packageDefinition != null) {
-                if (packageDefinition.getSinglePrice().isFilled()) {
+                if (packageDefinition.getSinglePrice() != null)  {
                     this.setSinglePrice(packageDefinition.getSinglePrice());
                 }
             }
         }
 
-// ToDo   wieder aktivieren
-        // check the singlePriceState
-//       as.get().checkContractSinglePriceState(this);
+        //check the singlePriceState
+        asb.checkContractSinglePriceState(this);
 
         // check the start and end-date in relation to now. A warning is generated if the duration is > 180 days
         if (getStartDate() != null && (LocalDate.now().minusDays(180).isAfter(getStartDate()) || LocalDate.now()
-                                                                                                          .minusDays(180)
-                                                                                                          .isBefore(
-                                                                                                                  getStartDate()))) {
+                   .minusDays(180).isBefore(getStartDate()))) {
 
             //  ToDo Warnung ausgeben  Datum liegt 1/2 Jahr in der Vergangenheit oder Zukunft.
 
         }
         if (getEndDate() != null && (LocalDate.now().minusDays(180).isAfter(getEndDate()) || LocalDate.now()
-                                                                                                      .minusDays(180)
-                                                                                                      .isBefore(
-                                                                                                              getEndDate()))) {
+                  .minusDays(180).isBefore(getEndDate()))) {
 
             //  ToDo Warnung ausgeben  Datum liegt 1/2 Jahr in der Vergangenheit oder Zukunft.
 
@@ -261,46 +274,54 @@ public class Contract extends BizEntity {
                 throw Exceptions.createHandled().withNLSKey("woody.xrm.Contract.noPackageDefinitionChange").handle();
             }
         }
+        // ToDo:Testen
+        if(isNew()) {
+            Product product = packageDefinition.getValue().getProduct().getValue();
+            List<Contract> contractList = oma.select(Contract.class)
+                                             .eq(Contract.COMPANY, company)
+                                             .eq(Contract.ACCOUNTINGGROUP, accountingGroup)
+                                             .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.PRODUCT), product)
+                                             .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.ACCOUNTINGPROCEDURE),
+                                                 PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL)
+                                             .orderAsc(Contract.STARTDATE)
+                                             .queryList();
+
+            if (isNew()) {
+                contractList.add(this);
+            } else {
+                List<Contract> contractList2 = new ArrayList<Contract>();
+                for (Contract c : contractList) {
+                    contractList2.add(c);
+                }
+                for (Contract c : contractList2) {
+                    if (c.getId() != this.getId()) {
+                        contractList.add(c);
+                    } else {
+                        contractList.add(this);
+                    }
+                }
+            }
+
+            checkContractIsSingle(contractList);
+
+        }
     }
 
-    // ToDo Fraglich, ob das bleibt.
 
-    /**
-     * get the unitPrice from the contract. If the unitPrice is null, the unitPrice is fetched from the
-     *
-     * @return untitPrice from the contract or - if null - from the packetDefinition
-     */
-    public BigDecimal getSolidUnitPrice() {
-        BigDecimal price = null;
-        price = this.getUnitPrice().getAmount();
-        if (price == null) {
-            Optional opti = oma.find(PackageDefinition.class, this.getPackageDefinition().getId());
-            if (opti.isPresent()) {
-                PackageDefinition packageDefinition = (PackageDefinition) opti.get();
-                price = packageDefinition.getUnitPrice().getAmount();
-                this.setUnitPrice(Amount.of(price));
+    private void checkContractIsSingle(List<Contract> contractList) {
+        if(contractList.size() == 1)     {return;}
+        for (int i=1; i<contractList.size(); i++) {
+            Contract c1 = contractList.get(i);
+            Contract c0 = contractList.get(i-1);
+            if(c0.getEndDate() == null) {
+                throw Exceptions.createHandled().withNLSKey("Contract.endDateMissing").set("contract", c0.toString()).handle();
+            }
+            if(c1.getStartDate().isBefore(c0.getEndDate())) {
+                throw Exceptions.createHandled().withNLSKey("Contract.startDateMissing")
+                                .set("contract", c1.toString())
+                                .set("oldContract", c0.toString()).handle();
             }
         }
-        return price;
-    }
-
-    /**
-     * get the singlePrice from the contract. If the singlePrice is null, the singlePrice is fetched from the
-     *
-     * @return untitPrice from the contract or - if null - from the packetDefinition
-     */
-    public BigDecimal getSolidSinglePrice() {
-        BigDecimal price = null;
-        price = this.getSinglePrice().getAmount();
-        if (price == null) {
-            Optional opti = oma.find(PackageDefinition.class, this.getPackageDefinition().getId());
-            if (opti.isPresent()) {
-                PackageDefinition packageDefinition = (PackageDefinition) opti.get();
-                price = packageDefinition.getSinglePrice().getAmount();
-                this.setSinglePrice(Amount.of(price));
-            }
-        }
-        return price;
     }
 
     /**

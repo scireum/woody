@@ -59,29 +59,29 @@ class ContractSpec extends BaseSpecification {
         pr.setArticle("<Article2>")
         oma.update(pr)
 
-        PackageDefinition pd = new PackageDefinition()
-        pd.getProduct().setValue(pr)
-        pd.setName("<PaketDef1_Product2>")
-        pd.setDescription("this is packetDefinition 1 of the product 2")
-        pd.setAccountingProcedure(AccountingProcedure.RIVAL)
-        pd.setAccountingUnit(AccountingUnitType.MONTH)
-        pd.setDefaultPosition(10)
-        pd.setPacketType(PacketType.STANDARD)
-        pd.setUnitPrice(Amount.of(500D))
-        pd.setSinglePrice(Amount.of(0D))
-        oma.update(pd)
+        PackageDefinition pd = new PackageDefinition();
+        pd.getProduct().setValue(pr);
+        pd.setName("<PaketDef1_Product2>");
+        pd.setDescription("this is packetDefinition 1 of the product 2");
+        pd.setAccountingProcedure(PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL);
+        pd.setAccountingUnit(PackageDefinition.ACCOUNTINGUNIT_MONTH);
+        pd.setDefaultPosition(10);
+        pd.setPacketType(PackageDefinition.PAKETTYPE_STANDARD);
+        pd.setUnitPrice(Amount.of(500D));
+        pd.setSinglePrice(Amount.of(0D));
+        oma.update(pd);
 
-        PackageDefinition pd2 = new PackageDefinition()
-        pd2.getProduct().setValue(pr)
-        pd2.setName("<PaketDef2_Product2>")
-        pd2.setDescription("this is packetDefinition 2 of the product 2")
-        pd2.setAccountingProcedure(AccountingProcedure.RIVAL)
-        pd2.setAccountingUnit(AccountingUnitType.MONTH)
-        pd2.setDefaultPosition(10)
-        pd2.setPacketType(PacketType.STANDARD)
-        pd2.setUnitPrice(Amount.of(1000D))
-        pd2.setSinglePrice(Amount.of(0D))
-        oma.update(pd2)
+        PackageDefinition pd2 = new PackageDefinition();
+        pd2.getProduct().setValue(pr);
+        pd2.setName("<PaketDef2_Product2>");
+        pd2.setDescription("this is packetDefinition 2 of the product 2");
+        pd2.setAccountingProcedure(PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL);
+        pd2.setAccountingUnit(PackageDefinition.ACCOUNTINGUNIT_MONTH);
+        pd2.setDefaultPosition(10);
+        pd2.setPacketType(PackageDefinition.PAKETTYPE_STANDARD);
+        pd2.setUnitPrice(Amount.of(1000D));
+        pd2.setSinglePrice(Amount.of(0D));
+        oma.update(pd2);
 
         Contract c = new Contract()
         c.getCompany().setValue(co)

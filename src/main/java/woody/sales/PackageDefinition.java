@@ -17,11 +17,22 @@ import sirius.db.mixing.annotations.Numeric;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Amount;
+import sirius.kernel.nls.NLS;
 
 /**
  * Created by gerhardhaufler on 09.02.16.
  */
 public class PackageDefinition extends BizEntity {
+
+    public static final String PAKETTYPE_STANDARD = "STANDARD";
+    public static final String PAKETTYPE_SPECIALAGREEMENT = "SPECIALAGREEMENT";
+
+    public static final String ACCOUNTINGPROCEDURE_RIVAL = "RIVAL";
+    public static final String ACCOUNTINGPROCEDURE_VOLUME = "VOLUME";
+
+    public static final String ACCOUNTINGUNIT_HOUR = "HOUR";
+    public static final String ACCOUNTINGUNIT_DAY = "DAY";
+    public static final String ACCOUNTINGUNIT_MONTH = "MONTH";
 
     private final EntityRef<Product> product = EntityRef.on(Product.class, EntityRef.OnDelete.CASCADE);
     public static final Column PRODUCT = Column.named("product");
@@ -32,13 +43,16 @@ public class PackageDefinition extends BizEntity {
     private String name;
     public static final Column NAME = Column.named("name");
 
-    private AccountingProcedure accountingProcedure;
+    @Length(20)
+    private String accountingProcedure;
     public static final Column ACCOUNTINGPROCEDURE = Column.named("accountingProcedure");
 
-    private PacketType packetType;
-    public static final Column PACKETTYPE = Column.named("packetType");
+    @Length(20)
+    private String paketType;
+    public static final Column PAKETTYPE = Column.named("paketType");
 
-    private AccountingUnitType accountingUnit;
+    @Length(20)
+    private String accountingUnit;
     public static final Column ACCOUNTINGUNIT = Column.named("accountingUnit");
 
     private int defaultPosition;
@@ -53,28 +67,11 @@ public class PackageDefinition extends BizEntity {
     private Amount unitPrice;
     public static final Column UNITPRICE = Column.named("unitPrice");
 
-
-    /*            @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA, value = "true"),
-            @Param(name = ParamsFieldConstants.PARAM_NO_LABEL, value = "true"),
-            @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_MAXIMIZED, value = "false"),
-            @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_SYNTAX, value = TextArea.MARKDOWN) })
-    @Lob
-    @Column(name = PARAMETER, nullable = true)        */
-
     @Length(1000)
     @NullAllowed
     private String parameter;
     public static final Column PARAMETER = Column.named("parameter");
 
-    /*   @TableColumn(position = 17)
-       @FormField(position = 14, section = "description")
-       @Params({
-               @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA, value = "true"),
-               @Param(name = ParamsFieldConstants.PARAM_NO_LABEL, value = "true"),
-               @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_MAXIMIZED, value = "false"),
-               @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_SYNTAX, value = TextArea.MARKDOWN) })
-       @Lob
-       @Column(name = DESCRIPTION, nullable = true)   */
     @Length(1000)
     @NullAllowed
     private String description;
@@ -97,20 +94,20 @@ public class PackageDefinition extends BizEntity {
         this.name = name;
     }
 
-    public AccountingProcedure getAccountingProcedure() {
+    public String getAccountingProcedure() {
         return accountingProcedure;
     }
 
-    public void setAccountingProcedure(AccountingProcedure accountingProcedure) {
+    public void setAccountingProcedure(String accountingProcedure) {
         this.accountingProcedure = accountingProcedure;
     }
 
-    public PacketType getPacketType() {
-        return packetType;
+    public String getPaketType() {
+        return paketType;
     }
 
-    public void setPacketType(PacketType packetType) {
-        this.packetType = packetType;
+    public void setPaketType(String paketType) {
+        this.paketType = paketType;
     }
 
     public void setParameter(String parameter) {
@@ -129,11 +126,11 @@ public class PackageDefinition extends BizEntity {
         this.description = description;
     }
 
-    public void setAccountingUnit(AccountingUnitType accountingUnit) {
+    public void setAccountingUnit(String accountingUnit) {
         this.accountingUnit = accountingUnit;
     }
 
-    public AccountingUnitType getAccountingUnit() {
+    public String getAccountingUnit() {
         return accountingUnit;
     }
 

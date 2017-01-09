@@ -41,11 +41,25 @@
                         <i class="icon-users"></i>@i18n("Model.details")
                     </a>
                 </li>
+
                 <li @if(page == "persons") { class="active" }>
                 <a href="@prefix/company/@company.getId()/persons" class="link">
                     <i class="icon-users"></i>@i18n("Person.plural")
                 </a>
                 </li>
+
+                <li @if(page == "contracts") { class="active" }>
+                <a href="@prefix/company/@company.getId()/contracts" class="link">
+                    <i class="icon-users"></i>@i18n("Contract.plural")
+                </a>
+                </li>
+                <li @if(page == "offers") { class="active" }>
+                <a href="@prefix/company/@company.getId()/offers" class="link">
+                    <i class="icon-users"></i>@i18n("Offer.plural")
+                </a>
+                </li>
+
+
             }
 
             <a href="@prefix/companies" class="btn btn-block">@i18n("NLS.back")</a>

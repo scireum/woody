@@ -10,6 +10,7 @@ package woody.sales;
 
 import sirius.kernel.nls.NLS;
 
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -37,7 +38,40 @@ public enum AccountingIntervalType {
      * HALFYEAR --> 1. Jul. 2011
      * YEAR     --> 1. Jan. 2012
      */
-    public Date getNextAccountingStartDate(Date date) {
+    public LocalDate getNextAccountingStartDate(LocalDate date) {
+        int year = date.getYear();
+        LocalDate firstApril = LocalDate.of(year,4,1);
+        LocalDate firstJuly = LocalDate.of(year, 7, 1);
+        LocalDate firstOct = LocalDate.of(year, 10,1);
+        LocalDate firstJan =LocalDate.of(year+1,1,1);
+        if (this == YEAR) {
+            return firstJan;
+        }
+        if (this == HALFYEAR) {
+            if (!date.isAfter(firstJuly)) {
+                return firstJuly;
+            } else {
+                return firstJan;
+            }
+        }
+        if (this == QUARTER) {
+            if (!date.isAfter(firstApril)) {
+                return firstApril;
+            }
+            if (!date.isAfter(firstJuly)) {
+                return firstJuly;
+            }
+            if (!date.isAfter(firstOct)) {
+                return firstOct;
+            }
+            if (!date.isAfter(firstJan)) {
+                return firstJan;
+            }
+        }
+        return null;
+
+    }
+        /* alte Lösung:
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         cal = clearTimeFields(cal);
@@ -72,6 +106,7 @@ public enum AccountingIntervalType {
             }
         }
         return null;
+
     }
 
     private Calendar setCalendar(int day, int month, int year) {
@@ -86,6 +121,7 @@ public enum AccountingIntervalType {
     /**
      * Clears all TOD (time of day) information in the given calendar.
      */
+    /*
     private Calendar clearTimeFields(Calendar cal) {
         cal.clear(Calendar.HOUR);
         cal.clear(Calendar.HOUR_OF_DAY);
@@ -95,13 +131,15 @@ public enum AccountingIntervalType {
         cal.clear(Calendar.MILLISECOND);
         return cal;
     }
+*/
 
-
+        /*
     /**
      * returns the accountingInterval in months
      * @return 	-1: there is an incorrect, not known accountingIntervalType
      * 			>0: accountingInterval in months
      */
+        /*
     public int getAccountingIntervalInMonth() {
         if(this == YEAR) {
             return 12;
@@ -115,5 +153,5 @@ public enum AccountingIntervalType {
         return -1;
 
     }
-
+ */
 }
