@@ -9,6 +9,8 @@
 package woody.core.employees;
 
 import sirius.biz.model.AddressData;
+import sirius.biz.model.ContactData;
+import sirius.biz.model.PersonData;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -59,27 +61,43 @@ public class Employee extends Mixable {
 
     @NullAllowed
     @Autoloaded
+    private LocalDate terminationDate = null;
+    public static final Column TERMINATION_DATE = Column.named("terminationDate");
+
+    @Autoloaded
+    private boolean inaktiv = false;
+    public static final Column INAKTIV = Column.named("inaktiv");
+
+    @NullAllowed
+    @Autoloaded
     private LocalDate birthday;
     public static final Column BIRTHDAY = Column.named("birthday");
 
-    @Trim
-    @Length(50)
+    /**
+     * komplette Telefonnummer des Angestellten
+     * in lesbarer Schreibweise, z. B. +49 7151 90316-21
+     */
     @NullAllowed
     @Autoloaded
-    private String homePhone;
-    public static final Column HOME_PHONE = Column.named("homePhone");
+    @Length(150)
+    private String phoneNr;
+    public static final Column PHONENR = Column.named("phoneNr");
 
-    @Trim
-    @Length(50)
+    /**
+     * Nebenstellen-Nummer, z. B. aha = 21
+     */
     @NullAllowed
     @Autoloaded
-    private String mobilePhone;
-    public static final Column MOBILE_PHONE = Column.named("mobilePhone");
+    @Length(5)
+    private String pbxId;
+    public static final Column PBXID = Column.named("pbxId");
 
-    @NullAllowed
-    @Autoloaded
     private final AddressData homeAddress = new AddressData(AddressData.Requirements.NONE, null);
-    public static final Column HOME_ADDRESS = Column.named("homeAddress");
+    public static final Column ADDRESS = Column.named("address");
+
+    private final ContactData homeContact = new ContactData(true);
+    public static final Column CONTACT = Column.named("contact");
+
 
     @BeforeSave
     protected void checkIntegrity(UserAccount parent) {
@@ -93,6 +111,38 @@ public class Employee extends Mixable {
                                                 .getProperty(Column.mixin(Employee.class).inner(DEPARTMENT))
                                                 .getLabel(), getDepartment().getValue());
         }
+    }
+
+    public LocalDate getTerminationDate() {
+        return terminationDate;
+    }
+
+    public void setTerminationDate(LocalDate terminationDate) {
+        this.terminationDate = terminationDate;
+    }
+
+    public boolean isInaktiv() {
+        return inaktiv;
+    }
+
+    public void setInaktiv(boolean inaktiv) {
+        this.inaktiv = inaktiv;
+    }
+
+    public String getPhoneNr() {
+        return phoneNr;
+    }
+
+    public void setPhoneNr(String phoneNr) {
+        this.phoneNr = phoneNr;
+    }
+
+    public String getPbxId() {
+        return pbxId;
+    }
+
+    public void setPbxId(String pbxId) {
+        this.pbxId = pbxId;
     }
 
     public String getEmployeeNumber() {
@@ -119,26 +169,6 @@ public class Employee extends Mixable {
         this.birthday = birthday;
     }
 
-    public String getHomePhone() {
-        return homePhone;
-    }
-
-    public void setHomePhone(String homePhone) {
-        this.homePhone = homePhone;
-    }
-
-    public String getMobilePhone() {
-        return mobilePhone;
-    }
-
-    public void setMobilePhone(String mobilePhone) {
-        this.mobilePhone = mobilePhone;
-    }
-
-    public AddressData getHomeAddress() {
-        return homeAddress;
-    }
-
     public EntityRef<UserAccount> getMentor() {
         return mentor;
     }
@@ -153,5 +183,13 @@ public class Employee extends Mixable {
 
     public void setShortName(String shortName) {
         this.shortName = shortName;
+    }
+
+    public AddressData getHomeAddress() {
+        return homeAddress;
+    }
+
+    public ContactData getHomeContact() {
+        return homeContact;
     }
 }

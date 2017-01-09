@@ -42,11 +42,8 @@ public enum OfferItemState {
         if(OfferItemState.CANCELED.equals(o)) i= 7;
         if(OfferItemState.UNUSED.equals(o)) i= 1;
         if(OfferItemState.COPY.equals(o)) i= 13;
-        StringBuffer s = new StringBuffer();
-        for(int k = 0; k<i; k++) {
-          s.append("&nbsp;");
-        }
-        return s.toString();
+        String s = "                                                                                    ";
+        return s.substring(0,i);
     }
 
 }

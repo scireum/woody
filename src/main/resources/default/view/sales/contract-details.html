@@ -7,39 +7,30 @@
 *@
 
 @import woody.xrm.Company
+@import woody.xrm.Person
 @import woody.sales.Contract
 @import woody.sales.AccountingIntervalType
 @import woody.sales.PackageDefinition
 @import woody.sales.Product
 @import woody.sales.ContractSinglePriceType
-@args Company company, Contract contract, List pdList
+@args Company company, Contract contract
 @extends(view.sales.contract.html, contract, "details")
 
 @editForm(("company/" + company.getIdAsString() + "/contract/" + contract.getIdAsString())) {
     <div class="row">
-
-      @singleSelect(span: "4", name: "product",
-      labelKey: "Contract.product") {
-          @for(Product product : Product.getValues()) {
-             <option value="@product.getName()" @if (product == contract.getPackageDefinition().getValue().getProduct().getValue()) { selected="selected" }>@product.getName()</option>
-          }
-      }
-
-        @textfield( name:     "product",
-        value:    contract.getPackageDefinition().getValue().getProduct().getValue().getName(),
-        labelKey: "Contract.product")
-
-
-        @textfield(span: "3", name:     "quantity",
-      value:    NLS.toUserString(contract.getQuantity()),
-      labelKey: "Contract.quantity")
-
       @singleSelect(span: "5", name: "packageDefinition",
       labelKey: "Contract.packageDefinition") {
-         @for(PackageDefinition packageDefinition : pdList) {
-            <option value="@packageDefinition.getName()" @if (packageDefinition == contract.getPackageDefinition().getValue()) { selected="selected" }>@packageDefinition.getName()</option>
+         @for(PackageDefinition packageDefinition : contract.getAllPackageDefinitionsDirect()) {
+            <option value="@packageDefinition.getId()"
+                    @if (contract.getPackageDefinition().is(packageDefinition)  )
+                    { selected="selected" }>@packageDefinition.toString()</option>
          }
       }
+
+        @textfield(span: "3", name:     "quantity",
+        value:    NLS.toUserString(contract.getQuantity()),
+        labelKey: "Contract.quantity")
+
     </div>
 
     <div class="row">
@@ -101,9 +92,13 @@
         value:    NLS.toUserString(contract.getSigningDate()),
         labelKey: "Contract.signingDate")
 
-        @textfield(name:     "contractPartner",
-        value:    contract.getContractPartner().getValue().getPerson().toString(),
-        labelKey: "Contract.contractPartner")
+
+        @singleSelect(span: "4", name: "contractPartner",
+        labelKey: "Contract.contractPartner") {
+            @for(Person person : contract.getAllPersonsForCompany(company)) {
+                <option value="@person.getId()" @if (contract.getContractPartner().is(person) ){ selected="selected" }>@person.toString()</option>
+            }
+        }
 
 
         @textfield(span: "2", name:     "position",

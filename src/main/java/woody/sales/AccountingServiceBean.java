@@ -8,6 +8,8 @@
 
 package woody.sales;
 
+import sirius.db.mixing.Constraint;
+import sirius.db.mixing.constraints.FieldOperator;
 import sirius.kernel.di.std.Register;
 
 import sirius.db.mixing.OMA;
@@ -66,14 +68,14 @@ public class AccountingServiceBean implements AccountingService {
     public DataCollector<Lineitem> accountAllContracts(boolean dryRun,LocalDate referenceDate,Company givenCompany,
     boolean foreignCountry)  {
 
-            if (referenceDate == null) {
+        if (referenceDate == null) {
             throw Exceptions.createHandled()
-                            .withNLSKey("AccountingServiceBean.referenceDateIsNull")
-                            .handle();
+                            .withNLSKey("AccountingServiceBean.referenceDateIsNull").handle();
         }
+        LocalDateTime clearingDate = LocalDateTime.now();
         String text = MessageFormat.format(
-                "Start Lizenz-Abrechnung zum ReferenzDatum {0} im Modus {1}",
-                NLS.toUserString(referenceDate),  dryRun == true ? "Test" : "Produktiv");
+                "Start Lizenz-Abrechnung zum ReferenzDatum {0} im Modus {1}, clearingDate: {2}",
+                NLS.toUserString(referenceDate),  dryRun == true ? "Test" : "Produktiv", NLS.toUserString(clearingDate));
         System.err.println(text);
 
         // create a lineitem-List
@@ -180,7 +182,7 @@ public class AccountingServiceBean implements AccountingService {
                                 Contract c2 = c.getSecond();
                                 processCommand(itemCollector, dryRun,
                                                referenceDate, command, c0, c1, c2,
-                                               invoiceNr);
+                                               invoiceNr, clearingDate);
                             }
                         }
                     }
@@ -205,7 +207,7 @@ public class AccountingServiceBean implements AccountingService {
                                 }
                                 processCommand(itemCollector, dryRun,
                                                referenceDate, command, null, contract,
-                                               null, invoiceNr);
+                                               null, invoiceNr, clearingDate);
                             }
                         }
                     }
@@ -295,7 +297,7 @@ public class AccountingServiceBean implements AccountingService {
 
 			contract = OMA.saveEntity(Realm.BACKEND, contract) ;
 		}
-*/
+        */
 
         }
 
@@ -350,7 +352,7 @@ public class AccountingServiceBean implements AccountingService {
         private Contract accountContract(DataCollector<Lineitem> itemCollector,
                                          boolean dryRun, Contract contract, LocalDate from, LocalDate to,
                                          int paymentDirection, LocalDate referenceDate, String headline,
-                                         Long invoiceNr) {
+                                         Long invoiceNr, LocalDateTime clearingDate) {
 
             // check the noAccountingFlag of the contract
             if (contract.isNoAccounting()) {
@@ -389,7 +391,7 @@ public class AccountingServiceBean implements AccountingService {
                 if (ContractSinglePriceType.ACCOUNT_NOW.equals(contract
                                                                        .getSinglePriceState())) {
                     accountSinglePrice(itemCollector, contract, referenceDate,
-                                       invoiceNr, singlePrice);
+                                       invoiceNr, singlePrice, clearingDate);
                     flagAccountSinglePriceDone = true;
                 }
             }
@@ -402,7 +404,6 @@ public class AccountingServiceBean implements AccountingService {
                                 .set("from", NLS.toUserString(from))
                                 .set("to", NLS.toUserString(to)).handle();
             }
-            // ToDo Berechnungen testen
             Amount unitPrice = getSolidUnitPrice(contract);
             // the positionPrice is the unitPrice * quantity of licences
             Amount positionPrice = unitPrice;
@@ -445,7 +446,7 @@ public class AccountingServiceBean implements AccountingService {
             writeLineitem(itemCollector, contract, referenceDate, months,
                           lineitemPrice, description, "MON", contract
                                   .getPackageDefinition().getValue().toString(), isCredit,
-                          positionDiscount, discountAmount, invoiceNr);
+                          positionDiscount, discountAmount, invoiceNr, clearingDate);
             // set the new accountedTo-date
             if (paymentDirection == AccountingService.INVOICE) {
                 contract.setAccountedTo(to);
@@ -463,7 +464,7 @@ public class AccountingServiceBean implements AccountingService {
          */
         private void accountSinglePrice(DataCollector<Lineitem> itemCollector,
                                         Contract contract, LocalDate referenceDate, Long invoiceNr,
-                                        Amount singlePrice) {
+                                        Amount singlePrice, LocalDateTime clearingDate) {
             // check: is the single price not null or = 0
             if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
                 throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenoValidPrice")
@@ -473,12 +474,12 @@ public class AccountingServiceBean implements AccountingService {
             if (PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL.equals(contract.getPackageDefinition().getValue()
                                                          .getAccountingProcedure())) {
                 accountSinglePriceRival(itemCollector, contract, referenceDate,
-                                        invoiceNr, singlePrice);
+                                        invoiceNr, singlePrice, clearingDate);
             }
             if (PackageDefinition.ACCOUNTINGPROCEDURE_VOLUME.equals(contract.getPackageDefinition().getValue()
                                                           .getAccountingProcedure())) {
                 accountSinglePriceVolume(itemCollector, contract, referenceDate,
-                                         invoiceNr, singlePrice);
+                                         invoiceNr, singlePrice, clearingDate);
             }
         }
 
@@ -487,7 +488,7 @@ public class AccountingServiceBean implements AccountingService {
          */
         private void accountSinglePriceRival(DataCollector<Lineitem> itemCollector,
                                              Contract contract, LocalDate referenceDate, Long invoiceNr,
-                                             Amount singlePrice)  {
+                                             Amount singlePrice, LocalDateTime clearingDate)  {
             // check: is the single price only one time accounted - with the given
             // contract and not with the older contracts
             int count = countOldRivalContracts(contract.getPackageDefinition().getValue()
@@ -511,7 +512,7 @@ public class AccountingServiceBean implements AccountingService {
                           MessageFormat.format("einmalige Einrichtungskosten für {0}",
                                                contract.getPackageDefinition().getValue().toString()), "PCE",
                           contract.getPackageDefinition().toString(), false, Amount.ZERO, Amount.ZERO,
-                          invoiceNr);
+                          invoiceNr, clearingDate);
         }
 
         /**
@@ -519,7 +520,7 @@ public class AccountingServiceBean implements AccountingService {
          */
         private void accountSinglePriceVolume(
                 DataCollector<Lineitem> itemCollector, Contract contract,
-                LocalDate referenceDate, Long invoiceNr, Amount singlePrice)  {
+                LocalDate referenceDate, Long invoiceNr, Amount singlePrice, LocalDateTime clearingDate)  {
             // account the single price for a volume or add-on contract
             Integer amount = contract.getQuantity();
             if (amount == null) {
@@ -534,7 +535,7 @@ public class AccountingServiceBean implements AccountingService {
                             "einmalige Kosten für {0} {1} {2}", amount, piece,
                             contract.getPackageDefinition().getValue().toString()), "PCE",
                           contract.getPackageDefinition().getValue().toString(), false, Amount.ZERO, Amount.ZERO,
-                          invoiceNr);
+                          invoiceNr, clearingDate);
         }
 
         /**
@@ -544,7 +545,7 @@ public class AccountingServiceBean implements AccountingService {
                                    Contract contract, LocalDate referenceDate, int months, Amount price,
                                    String description, String measurement, String packageName,
                                    boolean isCredit, Amount positionDiscount, Amount discountAbsolut,
-                                   Long invoiceNr) {
+                                   Long invoiceNr, LocalDateTime clearingDate) {
             Lineitem lineitem = new Lineitem();
             lineitem.setLineitemType(Lineitem.LINEITEMTYPE_LA);
             // check the absolute discount and calculate the accountingPrice
@@ -575,7 +576,7 @@ public class AccountingServiceBean implements AccountingService {
             lineitem.setCustomerNr(customerNr);
             lineitem.setMeasurement(measurement);
             lineitem.setPackageName(packageName);
-            lineitem.setClearingDate(LocalDateTime.now());
+            lineitem.setClearingDate(clearingDate);
             Integer monthsInteger = months;
             lineitem.setQuantity(Amount.of(monthsInteger.doubleValue()));
             lineitem.setDescription(description);
@@ -802,12 +803,14 @@ public class AccountingServiceBean implements AccountingService {
         }
 
         /**
+         * <code><
          * calculates the count of months between the dates 'start' and 'next'
-         * start: 1.3.2011, next: 31.3.2011 --> months = 1 start: 1.3.2011, next:
-         * 02.3.2011 --> months = 1 start: 1.3.2011, next: 01.4.2011 --> months = 1
+         * start: 1.3.2011, next: 31.3.2011 --> months = 1
+         * start: 1.3.2011, next: 02.3.2011 --> months = 1
+         * start: 1.3.2011, next: 01.4.2011 --> months = 1
          * start: 1.3.2011, next: 02.4.2011 --> months = 2
+         * /code>
          */
-    // ToDO: testen  calculateMonths(LocalDate start, LocalDate next)
     private int calculateMonths(LocalDate start, LocalDate next) {
         int startMonth = start.getMonthValue();
         int startYear = start.getYear();
@@ -827,14 +830,14 @@ public class AccountingServiceBean implements AccountingService {
          */
         private void processCommand(DataCollector<Lineitem> itemCollector,
                                     boolean dryRun, LocalDate referenceDate, Command command, Contract c0,
-                                    Contract c1, Contract c2, Long invoiceNr) {
+                                    Contract c1, Contract c2, Long invoiceNr,  LocalDateTime clearingDate) {
             boolean save = false;
             switch (command) {
                 case NEW_CONTRACT:    // Case 1, F1
                     LocalDate nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
                                          nextAccTo, INVOICE, referenceDate,
-                                         AccountingService.NEWACCOUNTING, invoiceNr);
+                                         AccountingService.NEWACCOUNTING, invoiceNr, clearingDate);
                     save = true;
                     break;
                 case ACC_IS_PRESSENT_TO_IS_NULL:      // Case 1, F2
@@ -847,7 +850,7 @@ public class AccountingServiceBean implements AccountingService {
                     if (nextAccTo.isAfter(c1.getAccountedTo()) && referenceDate.isAfter(c1.getAccountedTo())) {     // 17.1.2016: no accounting if accountedTo > referenceDate
                         c1 = accountContract(itemCollector, dryRun, c1,
                                              from, nextAccTo, INVOICE, referenceDate,
-                                             AccountingService.RUNNINGACCOUNTING, invoiceNr);
+                                             AccountingService.RUNNINGACCOUNTING, invoiceNr, clearingDate);
                         save = true;
                     }
                     break;
@@ -855,7 +858,7 @@ public class AccountingServiceBean implements AccountingService {
                     nextAccTo = getNextAccountedTo(c1, c2, referenceDate);
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getStartDate(),
                                          nextAccTo, INVOICE, referenceDate,
-                                         AccountingService.RUNNINGACCOUNTING, invoiceNr);
+                                         AccountingService.RUNNINGACCOUNTING, invoiceNr, clearingDate);
                     save = true;
                     break;
                 case FINISHED_CONTRACT: // case 1, F4, finished contract, do nothing
@@ -866,7 +869,7 @@ public class AccountingServiceBean implements AccountingService {
                         c1 = accountContract(itemCollector, dryRun, c1,
                                              c1.getAccountedTo(), nextAccTo, INVOICE,               // 17.2.2016
                                              referenceDate, AccountingService.RUNNINGACCOUNTING,
-                                             invoiceNr);
+                                             invoiceNr, clearingDate);
                         save = true;
                     }
                     break;
@@ -879,7 +882,7 @@ public class AccountingServiceBean implements AccountingService {
                     }
                     c1 = accountContract(itemCollector, dryRun, c1, c1.getEndDate(),
                                          c1.getAccountedTo(), CREDIT, referenceDate,
-                                         AccountingService.CREDITACCOUNTING, invoiceNr);
+                                         AccountingService.CREDITACCOUNTING, invoiceNr, clearingDate);
                     save = true;
                     break;
             }
@@ -1067,15 +1070,19 @@ public class AccountingServiceBean implements AccountingService {
                     .queryList();
             boolean filterFlag = false;
             if(Strings.isFilled(filter)) {
-                if (filter.toLowerCase().contains("ausl")) {
+                filter = filter.toUpperCase();
+                if (filter.contains("AUSL")) {
                     filterFlag = true;
-                    filter = "Ausland";
+                    filter = "AUSLAND";
                 }
-                if (filter.toLowerCase().contains("nein")) {
+                if (filter.contains("NEIN")) {
                     filterFlag = false;
                 } else {
                     filterFlag = true;
                 }
+            } else {
+                filter = "NEIN";
+                filterFlag = false;
             }
             // filter the lineitems. Is no filter given --> add all lineitems to the lineitemFilteredList
             List<Lineitem> lineitemFilteredList =new ArrayList<Lineitem>();
@@ -1086,7 +1093,7 @@ public class AccountingServiceBean implements AccountingService {
                     String countryCode = company.getAddress().getCountry().toUpperCase() ;
                     if(Strings.isEmpty(countryCode)) {countryCode = "DE";}
                     boolean flagAdd = false;
-                    if("ausland".equals(filter.toLowerCase()))  {  // filter is Ausland
+                    if("AUSLAND".equals(filter))  {  // filter is Ausland
                         if(!("DE".equals(countryCode))) {
                             flagAdd = true;    // add all lineitems with contyCode != DE
                         }
@@ -1472,7 +1479,7 @@ public class AccountingServiceBean implements AccountingService {
             // csv[39] = COLLMEX_NULL; // 39 Schlusstext C 1024 Falls (NULL), wird
             // der Text aus den Standard-Textbausteinen ermittelt.
 
-            csv[40] = "Position am " + NLS.toUserString(new Date())
+            csv[40] = "Position am " + NLS.toUserString(LocalDateTime.now())
                       + " exportiert"; // 40 Internes Memo C 1024
             csv[41] = "0"; // 41 Gelöscht I 8 0 = nicht gelöscht, 1 = gelöscht.
             csv[42] = "0"; // 42 Sprache I 8 0 = Deutsch, 1 = Englisch.
@@ -1880,12 +1887,16 @@ public class AccountingServiceBean implements AccountingService {
         @Override
         public void generateCollmexKundenCsv()    {
             List<Company> companyList = oma.select(Company.class)
-                                           // ToDo Constraint fixen  .where(new Constraint.(Company.CUSTOMERNR), "", true)
-             //                              .where(new Constraint.(Company.CUSTOMERNR), "", true)
+                                          .where(FieldOperator.on(Company.CUSTOMERNR).notEqual(""))
                                            .orderAsc(Company.CUSTOMERNR).queryList();
             if (companyList.size() <= 0) {
                 throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.noCompanyToExport").handle();
             }
+
+            for (Company c: companyList ) {
+                System.err.println(c.toString() + "/" + c.getCustomerNr() + "/");
+            }
+            if(companyList.size() > 0) {return;}
             // export them to the file
             File file = createCsvFilename("kunden", -1);
             try {

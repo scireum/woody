@@ -8,8 +8,6 @@
 
 package woody.xrm;
 
-import sirius.biz.model.AddressData;
-import sirius.biz.model.ContactData;
 import sirius.biz.model.InternationalAddressData;
 import sirius.biz.model.PersonData;
 import sirius.biz.tenants.TenantAware;
@@ -27,8 +25,10 @@ import sirius.kernel.nls.NLS;
 import sirius.web.mails.Mails;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
+import woody.sales.CompanyAccountingData;
 import woody.sales.Contract;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -76,21 +76,20 @@ public class Company extends TenantAware {
     public static final Column IMAGE = Column.named("image");
 
     private final InternationalAddressData address =
-            new InternationalAddressData(AddressData.Requirements.NOT_PARTIAL, null);
+            new InternationalAddressData(InternationalAddressData.Requirements.NOT_PARTIAL, null);
     public static final Column ADDRESS = Column.named("address");
 
     @NullAllowed
     @Autoloaded
     private final InternationalAddressData postboxAddress =
-            new InternationalAddressData(AddressData.Requirements.NOT_PARTIAL, NLS.get("Company.postboxAddress"));
+            new InternationalAddressData(InternationalAddressData.Requirements.NOT_PARTIAL,
+                                         NLS.get("Company.postboxAddress"));
     public static final Column POSTBOXADDRESS = Column.named("postboxAddress");
 
     @NullAllowed
     @Autoloaded
-    private final ContactData contactData = new ContactData(true);
-    public static final Column CONTACTDATA = Column.named("contactData");
-
-    // TODO mit aha verifiziern: hier oder wo anders?
+    private final CompanyAccountingData companyAccountingData = new CompanyAccountingData();
+    public static final Column COMPANYACCOUNTINGDATA = Column.named("companyAccountingData");
 
     @NullAllowed
     @Autoloaded
@@ -119,19 +118,17 @@ public class Company extends TenantAware {
         }
     }
 
-    @Part
-    private static Mails mails;
-
     @BeforeSave
     protected void onSave() {
-
         // check the presence of a customer-number if contracts are existing
         long count = oma.select(Contract.class).eq(Contract.COMPANY, this).count();
         if (count > 0 && Strings.isEmpty(customerNr)) {
             throw Exceptions.createHandled().withNLSKey("Company.ContractsArePresent.CustomerNrIsMissing").handle();
         }
-        this.setMainPhoneNr(normalizePhoneNumber(this.getMainPhoneNr()));
-
+        // normalize the mainPhoneNr
+        if (Strings.isFilled(this.getMainPhoneNr())) {
+            this.setMainPhoneNr(normalizePhoneNumber(this.getMainPhoneNr()));
+        }
         //check the mainMailAddress
         if (Strings.isFilled(this.getMainMailAddress())) {
             // mimimal: a.b
@@ -144,7 +141,7 @@ public class Company extends TenantAware {
                 // cut out the @   aa@bbbbb.cc ---> bbbbb.cc
                 int pos = this.getMainMailAddress().indexOf("@");
                 if (pos > -1) {
-                    this.setMainPhoneNr(this.getMainMailAddress().substring(pos + 1));
+                    this.setMainMailAddress(this.getMainMailAddress().substring(pos + 1));
                 }
                 // check the presence of the "."
                 pos = this.getMainMailAddress().indexOf(".");
@@ -157,11 +154,30 @@ public class Company extends TenantAware {
                 }
             }
         }
+        // check the CompanyAccountingData
+        String invoiceMedium = this.getCompanyAccountingData().getInvoiceMedium();
+        if (invoiceMedium == null) {
+            throw Exceptions.createHandled().withNLSKey("Company.invoiceMediumMissing").handle();
+        }
+        if (invoiceMedium.equals("MAIL")) {
+            String mailAddress = this.getCompanyAccountingData().getInvoiceMailAdr();
+            if (Strings.isEmpty(mailAddress)) {
+                throw Exceptions.createHandled().withNLSKey("Company.invoiceMailAdrMissing").handle();
+            }
+            if (!(mails.isValidMailAddress(mailAddress, null))) {
+                throw Exceptions.createHandled()
+                                .withNLSKey("Company.invalidInvoiceEmail")
+                                .set("value", mailAddress)
+                                .handle();
+            }
+        }
     }
+
+    @Part
+    private static Mails mails;
 
     private String normalizePhoneNumber(String number) {
         if (Strings.isFilled(number)) {
-
             number = number.replace(" ", "");
             // (0) am Anfang durch 0 ersetzen
             if (number.startsWith("(0)")) {
@@ -179,7 +195,6 @@ public class Company extends TenantAware {
             }
 
             // set "000" to "00"
-
             for (int i = 0; i < number.length() - 1; i++) {
                 if (!(number.substring(i, i + 1).equals("0"))) {
                     number = "00" + number.substring(i);
@@ -190,12 +205,15 @@ public class Company extends TenantAware {
         return number;
     }
 
+    // called by JSF
     public List<Person> queryPersons() {
-        return oma.select(Person.class)
-                  .eq(Person.COMPANY, this)
-                  .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
-                  .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
-                  .queryList();
+        List<Person> personList = new ArrayList<Person>();
+        personList.addAll(oma.select(Person.class)
+                             .eq(Person.COMPANY, this)
+                             .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
+                             .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
+                             .queryList());
+        return personList;
     }
 
     public String getName() {
@@ -262,10 +280,6 @@ public class Company extends TenantAware {
         return comments;
     }
 
-    public ContactData getContactData() {
-        return contactData;
-    }
-
     public String getMainPhoneNr() {
         return mainPhoneNr;
     }
@@ -280,5 +294,9 @@ public class Company extends TenantAware {
 
     public void setMainMailAddress(String mainMailAddress) {
         this.mainMailAddress = mainMailAddress;
+    }
+
+    public CompanyAccountingData getCompanyAccountingData() {
+        return companyAccountingData;
     }
 }

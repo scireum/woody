@@ -10,6 +10,8 @@ package woody.offers;
 
 import sirius.biz.model.BizEntity;
 import sirius.biz.sequences.Sequences;
+import sirius.biz.tenants.Tenant;
+import sirius.biz.tenants.Tenants;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -19,20 +21,29 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Transient;
 import sirius.db.mixing.annotations.Unique;
+import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
+import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 import woody.core.employees.Employee;
+import woody.sales.PackageDefinition;
+import woody.sales.Product;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Created by gerhardhaufler on 11.10.16.
  */
+
 public class Offer extends BizEntity {
+
+    @Part
+    private static Tenants tenants;
 
     private static final int MIN_OFFER_NR = 20001;
 
@@ -52,15 +63,15 @@ public class Offer extends BizEntity {
     private String keyword;
     public static final Column KEYWORD = Column.named("keyword");
 
-
+    @Autoloaded
     private final EntityRef<Person> person = EntityRef.on(Person.class, EntityRef.OnDelete.REJECT);
     public static final Column PERSON = Column.named("person");
 
-
+    @Autoloaded
     private final EntityRef<UserAccount> employee = EntityRef.on(UserAccount.class, EntityRef.OnDelete.REJECT);
     public static final Column EMPLOYEE = Column.named("employee");
 
-
+    @Autoloaded
     private LocalDate date;
     public static final Column DATE = Column.named("date");
 
@@ -83,13 +94,11 @@ public class Offer extends BizEntity {
     private boolean licenceItemPresent;
     public static final Column LICENCEITEMPRESENT = Column.named("licenceItemPresent");
 
-//    protected void asString(StringBuilder sb) {
-//        sb.append("Angebot ");
-//        sb.append(number);
-//    }
-
     public String toString() {
-        String s = "Angebot ".concat(number);
+        String s = "Angebot ";
+        if(number != null) {
+            s = s.concat(number);
+        }
         return s;
     }
 
@@ -108,36 +117,15 @@ public class Offer extends BizEntity {
     @BeforeSave
     protected void onSave() {
         // check te Role of the user
-        // ToDo RechtsNachfolger für User.hasRole(CRM.GL)
         UserInfo userInfo = UserContext.getCurrentUser();
-        userInfo.assertPermission("GL");
-//        if (Users.hasRole(CRM.GL) || Users.hasRole(CRM.OFFER)) {
-//            // do nothing
-//        } else {
-//            throw Exceptions.createHandled().withNLSKey("Offer.noSavePermission")
-//                        .set("value", number).handle();
-
-//        }
+        userInfo.assertPermission("offers");
         // Calculate the offer-number if the offer is new (id == 0)
-        if (this.isNew()) {
+        if (Strings.isEmpty(number)) {
             number = String.valueOf(sequences.generateId("OFFER"));
+
         }
-//        int offerNr = -1;
-//        try {
-//            offerNr = Integer.parseInt(number);
-//        } catch (Exception e) {
-//            throw Exceptions.createHandled().withNLSKey("Offer.numberWrong").set("value", number).handle();
-//        }
-//
-//        if (offerNr < MIN_OFFER_NR) {
-//            throw Exceptions.createHandled()
-//                            .withNLSKey("Offer.numberToLess")
-//                            .set("value", number)
-//                            .set("minOfferNr", MIN_OFFER_NR)
-//                            .handle();
-//        }
         // get the employee
-        if (employee == null) {
+        if (employee.getValue() == null) {
             employee.setId(userInfo.getUserObject(UserAccount.class).getId());
         }
         //set the offer-date
@@ -146,7 +134,7 @@ public class Offer extends BizEntity {
         }
 
         // update the offerState
-        sas.updateOfferState(this);
+        sas.updateOfferState(this, false);
     }
 
     public EntityRef<Company> getCompany() {

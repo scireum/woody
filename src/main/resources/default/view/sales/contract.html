@@ -38,16 +38,8 @@
                     <i class="icon-users"></i>@i18n("Model.details")
                 </a>
             </li>
-
-    </div>
-
-    <!--
-            if(page == "details") {includeExtensions("contract-details", contract, page)}
-
         }
-     -->
-
-    <a href="@prefix/company/@contract.getCompany().getValue().getId()/contracts" class="btn btn-block">@i18n("NLS.back")</a>
+        <a href="@prefix/company/@contract.getCompany().getValue().getId()/contracts" class="btn btn-block">@i18n("NLS.back")</a>
     </div>
     }
     <div class="@if (contract.isNew()) { col-md-12 } else { col-md-9 }">

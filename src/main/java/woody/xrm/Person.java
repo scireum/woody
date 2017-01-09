@@ -13,6 +13,7 @@ import sirius.biz.model.BizEntity;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.LoginData;
 import sirius.biz.model.PersonData;
+import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.annotations.BeforeSave;
@@ -24,6 +25,7 @@ import sirius.kernel.nls.Formatter;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -36,6 +38,11 @@ public class Person extends BizEntity {
 
     private final PersonData person = new PersonData();
     public static final Column PERSON = Column.named("person");
+
+    @Autoloaded
+    @NullAllowed
+    private LocalDate birthday;
+    public static final Column BIRTHDAY = Column.named("birthday");
 
     private final AddressData address = new AddressData(AddressData.Requirements.NONE, null);
     public static final Column ADDRESS = Column.named("address");
@@ -51,8 +58,6 @@ public class Person extends BizEntity {
     @NullAllowed
     private String position;
     public static final Column POSITION = Column.named("position");
-
-    // ToDO: klären was mit birthday, it-Decider marketing-Decider usw. geschieht
 
     private final Tagged tags = new Tagged(this);
     public static final Column TAGS = Column.named("tags");
@@ -85,12 +90,10 @@ public class Person extends BizEntity {
         if ("SIR".equals(this.getPerson().getSalutation())) {
             text = text.concat("r");
         }
-        text = text.concat(",");
-        return Formatter.create("Sehr [${text} ][${salutation} ][${title} ][${firstname} ]${lastname}")
+        return Formatter.create("[${text} ][${salutation} ][${title} ]${lastname},")
                         .set("text", text)
                         .set("salutation", this.getPerson().getTranslatedSalutation())
                         .set("title", this.getPerson().getTitle())
-                        .set("firstname", this.getPerson().getFirstname())
                         .set("lastname", this.getPerson().getLastname())
                         .smartFormat();
     }
@@ -133,5 +136,13 @@ public class Person extends BizEntity {
 
     public boolean isOffline() {
         return offline;
+    }
+
+    public LocalDate getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
     }
 }

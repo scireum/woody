@@ -11,17 +11,17 @@
 @args Company company, Offer offer, Page offerItems, String suggestions
 @extends(view.offers.offer.html, company, offer, "offerItems")
 
-@*
+
 @section(breadcrumbs) {
 
-<li><a href="/companies">@i18n("Company.plural")</a></li>
+    <li><a href="/companies">@i18n("Company.plural")</a></li>
     <li><a href="/company/@company.getId()">@company.getName()</a></li>
-    <li><a href="/company/@company.getId()/offers">@i18n("Offer.plural")</a></li>
+    <li><a href="/company/@company.getId()/offer/@offer.getId()">@offer.toString()</a></li>
 }
-*@
 
-@magicsearch(offerItems, ("offer/" + offer.getId() + "/offers"), "offerItems/suggest", suggestions) {
-    <a class="btn btn-primary" href="/offer/@offer.getId()/offerItem/new">@i18n("Model.create")</a>
+
+@magicsearch(offerItems, ("company/" + company.getId() + "offer/" + offer.getId() + "/offers"), "offerItems/suggest", suggestions) {
+    <a class="btn btn-primary" href="/company/@company.getId()/offer/@offer.getId()/offerItem/new">@i18n("Model.create")</a>
 }
 
 @table(offerItems) {

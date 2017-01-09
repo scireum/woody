@@ -10,12 +10,16 @@ package woody.sales;
 
 import sirius.biz.model.AddressData;
 import sirius.biz.model.BizEntity;
+import sirius.biz.model.InternationalAddressData;
+import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.Composite;
 import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.Mixable;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
+import sirius.db.mixing.annotations.Mixin;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Numeric;
 import sirius.db.mixing.annotations.Trim;
@@ -27,17 +31,13 @@ import woody.xrm.Company;
  * Created by gerhardhaufler on 22.09.16.
  */
 
-// ToDo Composite oder BizEntity bei  CompanyAccountingData
-public class CompanyAccountingData extends BizEntity {
-
-    private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
-    public static final Column COMPANY = Column.named("company");
+public class CompanyAccountingData extends Composite {
 
     @NullAllowed
     @Autoloaded
-    private final AddressData invoiceAddress =
-            new AddressData(AddressData.Requirements.NOT_PARTIAL, NLS.get("CompanyAccountingData.invoiceAddress"));
-    public static final Column POSTBOXADDRESS = Column.named("invoiceAddress");
+    private final InternationalAddressData invoiceAddress =
+            new InternationalAddressData(InternationalAddressData.Requirements.NOT_PARTIAL, NLS.get("CompanyAccountingData.invoiceAddress"));
+    public static final Column INVOICEADDRESS = Column.named("invoiceAddress");
 
     @Trim
     @Autoloaded
@@ -45,24 +45,21 @@ public class CompanyAccountingData extends BizEntity {
     private String invoiceMedium = "PRINT";
     public static final Column INVOICEMEDIUM = Column.named("invoiceMedium");
 
-    public static final Column INVOICEMAILADR = Column.named("invoiceMailAdr");
     @Trim
     @NullAllowed
     @Autoloaded
     @Length(150)
     private String invoiceMailAdr;
+    public static final Column INVOICEMAILADR = Column.named("invoiceMailAdr");
 
     @Autoloaded
     @NullAllowed
     @Numeric(scale = 3, precision = 15)
     private Amount ptPrice;
+
     public static final Column PTPRICE = Column.named("ptPrice");
 
-    public EntityRef<Company> getCompany() {
-        return company;
-    }
-
-    public AddressData getInvoiceAddress() {
+    public InternationalAddressData getInvoiceAddress() {
         return invoiceAddress;
     }
 

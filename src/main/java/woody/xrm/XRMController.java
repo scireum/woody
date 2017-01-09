@@ -20,6 +20,7 @@ import sirius.kernel.commons.DataCollector;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
+import sirius.kernel.health.Exceptions;
 import sirius.web.controller.Controller;
 import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
@@ -59,7 +60,7 @@ public class XRMController extends BizController {
             int vvv = 1;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Exceptions.handle();
         }
     }
 
@@ -67,11 +68,11 @@ public class XRMController extends BizController {
     @Permission(MANAGE_XRM)
     @Routed("/licenceAccounting")
     public void licenceAccounting(WebContext ctx) {
-        LocalDate referenceDate = LocalDate.of(2017,1,4);
-        boolean dryRun = true;
+        LocalDate referenceDate = LocalDate.of(2017,1,2);
+        boolean dryRun = false;
         boolean foreignCountry = false;
             DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
-                                                                             /*TaskMonitor monitor,*/ foreignCountry);
+                                                         /*TaskMonitor monitor,*/ foreignCountry);
             int vvv = 1;
     }
 
@@ -158,7 +159,6 @@ public class XRMController extends BizController {
     @Permission(MANAGE_XRM)
     @Routed(value = "/persons/suggest", jsonCall = true)
     public void personsSuggest(WebContext ctx, JSONStructuredOutput out) {
-        int i = 12;
         MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Person.class, q, c));
     }
 
@@ -220,7 +220,7 @@ public class XRMController extends BizController {
         Tagged.applyTagSuggestions(Contract.class, search, query);
         PageHelper<Contract> ph = PageHelper.withQuery(query);
         ph.withContext(ctx);
-        ctx.respondWith().template("view/sales/contract.html", ph.asPage(), search.getSuggestionsString());
+        ctx.respondWith().template("view/sales/company-contracts.html", ph.asPage(), search.getSuggestionsString());
     }
 
     @LoginRequired
@@ -336,4 +336,18 @@ public class XRMController extends BizController {
 
         ctx.respondWith().template("view/xrm/person-details.html", person.getCompany().getValue(), person);
     }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/company/:1/contract/:2/delete")
+    public void deleteContract(WebContext ctx, String companyId, String contractId) {
+        Optional<Contract> contract = tryFind(Contract.class, contractId);
+        if (contract.isPresent()) {
+            assertTenant(contract.get().getCompany().getValue());
+            oma.delete(contract.get());
+            showDeletedMessage();
+        }
+        companyContracts(ctx, companyId);
+    }
+
 }

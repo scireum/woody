@@ -11,18 +11,20 @@ package woody.offers;
 
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
-import com.google.common.io.BaseEncoding;
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.DatabaseMetaData;
 import sirius.biz.model.BizEntity;
-import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
+import sirius.db.jdbc.Database;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
-
+import sirius.db.mixing.annotations.AfterSave;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Numeric;
 import sirius.kernel.commons.Amount;
+import sirius.kernel.commons.NumberFormat;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
@@ -35,9 +37,11 @@ import woody.sales.Product;
 import woody.sales.ProductType;
 import woody.xrm.Company;
 
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 import java.util.List;
 
 
@@ -51,16 +55,11 @@ import java.util.List;
  *   </code>
  */
 
-// ToDo @ListSpec(orderBy = {
-//        @OrderSpec(path = OfferItem.OFFER + "." + Offer.COMPANY + "." + Company.NAME),
-//        @OrderSpec(path = OfferItem.OFFER + "." + Offer.NUMBER, asc=false),
-//        @OrderSpec(path = OfferItem.POSITION)
-//})
-
 public class OfferItem extends BizEntity {
 
     protected static final String DIENSTLEISTUNGS_PREFIX = "Dienstleistung";
 
+    @Autoloaded
     private final EntityRef<Offer> offer = EntityRef.on(Offer.class, EntityRef.OnDelete.CASCADE);
     public static final Column OFFER = Column.named("offer");
 
@@ -103,8 +102,8 @@ public class OfferItem extends BizEntity {
     @Autoloaded
     @NullAllowed
     @Length(5)
-    private String quantityUnit;
-    public static final Column QUANTITYUNIT = Column.named("quantityUnit");
+    private String accountingUnit;
+    public static final Column ACCOUNTINGUNIT = Column.named("accountingUnit");
 
 
     @Autoloaded
@@ -113,10 +112,10 @@ public class OfferItem extends BizEntity {
     private Amount singlePrice;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
 
-    @Autoloaded
+
     @NullAllowed
     @Length(20)
-    private String priceBase = "Angebot";
+    private String priceBase;
     public static final Column PRICEBASE = Column.named("priceBase");
 
 
@@ -133,11 +132,11 @@ public class OfferItem extends BizEntity {
 
     @NullAllowed
     @Numeric(scale = 2, precision = 15)
-//  ToDo    @Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")
     private Amount cyclicPrice;
     public static final Column CYCLICPRICE = Column.named("cyclicPrice");
 
 // ToDo    @Filter(position = 1000, filterEmpty = false)
+    @Autoloaded
     private OfferItemState state;
     public static final Column STATE = Column.named("state");
 
@@ -159,7 +158,7 @@ public class OfferItem extends BizEntity {
     @NullAllowed
     @Autoloaded
     private LocalDate completionDate;
-    public static final Column DEVELOPEDATE = Column.named("completionDate");
+    public static final Column COMPLETIONDATE = Column.named("completionDate");
 
     @NullAllowed
     @Autoloaded
@@ -171,54 +170,43 @@ public class OfferItem extends BizEntity {
     private LocalDate accountingDate;
     public static final Column ACCOUNTINGDATE = Column.named("accountingDate");
 
-
-// ToDo            @Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true"),
     @NullAllowed
     @Length(2000)
     private String history;
     public static final Column HISTORY = Column.named("history");
 
+    @NullAllowed
+    private Integer savedPosition;
 
-    private boolean flagOneTimeHistory = true;
+    private boolean flagOneTime = true;
+
 
     @Part
     private static ServiceAccountingService sas;
 
-    // ToDo Testen ob das korrekt ist
-    private String getUnqiueObjectName()  {
-        return this.getUniqueName();
+
+    public List<PackageDefinition> getAllPackageDefinitionsOrderedByProduct() {
+        List<PackageDefinition> pdList = oma.select(PackageDefinition.class)
+              .orderAsc(PackageDefinition.PRODUCT.join(Product.NAME))
+              .orderAsc(PackageDefinition.NAME).queryList();
+        return pdList;
     }
 
     @BeforeSave
     protected void onSave()  {
-
-        // ToDo Rechtsnachfolger für Users....
-//        // check te Role of the user
-//        if (Users.hasRole(CRM.GL) || Users.hasRole(CRM.OFFER)) {
-//            // do nothing
-//        } else {
-//            throw Exceptions.createHandled().withNLSKey("Offer.noSavePermission")
-//                        .set("value", number).handle();
-
-//        }
+        // check te Role of the user
+        UserInfo userInfo = UserContext.getCurrentUser();
+        userInfo.assertPermission("offers");
 
         Offer offer = getOffer().getValue();
         Company company = offer.getCompany().getValue();
-
-        // generate the position-number
-        if (position == null) {
-            //ToDo testen
-            List<OfferItem> itemList = oma.select(OfferItem.class)
-                                          .eq(OfferItem.OFFER, offer).queryList();
-            position = (itemList.size() + 1) * 10;
-        }
 
         if (isInfoText()) {
             offerItemType = OfferItemType.INFOTEXT ;
             keyword = "";
             state = OfferItemState.UNUSED;
             priceBase = "nicht benutzt";
-            quantityUnit = "";
+            accountingUnit = "";
             if (quantity!=null) {
                 throw Exceptions.createHandled().withNLSKey("OfferItem.infoTextNoQuatity").handle();
             }
@@ -235,7 +223,7 @@ public class OfferItem extends BizEntity {
                 keyword = "";
                 state = OfferItemState.UNUSED;
                 priceBase = "nicht benutzt";
-                quantityUnit = "";
+                accountingUnit = "";
                 if(Strings.isEmpty(text)) {
                     text = "Zwischensummen:";
                 }
@@ -244,26 +232,23 @@ public class OfferItem extends BizEntity {
                 if (isService()) {
                     offerItemType = OfferItemType.SERVICE;
                 }
-                if (isLicense()) {
-                    offerItemType = OfferItemType.LICENSE;
-                }
                 if(Strings.isEmpty(this.getKeyword())) {
-                    throw Exceptions.createHandled().withNLSKey("OfferItem.keywordMissing").handle();
+                    throw Exceptions.createHandled().withNLSKey("OfferItem.keywordMissing").set("pos", position).handle();
                 }
-
                 //check the position-text
                 if(Strings.isEmpty(this.getText())) {
                     throw Exceptions.createHandled().withNLSKey("OfferItem.textMissing").handle();
                 }
-
-                // check the product
-                if (baseProduct == null) {
-                    throw Exceptions.createHandled().withNLSKey("OfferItem.productMissing").handle();
-                }
-
                 if (packageDefinition == null) {
                     throw Exceptions.createHandled().withNLSKey("OfferItem.packageDefinitionMissing").handle();
                 }
+                // complete the product
+                if (baseProduct.getValue() == null) {
+                    Product product = this.getPackageDefinition().getValue().getProduct().getValue();
+                    long id = product.getId();
+                    this.getBaseProduct().setId(id);
+                }
+                // check the packageDefinition
                 PackageDefinition pd = oma.select(PackageDefinition.class)
                         .eq(PackageDefinition.PRODUCT, baseProduct)
                         .eq(PackageDefinition.NAME, packageDefinition.getValue().getName())
@@ -273,16 +258,25 @@ public class OfferItem extends BizEntity {
                                     .set("prod", packageDefinition.getValue().getProduct().getValue().getName())
                                     .set("pd", packageDefinition.getValue().getName()).handle();
                 }
+
                 if (packageDefinition.getId() != pd.getId()) {
-                    throw Exceptions.createHandled().withNLSKey("OfferItem.pdWrong")
+                    throw Exceptions.createHandled().withNLSKey("OfferItem.idWrong")
                                     .set("pd1", packageDefinition.getValue().getName())
                                     .set("pd2", pd.getName()).handle();
                 }
+                if (isLicense()) {
+                    offerItemType = OfferItemType.LICENSE;
+                    accountingUnit = packageDefinition.getValue().getAccountingUnit();
+                }
+
+                // check the quantity
                 if (isService()) {
                     if (Strings.isEmpty(quantity)) {
                           throw Exceptions.createHandled().withNLSKey("OfferItem.quanityMissing").handle();
                     }
                 }
+
+                // check the acceptanceDate
                 if (OfferItemState.OFFER.equals(state)) {
                     if (acceptanceDate != null) {
                         throw Exceptions.createHandled().withNLSKey("OfferItem.noAcceptanceDate").handle();
@@ -290,20 +284,19 @@ public class OfferItem extends BizEntity {
                 }
                 // check the singlePrice
                 if (isService()) {
-                    if (singlePrice.isZeroOrNull()) {
+                    // ToDo Exception bei singlePrice == null :                     if (singlePrice.isZeroOrNull()) {
+                    if (singlePrice == null || singlePrice.isZeroOrNull()) {
                         //  is a price for this company present? -> take the company-price
-                        CompanyAccountingData companyAccountingData = oma.select(CompanyAccountingData.class)
-                                                                         .eq(CompanyAccountingData.COMPANY, company).queryFirst();
+                        CompanyAccountingData companyAccountingData = company.getCompanyAccountingData();
                         if(companyAccountingData != null) {
                             if (companyAccountingData.getPtPrice() != null) {
                                 singlePrice = companyAccountingData.getPtPrice();
                                 priceBase = "Firma";
                             }
                         }
-                    }
-                    // is a Package-price present? --> take the package-price
-                    if (singlePrice.isZeroOrNull()) {
-                        pd = oma.select(PackageDefinition.class)
+
+                        // is a Package-price present? --> take the package-price
+                         pd = oma.select(PackageDefinition.class)
                                 .eq(PackageDefinition.NAME, packageDefinition.getValue().getName())
                                 .eq(PackageDefinition.PRODUCT, baseProduct)
                                 .queryFirst();
@@ -320,7 +313,7 @@ public class OfferItem extends BizEntity {
                         }
 
                     }
-                    if (singlePrice.isZeroOrNull()) {
+                    if (singlePrice == null || singlePrice.isZeroOrNull()) {
                         throw Exceptions.createHandled().withNLSKey("OfferItem.singlePriceMissing").handle();
                     }
                 }
@@ -339,15 +332,15 @@ public class OfferItem extends BizEntity {
                         quantity = Amount.ONE;
                     }
                 }
-                // check te quantityUnit
-                if (Strings.isEmpty(quantityUnit)) {
+                // check te accountingUnit
+                if (Strings.isEmpty(accountingUnit)) {
                     if (ProductType.LICENSE.equals(packageDefinition.getValue().getProduct().getValue().getProductType())) {
-                        quantityUnit = packageDefinition.getValue().getAccountingUnit().toString();
+                        accountingUnit = packageDefinition.getValue().getAccountingUnit();
                     }
                     if (ProductType.SERVICE.equals(packageDefinition.getValue().getProduct().getValue().getProductType())) {
-                        quantityUnit = "PT";
+                        accountingUnit = "PT";
                     }
-                    if (Strings.isEmpty(quantityUnit)) {
+                    if (Strings.isEmpty(accountingUnit)) {
                         throw Exceptions.createHandled().withNLSKey("OfferItem.quantityUnitMissing").handle();
                     }
                 }
@@ -357,7 +350,6 @@ public class OfferItem extends BizEntity {
                     discount1 = discount;
                 }
                 if(singlePrice != null) {
-                    // ToDo testen ob Multiplikation und decreasePercent funktionieren.
                     price = quantity.times(singlePrice);
                     price = price.decreasePercent(discount1);
                 }
@@ -392,38 +384,61 @@ public class OfferItem extends BizEntity {
                 }
             }
         }
-        if(!(isSum() || isInfoText()) ) {
-            // the beforeSaveChecks-Method runs on each save two times!
-            // the following statements guaranty, that the following statements are executed only one time
-            if (flagOneTimeHistory) {
-                flagOneTimeHistory = false;
+
+        // the beforeSaveChecks-Method runs on each save two times!
+        // the following statements guaranty, that the following statements are executed only one time
+        if (flagOneTime) {
+            flagOneTime = false;
+        // generate the position-number
+            if (position == null) {
+                OfferItem offerItem  = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer)
+                                          .orderDesc(OfferItem.POSITION).queryFirst();
+                int pos = offerItem.getPosition() + 10;
+                int  divisionsrest = pos % 10;
+                position =  pos - divisionsrest;
+                savedPosition = position;
+            }
+            if(!(isSum() || isInfoText()) ) {
                 // build the history string, organize last come --> first serve
+                // offerItems withe the same md5-key are saved only one time in the history
+                String md5 =  buildMD5(OfferItem.this);
+                if(Strings.isFilled(history)) {
+                    // adapt the history-format
+                    history = history.replace("&nbsp;", " ");
+                    history = history.replace("<br>", "\n");
+                    // check the md5-key
+                    int posMd5 = history.indexOf("md5: ") + 5;
+                    String md5SubStr = history.substring(posMd5, posMd5 + 32);
+                    if(md5SubStr.equals( md5) ) {return; }   // md5-key is the same --> no change done
+                }
                 String stateFix = getStateFix(14);
-                // ToDo testen, ob dies der Ersatz für CRM.getCurrent ist
-                UserInfo userInfo = UserContext.getCurrentUser();
                 String username = userInfo.getUserName();
-//                String s = NLS.toUserString(LocalDateTime.now()) + " " + CRM.getCurrent() + ":" + getStateFix(14)
-                String s = NLS.toUserString(LocalDateTime.now()) + " " + username + ":" + getStateFix(14)
-                           + ", md5:" + buildMD5(OfferItem.this);
+                String s = NLS.toUserString(LocalDateTime.now()) + "   " + username + ":  " + getStateFix(14) + ", md5: " + buildMD5(OfferItem.this);
                 if (history == null) {
                     history = "";
                 }
                 if (Strings.isFilled(s)) {
-                    s = s + "<br>" + history;
+                    s = s + "\n" + history;
                     history = s;
                 }
-            } else {
-                flagOneTimeHistory = true;
             }
-        }
+        } else {
+            flagOneTime = true;
+            if (position == null) {
+                position = savedPosition;
+                savedPosition = 0;
+            }
 
-        // update the offerState
-        sas.updateOfferState(offer);
+        }
+    }
+    @AfterSave
+    protected void afterSave() {
+       Offer offer = this.getOffer().getValue();
+       sas.updateOfferState(offer, true);
     }
 
     // returns the state of the offerItem with a fix length
     private String getStateFix( int length1) {
-
         String s = state.toString();
         String s1 = state.getOfferItemStatePostFix();
         s = s + s1;
@@ -436,20 +451,49 @@ public class OfferItem extends BizEntity {
         if(o.isInfoText() || o.isSum()) {
             // do nothing
         } else {
-            s = s+o.getPriceBase() + NLS.toUserString(o.getSinglePrice()) + NLS.toUserString(o.getQuantity()) + o.getQuantityUnit() +
-                // ToDo testen ob uniqueName o.k. ist
+            s = s+o.getPriceBase() + NLS.toUserString(o.getSinglePrice()) + NLS.toUserString(o.getQuantity()) + o.getAccountingUnit() +
             o.getOffer().getValue().getUniqueName(); // getUnqiueObjectName();
             if(getDiscountPresent()) {
                 s = s + NLS.toUserString(discount.toString());
             }
         }
-        // ToDo Testen, ob das derrechtsnachfolger für  Tools.md5hex  ist
-        String md5 = BaseEncoding.base64().encode(Hashing.md5().hashString(s, Charsets.UTF_8).asBytes());
+
+//        String md5 = BaseEncoding.base64().encode(Hashing.md5().hashString(s, Charsets.UTF_8).asBytes());
+        byte[] md5HashBytes = Hashing.md5().hashString(s, Charsets.UTF_8).asBytes();
+        StringBuilder sb = new StringBuilder(md5HashBytes.length * 2);
+        for (int i = 0; i < md5HashBytes.length; i++) {
+            sb.append(Character.forDigit((md5HashBytes[i] & 0xf0) >> 4, 16));
+            sb.append(Character.forDigit(md5HashBytes[i] & 0x0f, 16));
+        }
+        String md5 = sb.toString();
         return md5;
     }
 
+
+    /**
+     * Computes the hex-representation of the given byte array.
+     */
+    private String toHex(byte[] a) {
+        StringBuilder sb = new StringBuilder(a.length * 2);
+        for (int i = 0; i < a.length; i++) {
+            sb.append(Character.forDigit((a[i] & 0xf0) >> 4, 16));
+            sb.append(Character.forDigit(a[i] & 0x0f, 16));
+        }
+        return sb.toString();
+    }
+
+
     // these methods are called by the JSF
-    public boolean getStateIsVisible() {
+
+    public String getCyclicPriceAsString() {
+        if(this.getCyclicPrice() == null) {
+            return "";
+        } else {
+            return this.getCyclicPrice().toString(NumberFormat.TWO_DECIMAL_PLACES).asString();
+        }
+    }
+
+   public boolean getStateIsVisible() {
         if(state.equals(OfferItemState.OFFER)) {
             return false ;
         }  else {
@@ -544,6 +588,7 @@ public class OfferItem extends BizEntity {
     }
 
     public EntityRef<PackageDefinition> getPackageDefinition() {
+
         return packageDefinition;
     }
 
@@ -571,12 +616,12 @@ public class OfferItem extends BizEntity {
         this.quantity = quantity;
     }
 
-    public String getQuantityUnit() {
-        return quantityUnit;
+    public String getAccountingUnit() {
+        return accountingUnit;
     }
 
-    public void setQuantityUnit(String quantityUnit) {
-        this.quantityUnit = quantityUnit;
+    public void setAccountingUnit(String accountingUnit) {
+        this.accountingUnit = accountingUnit;
     }
 
     public Amount getSinglePrice() {
