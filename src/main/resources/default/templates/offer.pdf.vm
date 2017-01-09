@@ -1,3 +1,4 @@
+ #macro(xml $content)$content#end
  <html>
 
  <body style="font-family:sans-serif; font-size:10pt">
@@ -8,7 +9,7 @@
     73630 Remshalden
  </div>
  <div style="float:right">
-     <img src="plugins/scireum/crm/login_logo.png" style="width:4cm" />
+     <img src="src/main/resources/default/templates/login_logo.png" style="width:4cm" />
  </div>
 
 <div style=" padding-top: 1.5cm; clear:both; float:right">
@@ -17,8 +18,8 @@
 
 <div style=" padding-top: 0.5cm; clear:both">
  #xml($!company.name)<br />
- #xml($!company.street)<br />
- $!company.zipCode #xml($!company.city)
+ #xml($!street)<br />
+ #xml($!city)
 </div>
 
 <div style="padding-top: 2.5cm;font-weight: bold; font-size: 14pt">
@@ -27,9 +28,9 @@ $!headlinePrefix Angebot Nr. $!offer.number vom $nls.toUserString($offer.date) $
 <br />
 <table style="font-size:9pt">
  <tr><td>Kundennummer:</td><td> $!company.customerNr</td><td></td><td></td> </tr>
- <tr><td>Ihre Kontaktperson:</td><td> #xml($!person.name),</td><td>Tel.: $!person.phone,</td><td>E-Mail: #xml($!person.email)  </td> </tr>
- <tr><td>Unsere Kontaktperson:</td><td>$!employee.salutation #xml($!employee.firstname) #xml($!employee.lastname),</td><td>Tel.: $!employee.phone,</td><td>E-Mail: #xml($!employee.email)  </td></tr>
- #if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>#xml($!buyer)</td><td>Tel.: $!buyer.phone,</td><td>E-Mail: #xml($!buyer.email) </td></tr>   #end
+ <tr><td>Ihre Kontaktperson:</td><td> #xml($!personName),</td><td>Tel.: $!personPhone,</td><td>E-Mail: #xml($!personMail)  </td> </tr>
+ <tr><td>Unsere Kontaktperson:</td><td>$!employeeName</td><td>Tel.: $!employeePhone,</td><td>E-Mail: #xml($!employeeMail)  </td></tr>
+ #if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>#xml($!buyerName)</td><td>Tel.: $!buyerPhone,</td><td>E-Mail: #xml($!buyerMail) </td></tr>   #end
  #if($toolkit.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >#xml($offer.reference)</td></tr>    #end
 </table>
 
@@ -38,28 +39,26 @@ $!salutation
 <br></br><br></br>
 #xml($!offerline)
 
-<br></br> <br></br>
+<br></br> <br></br><br></br>
 <div style="font-weight: bold; font-size: 14pt;" >
    #xml($offer.keyword)
 </div>
-
+<br></br>
  <table>
       #foreach ($item in $offerItemList)
          #if($item.isInfoText())
-               <tr><td style="width:2cm" valign="top"></td>
-                   <td colspan = "4">#xml($item.text)</td>
-               </tr>
+                <br></br>
+               <tr><th style="width:2cm" valign="top">Pos.</th><th>Information</th><th></th><th></th><th></th><th></th></tr>
+               <tr><td style="width:2cm" valign="top">$item.position</td><td colspan = "4">#xml($item.text)</td></tr>
          #else
             #if($item.isSum())
                 <br></br><br></br>
                 <tr>
-                    <th></th><th></th><th></th><th ></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:4cm" align= "right">Preis je $licenceItemCyclicUnit</th>
+                    <th>Pos.</th><th>Information</th><th></th><th ></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:4cm" align= "right">Preis je $licenceItemCyclicUnit</th>
                 </tr>
                 <tr>
-                    <td ></td>
-                    <td ><b>$item.text</b></td>
-                    <td ></td>
-                    <td ></td>
+                    <td >$item.position</td>
+                    <td colspan = "3"><b>#xml($item.text)</b></td>
                     <td align="right"><b>$nls.toUserString($item.price) €</b></td>
                     <td align="right"><b>$nls.toUserString($item.cyclicPrice) €</b></td>
                 </tr>
@@ -87,7 +86,7 @@ $!salutation
                          <td style="width:4cm">$nls.toUserString($item.singlePrice) € / $item.quantityUnit</td>
                      #end
                      #if($item.isLicense())
-                        <td style="width:4cm">$item.getPackageDefinition().getName()</td>
+                        <td style="width:4cm">$item.getPackageDefinition().getValue().getName()</td>
                      #end
 
                      <td style="width:4cm">#if($item.stateIsVisible)$item.state#end</td>
@@ -105,7 +104,7 @@ $!salutation
                 #if($toolkit.notEmpty($item.keyword))
                      <tr><td></td> <td colspan = "4"><b>#xml($item.keyword)</b></td></tr>
                 #end
-                <tr><td></td> <td colspan = "4">#xml($item.text)</td></tr>
+                <tr><td></td> <td colspan = "4"> ${toolkit.nl2br(${toolkit.escapeXML($item.text)})}</td></tr>
             #end
          #end
 
@@ -121,14 +120,22 @@ $!salutation
     </tr>
       <tr><td style="width:13cm">End-Summe netto:</td><td align="right" style="width:4cm" >$priceNettoSum €</td><td style="width:3cm" align="right">
            #if($isLicenceItemPresent)$cyclicPriceNettoSum € #else  #end</td></tr>
-      <tr><td style="width:13cm">zuzüglich $vatRate MWSt:</td> <td  align="right">$priceVatSum €</td><td  align="right">
-           #if($isLicenceItemPresent)$cyclicPriceVatSum € #else  #end</td></tr>
-      <tr><td style="width:13cm">Endbetrag:</td><td  align="right">$priceBruttoSum €</td><td  align="right">
-           #if($isLicenceItemPresent)$cyclicPriceBruttoSum € #else  #end</td></tr>
+      #if($company.isVAT())
+              <tr><td style="width:13cm">zuzüglich $vatRate MWSt:</td> <td  align="right">$priceVatSum €</td><td  align="right">
+                   #if($isLicenceItemPresent)$cyclicPriceVatSum € #else  #end</td></tr>
+              <tr><td style="width:13cm">Endbetrag:</td><td  align="right">$priceBruttoSum €</td><td  align="right">
+                   #if($isLicenceItemPresent)$cyclicPriceBruttoSum € #else  #end</td></tr>
+      #end
 </table>
 
 <hr></hr>
 <br></br>
+
+#if($company.isVAT()) #else
+    Der Auftraggeber ist Schuldner der ggfs. anfallenden Mehrwert - oder Umsatzsteuer.
+    <br></br><br></br>
+#end
+
 
 #xml($termsOfPayment)
 #xml($validityPeriod)

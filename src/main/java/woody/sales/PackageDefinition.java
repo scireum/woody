@@ -19,6 +19,8 @@ import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.nls.NLS;
 
+import java.util.List;
+
 /**
  * Created by gerhardhaufler on 09.02.16.
  */
@@ -79,7 +81,11 @@ public class PackageDefinition extends BizEntity {
 
     @Override
     public String toString() {
-        return getName();
+        Product product = getProduct().getValue();
+        String productname = product.getName();
+        String pdName = productname.concat(" -> ");
+        pdName = pdName.concat(getName());
+        return pdName;
     }
 
     public EntityRef<Product> getProduct() {

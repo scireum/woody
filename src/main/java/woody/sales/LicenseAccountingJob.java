@@ -27,9 +27,10 @@ public class LicenseAccountingJob extends SystemJobDescription {
 
     @Override
     public void collectParameters(Consumer<JobParameterDescription> consumer) {
-//                     consumer.accept(new JobParameterDescription());
-    }
+         //           consumer.accept(new JobParameterDescription());
 
+    }
+// ToDO LicenseAccounting Job fertig machen
     @Override
     public boolean verifyParameters(Context context) {
         return false;

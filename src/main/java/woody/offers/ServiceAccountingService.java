@@ -16,6 +16,7 @@ import woody.offers.Offer;
 import woody.offers.OfferItem;
 import woody.offers.OfferItemState;
 import woody.sales.Lineitem;
+import woody.sales.PackageDefinition;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -68,22 +69,21 @@ public interface ServiceAccountingService {
     /**
      * prepares the context for publishing a PDF-document for the given offer
      * @param offer: offer which shall published
-     * @param vatRate: taxrate for vat (19%)
      * @return  Context
      */
-    public Context prepareContext(Offer offer, Amount vatRate, String function);
+    public Context prepareContext(Offer offer, String function);
 
     /**
      * checks all offeritems of the given offer
      * @param offer: offer
-     * @return true, if all offeritems are "OFFERS" otherwise return false
+     * if NOT all offeritems are "OFFERS" a Exception is thrown
      */
-    public boolean checkAllOfferItemsAreOffers(Offer offer);
+    public void checkAllOfferItemsAreOffers(Offer offer);
 
     /**
      * The sales confirmation is only send, if the special sendConfirmationDate is null.
      */
-    public int sendSalesConfirmation(/*View view, */ Offer offer, List<OfferItem> confirmationList);
+    public int sendSalesConfirmation(/*View view, */ Offer offer);
 
     /**
      * fetches the "next" OfferItemState of the given offerItem
@@ -106,21 +106,19 @@ public interface ServiceAccountingService {
     public List<OfferItem>  getConfirmationOfferItems(Offer offer);
 
     /**
-     * update the offerState of the given offer
+     * checks all offerItems and update the offerState of the given offer
      * @param offer
+     * @param save   true --> the offer is saved at this time
      */
-    public void updateOfferState(Offer offer);
+    public void updateOfferState(Offer offer, boolean save);
 
-    /**
-     * Views an Offer as PDF
-     * @param offer
-     */
-    public void viewOffer(Offer offer);
 
     /**
      * sends the offer per mail to the given person and buyer in the offer
      * @param offer
      */
     public void sendOffer(Offer offer);
+
+    public List<PackageDefinition> getAllPackageDefinitions(Object object);
 
 }

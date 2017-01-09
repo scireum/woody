@@ -44,18 +44,11 @@
                 </a>
             </li>
             <li @if(page == "packageDefinition") { class="active" }>
-            <a href="@prefix/product/@prod.getId()/packageDefinitions" class="link">
-                <i class="icon-users"></i>@i18n("PackageDefinition.plural")
-            </a>
-            </li>
-    </div>
-            <!--
-
-            @if(page == "details") {@includeExtensions("product-details", product, page)}
-            @if(page == "accounting") {@includeExtensions("product-accounting", product, page)}
-
-           }
-           -->
+                <a href="@prefix/product/@prod.getId()/packageDefinitions" class="link">
+                    <i class="icon-users"></i>@i18n("PackageDefinition.plural")
+                </a>
+           </li>
+        }
         <a href="@prefix/products" class="btn btn-block">@i18n("NLS.back")</a>
     </div>
     }

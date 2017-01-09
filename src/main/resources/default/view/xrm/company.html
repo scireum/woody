@@ -13,7 +13,7 @@
         <a href="@prefix/companies">@i18n("Company.plural")</a>
     </li>
     <li>
-        <a href="@prefix/companies/@company.getId()">@company</a>
+        <a href="@prefix/company/@company.getId()">@company</a>
     </li>
 }
 
@@ -43,26 +43,24 @@
                 </li>
 
                 <li @if(page == "persons") { class="active" }>
-                <a href="@prefix/company/@company.getId()/persons" class="link">
-                    <i class="icon-users"></i>@i18n("Person.plural")
-                </a>
+                    <a href="@prefix/company/@company.getId()/persons" class="link">
+                        <i class="icon-users"></i>@i18n("Person.plural")
+                    </a>
                 </li>
 
                 <li @if(page == "contracts") { class="active" }>
-                <a href="@prefix/company/@company.getId()/contracts" class="link">
-                    <i class="icon-users"></i>@i18n("Contract.plural")
-                </a>
+                    <a href="@prefix/company/@company.getId()/contracts" class="link">
+                        <i class="icon-users"></i>@i18n("Contract.plural")
+                    </a>
                 </li>
                 <li @if(page == "offers") { class="active" }>
-                <a href="@prefix/company/@company.getId()/offers" class="link">
-                    <i class="icon-users"></i>@i18n("Offer.plural")
-                </a>
+                    <a href="@prefix/company/@company.getId()/offers" class="link">
+                        <i class="icon-users"></i>@i18n("Offer.plural")
+                    </a>
                 </li>
-
-
             }
 
-            <a href="@prefix/companies" class="btn btn-block">@i18n("NLS.back")</a>
+            <a href="@prefix/company/@company.getId()" class="btn btn-block">@i18n("NLS.back")</a>
         </div>
     }
     <div class="@if (company.isNew()) { col-md-12 } else { col-md-9 }">

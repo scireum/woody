@@ -31,8 +31,10 @@ import woody.xrm.Company;
 import woody.xrm.Person;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -52,6 +54,7 @@ public class Contract extends BizEntity {
     private String accountingGroup;
     public static final Column ACCOUNTINGGROUP = Column.named("accountingGroup");
 
+    @Autoloaded
     private final EntityRef<Person> contractPartner = EntityRef.on(Person.class, EntityRef.OnDelete.CASCADE);
     public static final Column CONTRACTPARTNER = Column.named("contractPartner");
 
@@ -59,6 +62,7 @@ public class Contract extends BizEntity {
     private LocalDate signingDate;
     public static final Column SIGNINGDATE = Column.named("signingDate");
 
+    @Autoloaded
     private final EntityRef<PackageDefinition> packageDefinition =
             EntityRef.on(PackageDefinition.class, EntityRef.OnDelete.CASCADE);
     public static final Column PACKAGEDEFINITION = Column.named("packageDefinition");
@@ -160,6 +164,10 @@ public class Contract extends BizEntity {
         sb.append(":");
         String LEER = "leer";
         String name = LEER;
+        if(this.getId() == -1) {
+            sb.append("empty_contract");
+            return sb.toString();
+        }
         if (getPackageDefinition() != null) {
             if (getPackageDefinition().getValue().getProduct() != null) {
                 name = getPackageDefinition().getValue().getProduct().getValue().getName();
@@ -191,19 +199,6 @@ public class Contract extends BizEntity {
 
     @BeforeSave
     protected void onSave() {
- //ToDo: wieder raus
-        String s = "Wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww1111wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww";
-        String a = BaseEncoding.base64().encode(Hashing.md5().hashString(s, Charsets.UTF_8).asBytes());
-        byte[] b = Hashing.md5().hashString(s, Charsets.UTF_8).asBytes();
-
-        StringBuilder sb = new StringBuilder(b.length * 2);
-        for (int i = 0; i < b.length; i++) {
-            sb.append(Character.forDigit((b[i] & 0xf0) >> 4, 16));
-            sb.append(Character.forDigit(b[i] & 0x0f, 16));
-        }
-        String c1 = sb.toString();
-
-
         //completeParameter(this);
         checkParameterSyntax(this.getParameter());
         // check the customerNr of the company, because the customerNr is needed to account the contract
@@ -222,7 +217,7 @@ public class Contract extends BizEntity {
         // check the unitPrice. If the unitPrice is null, fetch the unitPrice from the packetDefinition
         if (getUnitPrice() == null) {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
-                 .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
+                      .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
             if (packageDefinition != null) {
                 if (packageDefinition.getUnitPrice().isFilled()) {
                     this.setUnitPrice(packageDefinition.getUnitPrice());
@@ -274,40 +269,82 @@ public class Contract extends BizEntity {
                 throw Exceptions.createHandled().withNLSKey("woody.xrm.Contract.noPackageDefinitionChange").handle();
             }
         }
-        // ToDo:Testen
-        if(isNew()) {
-            Product product = packageDefinition.getValue().getProduct().getValue();
-            List<Contract> contractList = oma.select(Contract.class)
-                                             .eq(Contract.COMPANY, company)
-                                             .eq(Contract.ACCOUNTINGGROUP, accountingGroup)
-                                             .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.PRODUCT), product)
-                                             .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.ACCOUNTINGPROCEDURE),
-                                                 PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL)
-                                             .orderAsc(Contract.STARTDATE)
-                                             .queryList();
 
-            if (isNew()) {
-                contractList.add(this);
-            } else {
-                List<Contract> contractList2 = new ArrayList<Contract>();
-                for (Contract c : contractList) {
-                    contractList2.add(c);
+        // CRM-7: Wenn ein unitPrice 0 vorgegeben wird und in der Packagedefinition der unitPrice <> 0 ist muss
+        // noAccounting auf true stehen.
+        if(getPackageDefinition() != null) {
+            PackageDefinition pd = getPackageDefinition().getValue();
+            if(pd.getUnitPrice() != null) {
+                if(pd.getUnitPrice().isPositive()) {
+                    if(getUnitPrice() != null && !(getUnitPrice().isPositive()) ) {
+                        if(!isNoAccounting()) {
+                            throw Exceptions.createHandled().withNLSKey("Contract.unitPriceWrong")
+                                            .set("contract", this.toString())
+                                            .set("unitPrice1", NLS.toUserString(getUnitPrice()))
+                                            .set("unitPrice2", NLS.toUserString(pd.getUnitPrice())).handle();
+
+                        }
+                    }
                 }
-                for (Contract c : contractList2) {
-                    if (c.getId() != this.getId()) {
-                        contractList.add(c);
-                    } else {
-                        contractList.add(this);
+                // CRM-7: Wenn der unitPrice im Contract <> unitPrice in der Packagedefinition ist, sollte eine Warnung ausgegeben
+                // werden. ACHTUNG Abweichender Preis.
+                if(getUnitPrice() != null) {
+                    if( ! getUnitPrice().equals(pd.getUnitPrice())) {   // CRM-52 != durch !.equals ersetzt
+                        // ToDo Warnmeldung ausgeben.
+//                        ApplicationController.addInfoMessage(MessageFormat.format(
+//                                "Warnung: Der Preis im Vertrag = {0} EUR entspricht nicht dem Preis im Paket = {1} EUR.",
+//                                NLS.toUserString(getUnitPrice()), NLS.toUserString(pd.getUnitPrice())));
                     }
                 }
             }
-
-            checkContractIsSingle(contractList);
-
         }
+        /**
+         * check the contracts of the same product, accountingGroup and accountingProcedure.
+         * a contract in the past should have a endDate, the startDate of the following contract should be greater
+         * or eqal as the endDate.
+         * error: ...... contract 0 ... endDate=null,       1.01.2017 ... contract 1 ...
+         * error: ...... contract 0 ... endDate=1.01.2017,  1.11.2016 ... contract 1 ...
+         * o.k.:  ...... contract 0 ... endDate=1.11.2016,  1.01.2017 ... contract 1 ...
+         */
+        // get a list of all contracts withe the same product, accountingGroup and accountingProcedure
+        Product product = packageDefinition.getValue().getProduct().getValue();
+        List<Contract> contractList = oma.select(Contract.class)
+                                         .eq(Contract.COMPANY, company)
+                                         .eq(Contract.ACCOUNTINGGROUP, accountingGroup)
+                                         .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.PRODUCT), product)
+                                         .eq(Contract.PACKAGEDEFINITION.join(PackageDefinition.ACCOUNTINGPROCEDURE),
+                                             PackageDefinition.ACCOUNTINGPROCEDURE_RIVAL)
+                                         .orderAsc(Contract.STARTDATE).queryList();
+        if (isNew()) {
+            // add a new contract to the list
+            contractList.add(this);
+        } else {
+            // change the saved contract in this list
+            HashMap<Integer, Contract> contractMap = new HashMap<Integer, Contract>();
+            int listSize = contractList.size();
+            for(int i = 0; i<listSize; i++) {
+                Contract contract = contractList.get(i);
+                if(contract.getId() == this.getId()) {
+                  contractMap.put(i, this);
+                } else {
+                    contractMap.put(i, contract);
+                }
+            }
+            contractList.clear();
+            for(int i = 0; i<listSize; i++) {
+                Contract contract = contractMap.get(i);
+                contractList.add(contract);
+            }
+        }
+        // check the contractList
+        checkContractIsSingle(contractList);
     }
 
-
+    /**
+     * check the contracts in the given list
+     * a contract in the past should have a endDate, the startDate of the following contract should be greater
+     * or eqal as the endDate.
+     */
     private void checkContractIsSingle(List<Contract> contractList) {
         if(contractList.size() == 1)     {return;}
         for (int i=1; i<contractList.size(); i++) {
@@ -372,6 +409,26 @@ public class Contract extends BizEntity {
                             .set("value", customerNr)
                             .handle();
         }
+    }
+
+    public List<PackageDefinition>  getAllPackageDefinitionsDirect() {
+        List<PackageDefinition> pdList = oma.select(PackageDefinition.class)
+            .orderAsc(PackageDefinition.PRODUCT.join(Product.NAME))
+            .orderAsc(PackageDefinition.NAME).queryList();
+        return pdList;
+    }
+
+    public String getContractPartnerAsString() {
+        if(this.getId() == -1) {
+            return "";
+        } else {
+            return this.getContractPartner().getValue().getPerson().toString();
+        }
+    }
+
+    public List<Person> getAllPersonsForCompany(Company company) {
+        List<Person> personList =  oma.select(Person.class).eq(Person.COMPANY, company).queryList();
+        return personList;
     }
 
     public EntityRef<Company> getCompany() {

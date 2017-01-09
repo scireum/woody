@@ -23,6 +23,8 @@ import sirius.web.security.UserContext;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -124,11 +126,8 @@ public class ProductController extends BizController {
     public void contract(WebContext ctx, String companyId, String contractId) {
         Company company = findForTenant(Company.class, companyId);
         Contract contract = find(Contract.class, contractId);
-        Long productId =  contract.getPackageDefinition().getValue().getProduct().getId();
         assertNotNew(company);
         setOrVerify(contract, contract.getCompany(), company);
-        List<PackageDefinition>  pdList = oma.select(PackageDefinition.class)
-                .eq(PackageDefinition.PRODUCT, productId).queryList();
 
         if (ctx.isPOST()) {
             try {
@@ -150,12 +149,15 @@ public class ProductController extends BizController {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/sales/contract-details.html", company, contract, pdList);
+        ctx.respondWith().template("view/sales/contract-details.html", company, contract);
     }
+
+
 
     private PackageDefinition packageDefinitionHandler(WebContext ctx,
                                                        String packageDefinitionId,
                                                        boolean forceDetails) {
+
         PackageDefinition packageDefinition = findForTenant(PackageDefinition.class, packageDefinitionId);
         if (ctx.isPOST()) {
             try {

@@ -7,3 +7,5 @@ Anmeldung: gha
             - Codeliste pakettype erstellt
             - Codeliste accountingProcedure erstellt und Klasse AccountingProcedure gelöscht
             - Codeliste accountingUnit erstellt und Klasse AccountingUnit gelöscht
+
+09.01.2017  - Konsistenter Stand mit Company, Person, Contract, Offer, Product, PackageDefinition comitted

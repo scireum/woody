@@ -1,0 +1,138 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+
+@import woody.xrm.Company
+@import woody.xrm.Person
+@import woody.offers.Offer
+@import woody.offers.OfferState
+@import woody.offers.OfferItem
+@import woody.offers.OfferItemState
+@import woody.offers.OfferItemType
+@import woody.sales.PackageDefinition
+@import woody.sales.Product
+@import sirius.kernel.commons.NumberFormat;
+@import sirius.kernel.commons.Amount;
+
+
+@args Company company, Offer offer, OfferItem offerItem
+@extends(view.offers.offerItem.html, company, offer, offerItem, "details")
+
+@editForm(("company/" + company.getIdAsString() + "/offer/" + offer.getIdAsString() + "/offerItem/" + offerItem.getIdAsString())) {
+
+    <div class="row">
+        @textfield( span: "2", name:     "position", value:    NLS.toUserString(offerItem.getPosition()),
+        labelKey: "OfferItem.position", readOnly: true )
+
+        @singleSelect(span: "2", name: "offerItemType",
+        labelKey: "OfferItem.offerItemType",   required:true) {
+            @for(OfferItemType type : OfferItemType.values()) {
+                <option value="@type.name()" @if (type == offerItem.getOfferItemType()) { selected="selected" }>@type.toString()</option>
+            }
+        }
+
+
+        @singleSelect(span: "2", name: "state",
+        labelKey: "OfferItem.state",   required:false) {
+            @for(OfferItemState state : OfferItemState.values()) {
+                <option value="@state.name()" @if (state == offerItem.getState()) { selected="selected" }>@state.toString()</option>
+            }
+        }
+
+        @if(OfferItemType.LICENSE.equals(offerItem.getOfferItemType() ) ||
+            OfferItemType.SERVICE.equals(offerItem.getOfferItemType() ) ) {
+            @textfield( span: "2", name:     "quantity", value:    NLS.toUserString(offerItem.getQuantity() ),
+            labelKey: "OfferItem.quantity", readOnly: false )
+            @if(OfferItemType.SERVICE.equals(offerItem.getOfferItemType() )  ) {
+                @codelistSelect(span: "3", list: "accountingUnit", name:     "accountingUnit", value:    offerItem.getAccountingUnit(),
+                labelKey: "OfferItem.accountingUnit", readOnly: true )
+            }
+        }
+    </div>
+    @if(OfferItemType.LICENSE.equals(offerItem.getOfferItemType() ) ||
+    OfferItemType.SERVICE.equals(offerItem.getOfferItemType() ) ) {
+        <div class="row">
+            @singleSelect(span: "4", name: "packageDefinition",
+             labelKey: "OfferItem.packageDefinition",   required:true) {
+                  @for(PackageDefinition pd : offerItem.getAllPackageDefinitionsOrderedByProduct()) {
+                      <option value="@pd.getId()" @if (pd.equals(offerItem.getPackageDefinition().getValue() ) ) { selected="selected" }>@pd.toString()</option>
+                  }
+            }
+            @if(OfferItemType.LICENSE.equals(offerItem.getOfferItemType() )  ) {
+                @codelistSelect(span: "3", list: "accountingUnit", name:     "accountingUnit", value:    offerItem.getAccountingUnit(),
+                labelKey: "OfferItem.accountingUnit", readOnly: true )
+            }
+
+        </div>
+        <div class="row">
+            @textfield(span: "2", name:     "priceBase",    value:    offerItem.getPriceBase(),
+            labelKey: "OfferItem.priceBase",   readOnly:true)
+
+            @if(offerItem.getSinglePrice() != null) {
+                @textfield(span: "2", name:     "singlePrice",
+                value:    offerItem.getSinglePrice().toString(NumberFormat.TWO_DECIMAL_PLACES).asString(),
+                labelKey: "OfferItem.singlePrice",   readOnly:true)  }
+
+            @if(OfferItemType.LICENSE.equals(offerItem.getOfferItemType() ) ) {
+                @textfield(span: "2", name:     "cyclicPrice",
+                value:    offerItem.getCyclicPriceAsString(),
+                labelKey: "OfferItem.cyclicPrice",   readOnly:true)  }
+
+            @textfield(span: "2", name:     "discount",
+            value:    NLS.toUserString(offerItem.getDiscount() ),
+            labelKey: "OfferItem.discount",   readOnly:false)
+        </div>
+
+        <div class="row">
+            @textfield(span: "12", name:     "keyword",    value:    offerItem.getKeyword(),
+              labelKey: "OfferItem.keyword",   required:true)
+        </div>
+    }
+    <div class="row">
+        @textarea(rows: "6", span: "12", name:     "text",    value:    offerItem.getText(),
+        labelKey: "OfferItem.text",   required:true)
+    </div>
+
+    @if(OfferItemType.LICENSE.equals(offerItem.getOfferItemType() ) ||
+    OfferItemType.SERVICE.equals(offerItem.getOfferItemType() ) ) {
+        <div class="row">
+            @textfield(span: "2", name:     "offerDate", value:    NLS.toUserString(offerItem.getOfferDate()),
+            labelKey: "OfferItem.offerDate", readOnly: false)
+
+            @textfield(span: "2", name:     "orderDate", value:    NLS.toUserString(offerItem.getOrderDate()),
+            labelKey: "OfferItem.orderDate", readOnly: false)
+
+            @textfield(span: "2", name:     "salesConfirmationDate", value:    NLS.toUserString(offerItem.getSalesConfirmationDate()),
+            labelKey: "OfferItem.salesConfirmationDate", readOnly: false)
+
+            @textfield(span: "2", name:     "completionDate", value:    NLS.toUserString(offerItem.getCompletionDate()),
+            labelKey: "OfferItem.completionDate", readOnly: false)
+
+            @textfield(span: "2", name:     "acceptanceDate", value:    NLS.toUserString(offerItem.getAcceptanceDate()),
+            labelKey: "OfferItem.acceptanceDate", readOnly: false)
+
+            @textfield(span: "2", name:     "accountingDate", value:    NLS.toUserString(offerItem.getAccountingDate()),
+            labelKey: "OfferItem.accountingDate", readOnly: false)
+
+        </div>
+        <div class="row">
+            @textarea(rows: "6", span: "12", name:     "history", value:    NLS.toUserString(offerItem.getHistory()),
+            labelKey: "OfferItem.historyWithHeading", readOnly: true)
+        </div>
+
+    }
+
+}
+
+
+
+
+@formBar() {
+    @tracing(offer.getTrace())
+}
+
+
