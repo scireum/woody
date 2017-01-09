@@ -53,7 +53,7 @@ public class Server extends TenantAware {
     }
 
     public enum ServerState {
-        RED, YELLOW, GREEN;
+        RED, YELLOW, GREEN
     }
 
     @Length( 50)

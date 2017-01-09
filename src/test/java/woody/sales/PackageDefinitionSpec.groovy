@@ -22,43 +22,43 @@ import sirius.kernel.di.std.Part
 class PackageDefinitionSpec extends BaseSpecification {
 
     @Part
-    private static OMA oma;
+    private static OMA oma
 
     @Part
-    private static Tenants tenants;
+    private static Tenants tenants
 
     def "packageDefinition can be persisted into the database"() {
         given:
-        TenantsHelper.installTestTenant();
+        TenantsHelper.installTestTenant()
 
-        Product p = new Product();
-        p.getTenant().setValue(tenants.getRequiredTenant());
-        p.setName("<Product2>");
-        p.setArticle("<Article2>");
-        oma.update(p);
+        Product p = new Product()
+        p.getTenant().setValue(tenants.getRequiredTenant())
+        p.setName("<Product2>")
+        p.setArticle("<Article2>")
+        oma.update(p)
 
-        PackageDefinition pd = new PackageDefinition();
-        pd.getProduct().setValue(p);
-        pd.setName("<PaketDef1_Product2>");
-        pd.setDescription("this is packetDefinition 1 of the product 2");
-        pd.setAccountingProcedure(AccountingProcedure.RIVAL);
-        pd.setAccountingUnit(AccountingUnitType.MONTH);
-        pd.setDefaultPosition(10);
-        pd.setPacketType(PacketType.STANDARD);
-        pd.setUnitPrice(Amount.of(500D));
-        pd.setSinglePrice(Amount.of(0D));
-        oma.update(pd);
+        PackageDefinition pd = new PackageDefinition()
+        pd.getProduct().setValue(p)
+        pd.setName("<PaketDef1_Product2>")
+        pd.setDescription("this is packetDefinition 1 of the product 2")
+        pd.setAccountingProcedure(AccountingProcedure.RIVAL)
+        pd.setAccountingUnit(AccountingUnitType.MONTH)
+        pd.setDefaultPosition(10)
+        pd.setPacketType(PacketType.STANDARD)
+        pd.setUnitPrice(Amount.of(500D))
+        pd.setSinglePrice(Amount.of(0D))
+        oma.update(pd)
         when:
-        PackageDefinition pd2 = oma.select(PackageDefinition.class).eq(PackageDefinition.ID, pd.getId()).queryFirst();
+        PackageDefinition pd2 = oma.select(PackageDefinition.class).eq(PackageDefinition.ID, pd.getId()).queryFirst()
 
         then:
         !pd2.isNew()
         and:
-        pd2.getProduct().getValue().getName() == "<Product2>";
+        pd2.getProduct().getValue().getName() == "<Product2>"
         and:
-        pd2.getName() == "<PaketDef1_Product2>";
+        pd2.getName() == "<PaketDef1_Product2>"
         and:
-        pd2.getUnitPrice() == Amount.of(500D);
+        pd2.getUnitPrice() == Amount.of(500D)
         and:
         oma.select(PackageDefinition.class).count() == 1
     }

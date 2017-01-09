@@ -17,21 +17,21 @@ import sirius.kernel.di.std.Part
 class ProductSpec extends BaseSpecification {
 
     @Part
-    private static OMA oma;
+    private static OMA oma
 
     @Part
-    private static Tenants tenants;
+    private static Tenants tenants
 
     def "product can be persisted into the database"() {
         given:
-        TenantsHelper.installTestTenant();
-        Product p = new Product();
-        p.getTenant().setValue(tenants.getRequiredTenant());
-        p.setName("<Product1>");
-        p.setArticle("<Article1>");
-        p.setDescription("this is product1, in collmex named as article 1");
+        TenantsHelper.installTestTenant()
+        Product p = new Product()
+        p.getTenant().setValue(tenants.getRequiredTenant())
+        p.setName("<Product1>")
+        p.setArticle("<Article1>")
+        p.setDescription("this is product1, in collmex named as article 1")
         when:
-        oma.update(p);
+        oma.update(p)
         then:
         !p.isNew()
         and:
