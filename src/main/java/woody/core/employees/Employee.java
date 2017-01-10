@@ -10,7 +10,6 @@ package woody.core.employees;
 
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
-import sirius.biz.model.PersonData;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -21,6 +20,8 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Mixin;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
+import sirius.db.mixing.annotations.Unique;
+import sirius.kernel.health.Exceptions;
 
 import java.time.LocalDate;
 
@@ -30,77 +31,57 @@ import java.time.LocalDate;
 @Mixin(UserAccount.class)
 public class Employee extends Mixable {
 
+    public static final Column EMPLOYEE_NUMBER = Column.named("employeeNumber");
+    @Unique(within = "tenant")
     @Trim
     @Length(30)
     @NullAllowed
     @Autoloaded
     private String employeeNumber;
-    public static final Column EMPLOYEE_NUMBER = Column.named("employeeNumber");
 
+    public static final Column PHONE_EXTENSION = Column.named("phoneExtension");
     @Trim
-    @Length(6)
+    @Length(30)
     @NullAllowed
     @Autoloaded
-    private String shortName;
-    public static final Column SHORTNAME = Column.named("shortName");
+    private String phoneExtension;
 
+    public static final Column MENTOR = Column.named("mentor");
     @NullAllowed
     @Autoloaded
     private final EntityRef<UserAccount> mentor = EntityRef.on(UserAccount.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column MENTOR = Column.named("mentor");
 
+    public static final Column DEPARTMENT = Column.named("department");
     @NullAllowed
     @Autoloaded
     private final EntityRef<Department> department = EntityRef.on(Department.class, EntityRef.OnDelete.REJECT);
-    public static final Column DEPARTMENT = Column.named("department");
 
+    public static final Column JOIN_DATE = Column.named("joinDate");
     @NullAllowed
     @Autoloaded
     private LocalDate joinDate;
-    public static final Column JOIN_DATE = Column.named("joinDate");
 
+    public static final Column DISCHARGE_DATE = Column.named("dischargeDate");
     @NullAllowed
     @Autoloaded
-    private LocalDate terminationDate = null;
-    public static final Column TERMINATION_DATE = Column.named("terminationDate");
+    private LocalDate dischargeDate;
 
-    @Autoloaded
-    private boolean inaktiv = false;
-    public static final Column INAKTIV = Column.named("inaktiv");
-
+    public static final Column BIRTHDAY = Column.named("birthday");
     @NullAllowed
     @Autoloaded
     private LocalDate birthday;
-    public static final Column BIRTHDAY = Column.named("birthday");
 
-    /**
-     * komplette Telefonnummer des Angestellten
-     * in lesbarer Schreibweise, z. B. +49 7151 90316-21
-     */
-    @NullAllowed
-    @Autoloaded
-    @Length(150)
-    private String phoneNr;
-    public static final Column PHONENR = Column.named("phoneNr");
-
-    /**
-     * Nebenstellen-Nummer, z. B. aha = 21
-     */
-    @NullAllowed
-    @Autoloaded
-    @Length(5)
-    private String pbxId;
-    public static final Column PBXID = Column.named("pbxId");
-
-    private final AddressData homeAddress = new AddressData(AddressData.Requirements.NONE, null);
     public static final Column ADDRESS = Column.named("address");
+    private final AddressData personalAddress = new AddressData(AddressData.Requirements.NONE, null);
 
-    private final ContactData homeContact = new ContactData(true);
     public static final Column CONTACT = Column.named("contact");
-
+    private final ContactData personalContact = new ContactData(true);
 
     @BeforeSave
     protected void checkIntegrity(UserAccount parent) {
+        if (getDischargeDate() != null && !parent.getLogin().isAccountLocked()) {
+            throw Exceptions.createHandled().withNLSKey("Employee.cannotDischargeWithoutLock").handle();
+        }
         if (getMentor().isFilled()) {
             parent.assertSameTenant(() -> parent.getDescriptor()
                                                 .getProperty(Column.mixin(Employee.class).inner(MENTOR))
@@ -113,44 +94,20 @@ public class Employee extends Mixable {
         }
     }
 
-    public LocalDate getTerminationDate() {
-        return terminationDate;
-    }
-
-    public void setTerminationDate(LocalDate terminationDate) {
-        this.terminationDate = terminationDate;
-    }
-
-    public boolean isInaktiv() {
-        return inaktiv;
-    }
-
-    public void setInaktiv(boolean inaktiv) {
-        this.inaktiv = inaktiv;
-    }
-
-    public String getPhoneNr() {
-        return phoneNr;
-    }
-
-    public void setPhoneNr(String phoneNr) {
-        this.phoneNr = phoneNr;
-    }
-
-    public String getPbxId() {
-        return pbxId;
-    }
-
-    public void setPbxId(String pbxId) {
-        this.pbxId = pbxId;
-    }
-
     public String getEmployeeNumber() {
         return employeeNumber;
     }
 
     public void setEmployeeNumber(String employeeNumber) {
         this.employeeNumber = employeeNumber;
+    }
+
+    public String getPhoneExtension() {
+        return phoneExtension;
+    }
+
+    public void setPhoneExtension(String phoneExtension) {
+        this.phoneExtension = phoneExtension;
     }
 
     public LocalDate getJoinDate() {
@@ -177,19 +134,19 @@ public class Employee extends Mixable {
         return department;
     }
 
-    public String getShortName() {
-        return shortName;
+    public AddressData getPersonalAddress() {
+        return personalAddress;
     }
 
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
+    public ContactData getPersonalContact() {
+        return personalContact;
     }
 
-    public AddressData getHomeAddress() {
-        return homeAddress;
+    public LocalDate getDischargeDate() {
+        return dischargeDate;
     }
 
-    public ContactData getHomeContact() {
-        return homeContact;
+    public void setDischargeDate(LocalDate dischargeDate) {
+        this.dischargeDate = dischargeDate;
     }
 }

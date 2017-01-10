@@ -19,18 +19,15 @@ import sirius.db.mixing.annotations.Length;
  */
 public class ServerAccess extends BizEntity {
 
+    public static final Column USER = Column.named("user");
+    private final EntityRef<UserAccount> user = EntityRef.on(UserAccount.class, EntityRef.OnDelete.CASCADE);
+
+    public static final Column SERVER_NAME_EXPRESSION = Column.named("serverNameExpression");
     @Length(150)
     private String serverNameExpression;
-    public static final Column SERVER_NAME_EXPRESSION = Column.named("serverNameExpression");
 
-    private boolean accessServer;
     public static final Column ACCESS_SERVER = Column.named("accessServer");
-
-    private boolean monitorServer;
-    public static final Column MONITOR_SERVER = Column.named("monitorServer");
-
-    private final EntityRef<UserAccount> user = EntityRef.on(UserAccount.class, EntityRef.OnDelete.CASCADE);
-    public static final Column USER = Column.named("user");
+    private boolean accessServer;
 
     public String getServerNameExpression() {
         return serverNameExpression;
@@ -46,14 +43,6 @@ public class ServerAccess extends BizEntity {
 
     public void setAccessServer(boolean accessServer) {
         this.accessServer = accessServer;
-    }
-
-    public boolean isMonitorServer() {
-        return monitorServer;
-    }
-
-    public void setMonitorServer(boolean monitorServer) {
-        this.monitorServer = monitorServer;
     }
 
     public EntityRef<UserAccount> getUser() {

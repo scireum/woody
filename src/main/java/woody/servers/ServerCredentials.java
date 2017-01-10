@@ -28,21 +28,21 @@ import java.util.regex.Pattern;
  * Created by aha on 12.05.15.
  */
 @Mixin(UserAccount.class)
-@Framework(Servers.FRAMEWORK_SERVERS)
+@Framework(ServerController.FRAMEWORK_SERVERS)
 public class ServerCredentials extends Mixable {
 
+    public static final Column PUBLIC_KEY = Column.named("publicKey");
     @NullAllowed
     @Lob
     @Autoloaded(permissions = ServerController.PERMISSION_MANAGE_SERVERS)
     private String publicKey;
-    public static final Column PUBLIC_KEY = Column.named("publicKey");
 
+    public static final Column OTP_SECRET = Column.named("otpSecret");
     @Trim
     @NullAllowed
     @Length(100)
     @Autoloaded(permissions = ServerController.PERMISSION_MANAGE_SERVERS)
     private String otpSecret;
-    public static final Column OTP_SECRET = Column.named("otpSecret");
 
     private static final Pattern VALID_SSH_KEY = Pattern.compile("AAAA[0-9A-Za-z+/]+[=]{0,3}");
 

@@ -101,7 +101,7 @@ public class OffersController extends BizController {
     }
 
     @LoginRequired
-    @Permission(XRMController.MANAGE_XRM)
+    @Permission(XRMController.PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/offers")
     public void companyOffers(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);

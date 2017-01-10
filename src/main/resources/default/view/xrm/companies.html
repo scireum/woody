@@ -26,7 +26,7 @@
                 @i18n("Company.name")
             </th>
             <th>
-                @i18n("Company.customerNr")
+                @i18n("Company.customerNumber")
             </th>
             <th>
                 @i18n("InternationalAddressData.city")
@@ -44,7 +44,7 @@
                 <a class="link" href="@prefix/company/@company.getId()">@company.getName()</a>
             </td>
             <td>
-                @company.getCustomerNr()
+                @company.getCustomerNumber()
             </td>
             <td>
                 @company.getAddress().getCity()

@@ -9,140 +9,172 @@
 package woody.servers;
 
 import sirius.biz.tenants.TenantAware;
+import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
+import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
+import sirius.db.mixing.annotations.Ordinal;
+import sirius.db.mixing.annotations.Trim;
+import sirius.db.mixing.annotations.Unique;
+import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Framework;
+import woody.core.comments.Commented;
+import woody.core.tags.Tagged;
+import woody.xrm.Company;
 
 import java.time.LocalDateTime;
 
 /**
  * Created by aha on 12.05.15.
  */
-@Framework(Servers.FRAMEWORK_SERVERS)
+@Framework(ServerController.FRAMEWORK_SERVERS)
 public class Server extends TenantAware {
 
-    public enum Interval {
-        OFF, HOURLY, DAILY, WEEKLY, MONTHLY;
+    public static final Column CUSTOMER = Column.named("customer");
+    @NullAllowed
+    @Autoloaded
+    private final EntityRef<Company> customer = EntityRef.on(Company.class, EntityRef.OnDelete.REJECT);
 
-        public LocalDateTime getLimit() {
-            switch (this) {
-                case HOURLY:
-                    return LocalDateTime.now().minusHours(2);
-                case DAILY:
-                    return LocalDateTime.now().minusHours(36);
-                case WEEKLY:
-                    return LocalDateTime.now().minusDays(10);
-                case MONTHLY:
-                    return LocalDateTime.now().minusDays(45);
-            }
-            throw new IllegalArgumentException("No limit for: " + this);
-        }
-
-        public ServerState check(LocalDateTime lastUpdate) {
-            if (this == OFF) {
-                return ServerState.GREEN;
-            }
-            if (lastUpdate == null || lastUpdate.isBefore(getLimit())) {
-                return ServerState.RED;
-            } else {
-                return ServerState.GREEN;
-            }
-        }
-    }
-
-    public enum ServerState {
-        RED, YELLOW, GREEN
-    }
-
-    @Length( 50)
-    private String category;
-    public static final Column CATEGORY = Column.named("category");
-
-    @Length(100)
-    private String name;
     public static final Column NAME = Column.named("name");
+    @Length(100)
+    @Unique(within = "tenant")
+    @Trim
+    @Autoloaded
+    private String name;
 
-    private ServerState state;
+    public static final Column TOKEN = Column.named("token");
+    @Length(100)
+    private String token;
+
+    public static final Column DESCRIPTION = Column.named("description");
+    @Length(1024)
+    @NullAllowed
+    @Autoloaded
+    private String description;
+
+    public static final Column URL = Column.named("url");
+    @Length(1024)
+    @Trim
+    @NullAllowed
+    @Autoloaded
+    private String url;
+
+    public static final Column TAGGED = Column.named("tagged");
+    private final Tagged tags = new Tagged(this);
+
+    public static final Column COMMENTS = Column.named("comments");
+    private final Commented comments = new Commented(this);
+
     public static final Column STATE = Column.named("state");
+    @Ordinal
+    private ServerState state;
 
-    @Length(50)
-    @NullAllowed
-    private String ipAddress;
     public static final Column IP_ADDRESS = Column.named("ipAddress");
-
     @Length(50)
     @NullAllowed
-    private String publicIpAddress;
+    @Autoloaded
+    private String ipAddress;
+
     public static final Column PUBLIC_IP_ADDRESS = Column.named("publicIpAddress");
-
-    @Length(255)
+    @Length(50)
     @NullAllowed
-    private String primaryMonitoringUrl;
-    public static final Column PRIMARY_MONITORING_URL = Column.named("primaryMonitoringUrl");
+    @Autoloaded
+    private String publicIpAddress;
 
-    private ServerState primaryUrlState;
-    public static final Column PRIMARY_URL_STATE = Column.named("primaryUrlState");
-
+    public static final Column MONITORING_URL = Column.named("monitoringUrl");
     @Length(255)
+    @Trim
     @NullAllowed
-    private String secondaryMonitoringUrl;
-    public static final Column SECONDARY_MONITORING_URL = Column.named("secondaryMonitoringUrl");
+    @Autoloaded
+    private String monitoringUrl;
 
-    private ServerState secondaryUrlState;
-    public static final Column SECONDARY_URL_STATE = Column.named("secondaryUrlState");
+    public static final Column MONITORING_KEYWORD = Column.named("monitoringKeyword");
+    @Length(255)
+    @Trim
+    @NullAllowed
+    @Autoloaded
+    private String monitoringKeyword;
 
-    private LocalDateTime lastMonitoring;
+    public static final Column MONITORING_STATE = Column.named("monitoringState");
+    private ServerState monitoringState = ServerState.GREY;
+
     public static final Column LAST_MONITORING = Column.named("lastMonitoring");
+    @NullAllowed
+    private LocalDateTime lastMonitoring;
 
-    private LocalDateTime lastHeartbeat;
     public static final Column LAST_HEARTBEAT = Column.named("lastHeartbeat");
+    @NullAllowed
+    private LocalDateTime lastHeartbeat;
 
-    private Interval expectedHeartbeatInterval = Interval.OFF;
-    public static final Column EXPECTED_HEARTBEAT_INTERVAL = Column.named("expectedHeartbeatInterval");
-
-    private ServerState heatbeatState;
-    public static final Column HEATBEAT_STATE = Column.named("heatbeatState");
-
-    private LocalDateTime lastKeyUpdate;
     public static final Column LAST_KEY_UPDATE = Column.named("lastKeyUpdate");
+    @NullAllowed
+    private LocalDateTime lastKeyUpdate;
 
-    private Interval expectedKeyUpdateInterval = Interval.OFF;
-    public static final Column EXPECTED_KEY_UPDATE_INTERVAL = Column.named("expectedKeyUpdateInterval");
-
-    private ServerState keyUpdateState;
-    public static final Column KEY_UPDATE_STATE = Column.named("keyUpdateState");
-
-    private LocalDateTime lastBackup;
     public static final Column LAST_BACKUP = Column.named("lastBackup");
+    @NullAllowed
+    private LocalDateTime lastBackup;
 
-    private Interval expectedBackupInterval = Interval.OFF;
+    public static final Column EXPECTED_HEARTBEAT_INTERVAL = Column.named("expectedHeartbeatInterval");
+    @Autoloaded
+    private Interval expectedHeartbeatInterval = Interval.OFF;
+
+    public static final Column HEATBEAT_STATE = Column.named("heatbeatState");
+    private ServerState heatbeatState = ServerState.GREY;
+
+    public static final Column EXPECTED_KEY_UPDATE_INTERVAL = Column.named("expectedKeyUpdateInterval");
+    @Autoloaded
+    private Interval expectedKeyUpdateInterval = Interval.OFF;
+
+    public static final Column KEY_UPDATE_STATE = Column.named("keyUpdateState");
+    private ServerState keyUpdateState = ServerState.GREY;
+
     public static final Column EXPECTED_BACKUP_INTERVAL = Column.named("expectedBackupInterval");
+    @Autoloaded
+    private Interval expectedBackupInterval = Interval.OFF;
 
-    private ServerState backupState;
     public static final Column BACKUP_STATE = Column.named("backupState");
+    private ServerState backupState = ServerState.GREY;
+
+    @BeforeSave
+    protected void initializeToken() {
+        if (Strings.isEmpty(token)) {
+            token = Strings.generateCode(32);
+        }
+    }
 
     @BeforeSave
     protected void updateStates() {
-        heatbeatState = expectedHeartbeatInterval.check(lastHeartbeat);
-        keyUpdateState = expectedKeyUpdateInterval.check(lastKeyUpdate);
-        backupState = expectedBackupInterval.check(lastBackup);
-        state = ServerState.GREEN;
+        if (expectedHeartbeatInterval == null) {
+            expectedHeartbeatInterval = Interval.OFF;
+        }
+        if (expectedKeyUpdateInterval == null) {
+            expectedKeyUpdateInterval = Interval.OFF;
+        }
+        if (expectedBackupInterval == null) {
+            expectedBackupInterval = Interval.OFF;
+        }
+
+        state = ServerState.GREY;
+
+        heatbeatState = expectedHeartbeatInterval.check(lastHeartbeat, ServerState.RED);
         if (heatbeatState.ordinal() < state.ordinal()) {
             state = heatbeatState;
         }
+
+        keyUpdateState = expectedKeyUpdateInterval.check(lastKeyUpdate, ServerState.YELLOW);
         if (keyUpdateState.ordinal() < state.ordinal()) {
             state = keyUpdateState;
         }
+
+        backupState = expectedBackupInterval.check(lastBackup, ServerState.YELLOW);
         if (backupState.ordinal() < state.ordinal()) {
             state = backupState;
         }
-        if (primaryUrlState.ordinal() < state.ordinal()) {
-            state = primaryUrlState;
-        }
-        if (secondaryUrlState.ordinal() < state.ordinal()) {
-            state = secondaryUrlState;
+
+        if (monitoringState.ordinal() < state.ordinal()) {
+            state = monitoringState;
         }
     }
 
@@ -226,36 +258,40 @@ public class Server extends TenantAware {
         this.lastMonitoring = lastMonitoring;
     }
 
-    public ServerState getSecondaryUrlState() {
-        return secondaryUrlState;
+    public EntityRef<Company> getCustomer() {
+        return customer;
     }
 
-    public void setSecondaryUrlState(ServerState secondaryUrlState) {
-        this.secondaryUrlState = secondaryUrlState;
+    public String getToken() {
+        return token;
     }
 
-    public String getSecondaryMonitoringUrl() {
-        return secondaryMonitoringUrl;
+    public void setToken(String token) {
+        this.token = token;
     }
 
-    public void setSecondaryMonitoringUrl(String secondaryMonitoringUrl) {
-        this.secondaryMonitoringUrl = secondaryMonitoringUrl;
+    public String getMonitoringUrl() {
+        return monitoringUrl;
     }
 
-    public ServerState getPrimaryUrlState() {
-        return primaryUrlState;
+    public void setMonitoringUrl(String monitoringUrl) {
+        this.monitoringUrl = monitoringUrl;
     }
 
-    public void setPrimaryUrlState(ServerState primaryUrlState) {
-        this.primaryUrlState = primaryUrlState;
+    public String getMonitoringKeyword() {
+        return monitoringKeyword;
     }
 
-    public String getPrimaryMonitoringUrl() {
-        return primaryMonitoringUrl;
+    public void setMonitoringKeyword(String monitoringKeyword) {
+        this.monitoringKeyword = monitoringKeyword;
     }
 
-    public void setPrimaryMonitoringUrl(String primaryMonitoringUrl) {
-        this.primaryMonitoringUrl = primaryMonitoringUrl;
+    public ServerState getMonitoringState() {
+        return monitoringState;
+    }
+
+    public void setMonitoringState(ServerState monitoringState) {
+        this.monitoringState = monitoringState;
     }
 
     public String getPublicIpAddress() {
@@ -290,11 +326,27 @@ public class Server extends TenantAware {
         this.name = name;
     }
 
-    public String getCategory() {
-        return category;
+    public String getDescription() {
+        return description;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public Tagged getTags() {
+        return tags;
+    }
+
+    public Commented getComments() {
+        return comments;
     }
 }

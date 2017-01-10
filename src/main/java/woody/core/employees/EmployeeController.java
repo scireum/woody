@@ -8,7 +8,6 @@
 
 package woody.core.employees;
 
-import sirius.biz.model.LoginData;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.tenants.UserAccountController;
 import sirius.biz.web.BizController;
@@ -20,6 +19,9 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
+import sirius.web.security.UserContext;
+
+import java.util.List;
 
 /**
  * Created by aha on 09.05.15.
@@ -36,16 +38,31 @@ public class EmployeeController extends BizController {
         assertNotNew(userAccount);
 
         if (ctx.isPOST()) {
-            load(ctx, userAccount);
-            oma.update(userAccount);
-            showSavedMessage();
+            try {
+                load(ctx, userAccount);
+                oma.update(userAccount);
+                showSavedMessage();
+            } catch (Exception e) {
+                UserContext.handle(e);
+            }
         }
         ctx.respondWith()
            .template("view/core/employee/user-account-employee.html",
-                     userAccount,
-                     oma.select(UserAccount.class).fields(UserAccount.ID, UserAccount.LOGIN.inner(LoginData.USERNAME))
-                        .where(FieldOperator.on(Column.mixin(Employee.class).inner(Employee.MENTOR))
-                                            .notEqual(userAccount))
-                        .orderAsc(UserAccount.LOGIN.inner(LoginData.USERNAME)).queryList());
+                     userAccount, getDepartments(), getOtherEmployees(userAccount));
+    }
+
+    protected List<Department> getDepartments() {
+        return oma.select(Department.class)
+           .eq(Department.TENANT, currentTenant())
+           .orderAsc(Department.CODE)
+           .queryList();
+    }
+
+    protected List<UserAccount> getOtherEmployees(UserAccount userAccount) {
+        return oma.select(UserAccount.class)
+                  .eq(UserAccount.TENANT, currentTenant())
+                  .where(FieldOperator.on(UserAccount.ID).notEqual(userAccount.getId()))
+                  .orderAsc(Column.mixin(Employee.class).inner(Employee.EMPLOYEE_NUMBER))
+                  .queryList();
     }
 }

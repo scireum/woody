@@ -7,51 +7,92 @@
 *@
 @import woody.core.employees.Employee
 @import sirius.biz.tenants.UserAccount
-@args UserAccount account, List accounts
+@args UserAccount account, List departments, List accounts
 @extends(view.tenants.user-account.html, account, "employee")
 
-<form action="@prefix/user-account/@account.getIdAsString()/employee" method="post" id="editForm">
+@editForm(("user-account/" + account.getIdAsString() + "/employee")) {
     <div class="row">
-        @textfield(span:     "4",
+        @textfield(span:     "6",
                    name:     "Employee_employeeNumber",
                    value:    account.as(Employee.class).getEmployeeNumber(),
                    labelKey: "Employee.employeeNumber")
-        <div class="span4 control-group">
-            <label>@i18n("ContentEntity.brand")</label>
-            <select name="Employee_mentor" class="input-block-level">
-                <option value="" @if(account.as(Employee.class).getMentor().isEmpty()) {selected="selected"}></option>
-                @for(UserAccount a : accounts) {
-                <option value="@a.getId()" @if(account.as(Employee.class).getMentor().is(a)) {selected="selected"}>@account.getLogin().getUsername()</option>
-                }
-            </select>
-        </div>
+        @textfield(span:     "6",
+                   name:     "Employee_phoneExtension",
+                   value:    account.as(Employee.class).getPhoneExtension(),
+                   labelKey: "Employee.phoneExtension")
 
     </div>
     <div class="row">
-        @textfield(span:     "4",
-                                     name:     "Employee_homePhone",
-                                     value:    account.as(Employee.class).getHomePhone(),
-                                     labelKey: "Employee.homePhone",
-                                     helpKey:  null)
-        @textfield(span:     "4",
-                                     name:     "Employee_mobilePhone",
-                                     value:    account.as(Employee.class).getMobilePhone(),
-                                     labelKey: "Employee.mobilePhone",
-                                     helpKey:  null)
+        @singleSelect(span: "6",
+                      name: "Employee_department",
+                      optional: true,
+                      labelKey: "Employee.department") {
+            @for(woody.core.employees.Department department : departments) {
+                <option value="@department.getId()"
+                        @if (account.as(Employee.class).getDepartment().is(department)) { selected="selected" }>@department.getName() (@department.getCode())</option>
+            }
+        }
+        @singleSelect(span: "6",
+                      name: "Employee_mentor",
+                      optional: true,
+                      labelKey: "Employee.mentor") {
+            @for(sirius.biz.tenants.UserAccount possibleMentor : accounts) {
+                <option value="@possibleMentor.getId()"
+                        @if (account.as(Employee.class).getMentor().is(possibleMentor)) { selected="selected" }>@possibleMentor.getPerson()</option>
+            }
+        }
     </div>
     <div class="row">
-        @textfield(span:     "4",
-                                     name:     "Employee_joinDate",
-                                     value:    (NLS.toUserString(account.as(Employee.class).getJoinDate())),
-                                     labelKey: "Employee.joinDate",
-                                     helpKey:  null)
-        @textfield(span:     "4",
-                                     name:     "Employee_birthday",
-                                     value:    (NLS.toUserString(account.as(Employee.class).getBirthday())),
-                                     labelKey: "Employee.birthday",
-                                     helpKey:  null)
+        <div class="col-md-6">
+            @subHeading("Employee.personalContact")
+            <div class="row">
+                @textfield(span: "12",
+                           name: "personalContact_email",
+                           value: account.as(Employee.class).getPersonalContact().getEmail(),
+                           labelKey: "ContactData.email")
+                @textfield(span: "12",
+                           name: "personalContact_phone",
+                           value: account.as(Employee.class).getPersonalContact().getPhone(),
+                           labelKey: "ContactData.phone")
+                @textfield(span: "12",
+                           name: "personalContact_mobile",
+                           value: account.as(Employee.class).getPersonalContact().getMobile(),
+                           labelKey: "ContactData.mobile")
+            </div>
+        </div>
+        <div class="col-md-6">
+            @subHeading("Employee.personalAddress")
+            <div class="row">
+                @textfield(span: "12",
+                           name: "personalAddress_street",
+                           value: account.as(Employee.class).getPersonalAddress().getStreet(),
+                           labelKey: "AddressData.street")
+                @textfield(span: "4",
+                           name: "personalAddress_zip",
+                           value: account.as(Employee.class).getPersonalAddress().getZip(),
+                           labelKey: "AddressData.zip")
+                @textfield(span: "8",
+                           name: "personalAddress_city",
+                           value: account.as(Employee.class).getPersonalAddress().getCity(),
+                           labelKey: "AddressData.city")
+            </div>
+        </div>
     </div>
-    <div class="form-actions">
-        <a onclick="$('#editForm').submit()" class="btn btn-primary"><i class="icon-ok"></i> @i18n("NLS.save")</a>
+    @subHeading("Employee.dates")
+    <div class="row">
+        @datefield(span:     "4",
+                     name:     "Employee_birthday",
+                     value:    (NLS.toUserString(account.as(Employee.class).getBirthday())),
+                     labelKey: "Employee.birthday")
+        @datefield(span:     "4",
+             name:     "Employee_joinDate",
+             value:    (NLS.toUserString(account.as(Employee.class).getJoinDate())),
+             labelKey: "Employee.joinDate")
+        @datefield(span:     "4",
+             name:     "Employee_dischargeDate",
+             value:    (NLS.toUserString(account.as(Employee.class).getDischargeDate())),
+             labelKey: "Employee.dischargeDate")
     </div>
-</form>
+}
+
+@formBar()

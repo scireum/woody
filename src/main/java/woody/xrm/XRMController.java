@@ -16,11 +16,13 @@ import sirius.biz.web.BizController;
 import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
+import sirius.db.mixing.constraints.Like;
 import sirius.kernel.commons.DataCollector;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
+import sirius.web.controller.AutocompleteHelper;
 import sirius.web.controller.Controller;
 import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
@@ -44,42 +46,39 @@ import java.util.Optional;
 @Register(classes = Controller.class)
 public class XRMController extends BizController {
 
-    public static final String MANAGE_XRM = "permission-manage-xrm";
+    public static final String PERMISSION_MANAGE_XRM = "permission-manage-xrm";
 
     @Part
     private AccountingService asb;
 
-
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/exportLineitems")
     public void exportLineitems(WebContext ctx) {
 
         try {
-            asb.exportLicenceLineitems(1000,null);
+            asb.exportLicenceLineitems(1000, null);
             int vvv = 1;
-
         } catch (Exception e) {
             Exceptions.handle();
         }
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/licenceAccounting")
     public void licenceAccounting(WebContext ctx) {
-        LocalDate referenceDate = LocalDate.of(2017,1,2);
+        LocalDate referenceDate = LocalDate.of(2017, 1, 2);
         boolean dryRun = false;
         boolean foreignCountry = false;
-            DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
+        DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
                                                          /*TaskMonitor monitor,*/ foreignCountry);
-            int vvv = 1;
+        int vvv = 1;
     }
-
 
     @DefaultRoute
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/companies")
     public void companies(WebContext ctx) {
         MagicSearch search = MagicSearch.parseSuggestions(ctx);
@@ -87,7 +86,7 @@ public class XRMController extends BizController {
         search.applyQueries(query,
                             Company.NAME,
                             Company.ADDRESS.inner(AddressData.CITY),
-                            Company.CUSTOMERNR,
+                            Company.CUSTOMER_NUMBER,
                             Company.MATCHCODE);
         Tagged.applyTagSuggestions(Company.class, search, query);
         PageHelper<Company> ph = PageHelper.withQuery(query).forCurrentTenant();
@@ -96,14 +95,33 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed(value = "/companies/suggest", jsonCall = true)
     public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
         MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Company.class, q, c));
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/companies/autocomplete")
+    public void autocomplete(WebContext ctx) {
+        AutocompleteHelper.handle(ctx,
+                                  (query, result) -> oma.select(Company.class)
+                                                        .eq(Company.TENANT, currentTenant())
+                                                        .where(Like.allWordsInAnyField(query,
+                                                                                       Company.NAME,
+                                                                                       Company.NAME2,
+                                                                                       Company.CUSTOMER_NUMBER,
+                                                                                       Company.MATCHCODE))
+                                                        .orderAsc(Company.NAME)
+                                                        .iterateAll(company -> result.accept(new AutocompleteHelper.Completion(
+                                                                company.getIdAsString(),
+                                                                company.getName(),
+                                                                null))));
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/delete")
     public void deleteCompany(WebContext ctx, String id) {
         Optional<Company> cl = tryFindForTenant(Company.class, id);
@@ -115,7 +133,7 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1")
     public void company(WebContext ctx, String companyId) {
         Company cl = findForTenant(Company.class, companyId);
@@ -141,7 +159,7 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/postComment")
     public void postComment(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);
@@ -156,14 +174,14 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed(value = "/persons/suggest", jsonCall = true)
     public void personsSuggest(WebContext ctx, JSONStructuredOutput out) {
         MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Person.class, q, c));
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/persons")
     public void companyPersons(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);
@@ -186,15 +204,15 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/contracts")
     public void companyContracts(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);
         MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Contract> query = oma.select(Contract.class)
-                                      .eq(Contract.COMPANY, company)
-                                      .orderAsc(Contract.ACCOUNTINGGROUP)
-                                      .orderAsc(Contract.STARTDATE);
+                                        .eq(Contract.COMPANY, company)
+                                        .orderAsc(Contract.ACCOUNTINGGROUP)
+                                        .orderAsc(Contract.STARTDATE);
 
         Tagged.applyTagSuggestions(Contract.class, search, query);
         PageHelper<Contract> ph = PageHelper.withQuery(query);
@@ -203,28 +221,8 @@ public class XRMController extends BizController {
            .template("view/sales/company-contracts.html", company, ph.asPage(), search.getSuggestionsString());
     }
 
-
-
     @LoginRequired
-    @Permission(MANAGE_XRM)
-    @Routed("/contracts")
-    // ToDo: Wofür ist dieser Code? - Analog zur Methode persons
-    public void contracts(WebContext ctx) {
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Contract> query = oma.select(Contract.class)
-                                      .fields(Contract.COMPANY.join(Company.ID))
-                                      .eq(Contract.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
-                                      .orderAsc(Contract.STARTDATE)
-                                      .orderAsc(Contract.ENDDATE);
-
-        Tagged.applyTagSuggestions(Contract.class, search, query);
-        PageHelper<Contract> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith().template("view/sales/company-contracts.html", ph.asPage(), search.getSuggestionsString());
-    }
-
-    @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/persons")
     public void persons(WebContext ctx) {
         // ToDo: Wofür ist dieser Code?
@@ -235,10 +233,8 @@ public class XRMController extends BizController {
                                               Person.PERSON.inner(PersonData.TITLE),
                                               Person.PERSON.inner(PersonData.FIRSTNAME),
                                               Person.PERSON.inner(PersonData.LASTNAME),
-                                              Person.COMPANY.join(Company.ID),
-                                              Person.COMPANY.join(Company.NAME),
-                                              Person.CONTACT.inner(ContactData.EMAIL),
-                                              Person.CONTACT.inner(ContactData.PHONE))
+                                              Person.COMPANY.join(Company.CUSTOMER_NUMBER),
+                                              Person.COMPANY.join(Company.NAME))
                                       .eq(Person.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
                                       .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                                       .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME));
@@ -257,7 +253,7 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/person/:2/delete")
     public void deletePerson(WebContext ctx, String companyId, String personId) {//TODO ???
         Optional<Person> person = tryFind(Person.class, personId);
@@ -270,7 +266,7 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/person/:2")
     public void person(WebContext ctx, String companyId, String personId) {
         Company company = findForTenant(Company.class, companyId);
@@ -302,7 +298,7 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/person/:2/css")
     public void personCSS(WebContext ctx, String companyId, String personId) {
         Person person = find(Person.class, personId);
@@ -321,7 +317,7 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/person/:2/postComment")
     public void postPersonComment(WebContext ctx, String companyId, String personId) {
         Person person = find(Person.class, personId);
@@ -338,7 +334,7 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/contract/:2/delete")
     public void deleteContract(WebContext ctx, String companyId, String contractId) {
         Optional<Contract> contract = tryFind(Contract.class, contractId);
@@ -349,5 +345,4 @@ public class XRMController extends BizController {
         }
         companyContracts(ctx, companyId);
     }
-
 }

@@ -8,9 +8,6 @@
 
 package woody.sales;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hashing;
-import com.google.common.io.BaseEncoding;
 import sirius.biz.model.BizEntity;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -26,17 +23,12 @@ import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
-
 import woody.xrm.Company;
 import woody.xrm.Person;
 
-import java.math.BigDecimal;
-import java.text.MessageFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -387,7 +379,7 @@ public class Contract extends BizEntity {
      * checks the customerNr
      */
     private void checkCustomerNr(Company company) {
-        String customerNr = company.getCustomerNr();
+        String customerNr = company.getCustomerNumber();
         if (Strings.isEmpty(customerNr)) {
             throw Exceptions.createHandled()
                             .withNLSKey("woody.xrm.Contract.customerNrMissing")

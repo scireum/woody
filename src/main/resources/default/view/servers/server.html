@@ -1,0 +1,160 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.servers.Server
+@args Server server
+@extends(view.wondergem.template.html, title: NLS.get("Model.server"))
+
+@section(breadcrumbs) {
+    <li><a href="/servers">@i18n("Server.plural")</a></li>
+    <li><a href="/server/@server.getIdAsString()">@i18n("Model.server")</a></li>
+}
+
+@pageHeader("Model.server")
+
+
+@editForm(("server/" + server.getIdAsString())) {
+    <div class="row">
+        @textfield(name: "name",
+                    value: server.getName(),
+                    labelKey: "Model.name",
+                    span: "6",
+                    required: true)
+        @autocompleteSingleSelect(span: "6",
+                                  name: "customer",
+                                  labelKey: "Server.customer",
+                                  serviceUri: "companies/autocomplete",
+                                  optional: true)
+        {
+            @if (server.getCustomer().isFilled()) {
+                <option value="@server.getCustomer().getId()">@server.getCustomer().getValue().getName()</option>
+            }
+        }
+    </div>
+    <div class="row">
+        @textfield(name: "description",
+                    value: server.getDescription(),
+                    labelKey: "Model.description",
+                    span: "12")
+    </div>
+    <div class="row">
+        @autocompleteMultiSelect(span: "12", name: "tags", labelKey: "Tag.plural", serviceUri: "tags/SERVER/autocomplete", optional: true) {
+            @for(woody.core.tags.Tag t : server.getTags().getTags()) {
+                <option value="@t.getName()" selected>@t.getName()</option>
+            }
+         }
+    </div>
+    @subHeading("Server.connectivity")
+    <div class="row">
+        @textfield(name: "url",
+                    value: server.getUrl(),
+                    labelKey: "Server.url",
+                    span: "12")
+        @textfield(name: "ipAddress",
+                    value: server.getIpAddress(),
+                    labelKey: "Server.ipAddress",
+                    span: "6")
+        @textfield(name: "publicIpAddress",
+                    value: server.getPublicIpAddress(),
+                    labelKey: "Server.publicIpAddress",
+                    span: "6")
+    </div>
+    @subHeading("Server.health")
+    <div class="row">
+        @textfield(name: "token",
+                   value: server.getToken(),
+                   labelKey: "Server.token",
+                   helpKey: "Server.token.help",
+                   readonly: true,
+                   span: "6")
+        @textfield(name: "monitoringKeyword",
+                   value: server.getMonitoringKeyword(),
+                   labelKey: "Server.monitoringKeyword",
+                   helpKey: "Server.monitoringKeyword.help",
+                   span: "6")
+        @textfield(name: "monitoringUrl",
+                   value: server.getMonitoringUrl(),
+                   labelKey: "Server.monitoringUrl",
+                   helpKey: "Server.monitoringUrl.help",
+                   span: "12")
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row">
+                @singleSelect(name: "expectedHeartbeatInterval",
+                              labelKey: "Server.expectedHeartbeatInterval",
+                              span: "12") {
+                    @for(woody.servers.Interval interval : woody.servers.Interval.values()) {
+                        <option value="@interval.name()" @if(interval == server.getExpectedHeartbeatInterval()) {selected="selected"}>@interval</option>
+                    }
+                }
+                @singleSelect(name: "expectedKeyUpdateInterval",
+                              labelKey: "Server.expectedKeyUpdateInterval",
+                              span: "12") {
+                    @for(woody.servers.Interval interval : woody.servers.Interval.values()) {
+                        <option value="@interval.name()" @if(interval == server.getExpectedKeyUpdateInterval()) {selected="selected"}>@interval</option>
+                    }
+                }
+                @singleSelect(name: "expectedBackupInterval",
+                              labelKey: "Server.expectedBackupInterval",
+                              span: "12") {
+                    @for(woody.servers.Interval interval : woody.servers.Interval.values()) {
+                        <option value="@interval.name()" @if(interval == server.getExpectedBackupInterval()) {selected="selected"}>@interval</option>
+                    }
+                }
+            </div>
+        </div>
+        <div class="col-md-6">
+            <table class="table table-border table-striped table-colorized">
+                <th>
+                    <td colspan="2">@i18n("Server.states")</td>
+                </th>
+                <tr class="@server.getMonitoringState().getCSSClass()">
+                    <td></td>
+                    <td>@i18n("Server.lastMonitoring")</td>
+                    <td class="align-right">@sirius.kernel.commons.Value.of(NLS.toUserString(server.getLastMonitoring())).replaceEmptyWith("-")</td>
+                </tr>
+                <tr class="@server.getHeatbeatState().getCSSClass()">
+                    <td></td>
+                    <td>@i18n("Server.lastHeartbeat")</td>
+                    <td class="align-right">@sirius.kernel.commons.Value.of(NLS.toUserString(server.getLastHeartbeat())).replaceEmptyWith("-")</td>
+                </tr>
+                <tr class="@server.getKeyUpdateState().getCSSClass()">
+                    <td></td>
+                    <td>@i18n("Server.lastKeyUpdate")</td>
+                    <td class="align-right">@sirius.kernel.commons.Value.of(NLS.toUserString(server.getLastKeyUpdate())).replaceEmptyWith("-")</td>
+                </tr>
+                <tr class="@server.getBackupState().getCSSClass()">
+                    <td></td>
+                    <td>@i18n("Server.lastBackup")</td>
+                    <td class="align-right">@sirius.kernel.commons.Value.of(NLS.toUserString(server.getLastBackup())).replaceEmptyWith("-")</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+}
+
+@formBar("servers") {
+    @tracing(server.getTrace())
+}
+
+<form action="/server/@server.getId()/postComment" method="post" id="commentForm">
+    <textarea name="comment" rows="3">
+
+    </textarea>
+    <button type="submit" value="Senden"></button>
+</form>
+
+@for(woody.core.comments.Comment comment : server.getComments().getAllComments()) {
+    <div class="comment">
+        @comment.getPersonName()<br>
+        @comment.getTod()<br>
+        @comment.getTextContent()
+    </div>
+}
+

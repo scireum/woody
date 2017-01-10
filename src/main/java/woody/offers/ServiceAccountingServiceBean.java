@@ -13,17 +13,16 @@ import sirius.biz.tenants.UserAccount;
 import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.OMA;
 import sirius.kernel.commons.Amount;
+import sirius.kernel.commons.Context;
 import sirius.kernel.commons.DataCollector;
 import sirius.kernel.commons.NumberFormat;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
-import sirius.kernel.commons.Context;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 import sirius.web.mails.Mails;
 import sirius.web.security.UserContext;
-
 import sirius.web.templates.Templates;
 import woody.core.employees.Employee;
 import woody.sales.AccountingService;
@@ -46,7 +45,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Created by gerhardhaufler on 23.12.15.
@@ -207,7 +205,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         lineitem.setStatus(Lineitem.LINEITEMSTATUS_NEW);
         lineitem.setClearingDate(LocalDateTime.now());
         lineitem.setCompanyName(offer.getCompany().getValue().getName());
-        String customerNr = offer.getCompany().getValue().getCustomerNr();
+        String customerNr = offer.getCompany().getValue().getCustomerNumber();
         if (Strings.isEmpty(customerNr)) {
             // no accounting without a customerNr!!!
             throw Exceptions.createHandled().withNLSKey("ServiceAccountingServiceBean.customerNrMissing")
@@ -413,7 +411,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         Employee employee = offer.getEmployee().getValue().as(Employee.class) ;
         UserAccount user = offer.getEmployee().getValue().as(UserAccount.class) ;
         context.set("employeeName", user.toString());
-        context.set("employeePhone", employee.getPhoneNr());
+//        context.set("employeePhone", employee.getPhoneNr());
         context.set("employeeMail", user.getEmail());
         context.set("priceBruttoSum", priceBruttoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
         context.set("priceNettoSum", priceNettoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));

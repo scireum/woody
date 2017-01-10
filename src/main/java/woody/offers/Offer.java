@@ -10,7 +10,6 @@ package woody.offers;
 
 import sirius.biz.model.BizEntity;
 import sirius.biz.sequences.Sequences;
-import sirius.biz.tenants.Tenant;
 import sirius.biz.tenants.Tenants;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
@@ -23,18 +22,13 @@ import sirius.db.mixing.annotations.Transient;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
-import sirius.kernel.di.std.Register;
-import sirius.kernel.health.Exceptions;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 import woody.core.employees.Employee;
-import woody.sales.PackageDefinition;
-import woody.sales.Product;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Created by gerhardhaufler on 11.10.16.
@@ -96,7 +90,7 @@ public class Offer extends BizEntity {
 
     public String toString() {
         String s = "Angebot ";
-        if(number != null) {
+        if (number != null) {
             s = s.concat(number);
         }
         return s;
@@ -105,7 +99,8 @@ public class Offer extends BizEntity {
     public String getEmployeeShortName() {
         UserAccount uac = this.getEmployee().getValue();
         Employee employee = uac.as(Employee.class);
-        return employee.getShortName();
+//        return employee.getShortName();
+        throw new UnsupportedOperationException();
     }
 
     @Part
@@ -122,7 +117,6 @@ public class Offer extends BizEntity {
         // Calculate the offer-number if the offer is new (id == 0)
         if (Strings.isEmpty(number)) {
             number = String.valueOf(sequences.generateId("OFFER"));
-
         }
         // get the employee
         if (employee.getValue() == null) {
