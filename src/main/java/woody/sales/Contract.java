@@ -12,6 +12,7 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import sirius.biz.model.BizEntity;
+import sirius.biz.tenants.Tenants;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
@@ -411,8 +412,12 @@ public class Contract extends BizEntity {
         }
     }
 
+    @Part
+    private static Tenants tenants;
+
     public List<PackageDefinition>  getAllPackageDefinitionsDirect() {
         List<PackageDefinition> pdList = oma.select(PackageDefinition.class)
+            .eq(PackageDefinition.PRODUCT.join(Product.TENANT), tenants.getRequiredTenant())
             .orderAsc(PackageDefinition.PRODUCT.join(Product.NAME))
             .orderAsc(PackageDefinition.NAME).queryList();
         return pdList;
@@ -425,6 +430,7 @@ public class Contract extends BizEntity {
             return this.getContractPartner().getValue().getPerson().toString();
         }
     }
+
 
     public List<Person> getAllPersonsForCompany(Company company) {
         List<Person> personList =  oma.select(Person.class).eq(Person.COMPANY, company).queryList();

@@ -46,6 +46,8 @@
         @textfield(span: "3", name: "companyAccountingData_invoiceAddress_city", value: company.getCompanyAccountingData().getInvoiceAddress().getCity(), labelKey: "AddressData.city")
         @codelistSelect(span: "2", list: "countries", name: "companyAccountingData_invoiceAddress_country",
           value: company.getCompanyAccountingData().getInvoiceAddress().getCountry(), labelKey: "AddressData.country", optional: true)
+        @codelistSelect(span: "2", list: "outputLanguage", name: "CompanyAccountingData_outputLanguage",
+        value: company.getCompanyAccountingData().getOutputLanguage(), labelKey: "CompanyAccountingData.outputLanguage", optional: false)
     </div>
 
     <div class="row">
@@ -63,7 +65,6 @@
             }
          }
     </div>
-
 }
 
 @formBar() {

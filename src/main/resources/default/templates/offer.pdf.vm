@@ -94,9 +94,9 @@ $!salutation
                         <td style="width:4cm" align="right">$nls.toUserString($item.price) € </td>
                      #end
                      #if($item.isLicense())
-                        <td style="width:4cm" align="right">#if($item.isPackageDefinitionSinglePricePresent())$nls.toUserString($item.singlePrice) € #end</td>
-                        <td style="width:4cm" align="right">$nls.toUserString($item.checkCyclicPrice()) € </td>
-                     #end
+                        <td style="width:4cm" align="right">#if($item.isPackageDefinitionSinglePricePresent())$nls.toUserString($item.offerSinglePrice) € #end</td>
+                        <td style="width:4cm" align="right">$nls.toUserString($item.getPrice()) € </td>
+                    #end
                 </tr>
                 #if($item.discountPresent)
                     <tr><td></td><td colspan = "4">Beim Preis wurde ein Rabatt von $nls.toUserString($item.discount) % berücksichtigt.</td></tr>

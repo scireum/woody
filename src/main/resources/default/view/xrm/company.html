@@ -58,6 +58,12 @@
                         <i class="icon-users"></i>@i18n("Offer.plural")
                     </a>
                 </li>
+                <li @if(page == "opportunities") { class="active" }>
+                <a href="@prefix/company/@company.getId()/opportunities" class="link">
+                    <i class="icon-users"></i>@i18n("Opportunity.plural")
+                </a>
+                </li>
+
             }
 
             <a href="@prefix/company/@company.getId()" class="btn btn-block">@i18n("NLS.back")</a>

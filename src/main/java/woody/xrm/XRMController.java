@@ -31,10 +31,11 @@ import sirius.web.security.UserContext;
 import sirius.web.services.JSONStructuredOutput;
 
 import woody.core.tags.Tagged;
-import woody.offers.Offer;
 import woody.sales.AccountingService;
 import woody.sales.Lineitem;
 import woody.sales.Contract;
+import woody.opportunities.Opportunity;
+
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -70,7 +71,7 @@ public class XRMController extends BizController {
     @Routed("/licenceAccounting")
     public void licenceAccounting(WebContext ctx) {
         LocalDate referenceDate = LocalDate.of(2017,1,2);
-        boolean dryRun = false;
+        boolean dryRun = true;
         boolean foreignCountry = false;
             DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
                                                          /*TaskMonitor monitor,*/ foreignCountry);
@@ -186,43 +187,6 @@ public class XRMController extends BizController {
            .template("view/xrm/company-persons.html", company, ph.asPage(), search.getSuggestionsString());
     }
 
-    @LoginRequired
-    @Permission(MANAGE_XRM)
-    @Routed("/company/:1/contracts")
-    public void companyContracts(WebContext ctx, String companyId) {
-        Company company = findForTenant(Company.class, companyId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Contract> query = oma.select(Contract.class)
-                                      .eq(Contract.COMPANY, company)
-                                      .orderAsc(Contract.ACCOUNTINGGROUP)
-                                      .orderAsc(Contract.STARTDATE);
-
-        Tagged.applyTagSuggestions(Contract.class, search, query);
-        PageHelper<Contract> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/sales/company-contracts.html", company, ph.asPage(), search.getSuggestionsString());
-    }
-
-
-
-    @LoginRequired
-    @Permission(MANAGE_XRM)
-    @Routed("/contracts")
-    // ToDo: Wofür ist dieser Code? - Analog zur Methode persons
-    public void contracts(WebContext ctx) {
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Contract> query = oma.select(Contract.class)
-                                      .fields(Contract.COMPANY.join(Company.ID))
-                                      .eq(Contract.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
-                                      .orderAsc(Contract.STARTDATE)
-                                      .orderAsc(Contract.ENDDATE);
-
-        Tagged.applyTagSuggestions(Contract.class, search, query);
-        PageHelper<Contract> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith().template("view/sales/company-contracts.html", ph.asPage(), search.getSuggestionsString());
-    }
 
     @LoginRequired
     @Permission(MANAGE_XRM)
@@ -338,17 +302,5 @@ public class XRMController extends BizController {
         ctx.respondWith().template("view/xrm/person-details.html", person.getCompany().getValue(), person);
     }
 
-    @LoginRequired
-    @Permission(MANAGE_XRM)
-    @Routed("/company/:1/contract/:2/delete")
-    public void deleteContract(WebContext ctx, String companyId, String contractId) {
-        Optional<Contract> contract = tryFind(Contract.class, contractId);
-        if (contract.isPresent()) {
-            assertTenant(contract.get().getCompany().getValue());
-            oma.delete(contract.get());
-            showDeletedMessage();
-        }
-        companyContracts(ctx, companyId);
-    }
 
 }

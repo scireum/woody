@@ -411,7 +411,6 @@ public class AccountingServiceBean implements AccountingService {
             if (contract.getQuantity() != null) {
                 if (contract.getQuantity() > 0) {
                     positionPrice  = unitPrice.times(Amount.of(contract.getQuantity()));
-                    Amount positionPrice1 = Amount.of(unitPrice.getAmount().multiply(BigDecimal.valueOf(contract.getQuantity())));
                 }
             }
             positionPrice = round(positionPrice,2);
@@ -547,6 +546,10 @@ public class AccountingServiceBean implements AccountingService {
                                    boolean isCredit, Amount positionDiscount, Amount discountAbsolut,
                                    Long invoiceNr, LocalDateTime clearingDate) {
             Lineitem lineitem = new Lineitem();
+            Company company = contract.getCompany().getValue();
+            String outputLanguage = company.getCompanyAccountingData().getOutputLanguage();
+            lineitem.setOutputLanguage(outputLanguage);
+
             lineitem.setLineitemType(Lineitem.LINEITEMTYPE_LA);
             // check the absolute discount and calculate the accountingPrice
             // listen: collmex can calculate a percent-discount but never a absolute discount,
@@ -1405,10 +1408,8 @@ public class AccountingServiceBean implements AccountingService {
             String[] csv = new String[csvLae + 1]; // csv[0] - csv[82],
             // csv[0] is not used
             csv[1] = "CMXINV"; // Satzart C Festwert CMXINV
-            csv[2] = NLS.toUserString(lineitem.getInvoiceNr()); // Rechnungsnummer I
-            // 8 Die
-            // Rechnungsnummer
-            // identifiziert die Rechnung eindeutig. Siehe auch Nummernvergabe.
+            csv[2] = NLS.toUserString(lineitem.getInvoiceNr()); // Rechnungsnummer I8.
+            // Die Rechnungsnummer identifiziert die Rechnung eindeutig. Siehe auch Nummernvergabe.
             // 03 = Position I 8 Positionsnummer der Rechnungsposition. Wenn nicht
             // angegeben, wird die Positionsnummer automatisch fortlaufend vergeben.
             if (lineitem.isCollmexCredit()) {// 04 = Rechnungsart I 8
@@ -1420,10 +1421,8 @@ public class AccountingServiceBean implements AccountingService {
             // Verwaltung -> Firma anzeigen und ändern angezeigt.
             // 06 = Auftrag Nr I 8 Nummer des Kundenauftrags, auf den sich die
             // Rechnung bezieht.
-            csv[7] = NLS.toUserString(lineitem.getCustomerNr()); // 07 = Kunden-Nr I
-            // 8
-            // Der Kunde muss in Collmex existieren.
-            // Referenz ausschliesslich über die Kundennummer
+            csv[7] = NLS.toUserString(lineitem.getCustomerNr()); // 07 = Kunden-Nr I8
+            // Der Kunde muss in Collmex existieren. Referenz ausschliesslich über die Kundennummer
             // 08 Anrede C 10 Felder 8 - 27 ist die Kundenadresse. Nur für den
             // Export. Die Felder werden beim Import ignoriert.
             // 09 Titel C 10
@@ -1446,20 +1445,16 @@ public class AccountingServiceBean implements AccountingService {
             // 26 BIC C 20
             // 27 Bank C 20
             // 28 = USt.IdNr C 20
-            csv[29] = "0"; // Privatperson I8, 0 = keine Privatperson , 1 =
-            // Privatperson
+            csv[29] = "0"; // Privatperson I8, 0 = keine Privatperson , 1 = Privatperson
             if (invoiceDate == null) { // 30 // Rechnungsdatum
                 csv[30] = NLS.toUserString(lineitem.getLineitemDate());
             } else {
                 csv[30] = NLS.toUserString(invoiceDate);
             }
-            // D 8 Falls nicht angegeben, wird das aktuelle Datum gesetzt.
-            // 31 Preisdatum D 8 Falls nicht angegeben, wird das Rechnungsdatum
-            // gesetzt.
+            // D8 Falls nicht angegeben, wird das aktuelle Datum gesetzt.
+            // 31 Preisdatum D 8 Falls nicht angegeben, wird das Rechnungsdatum gesetzt.
             // csv[32] = "0"; // Zahlungsbedingung I 8 Als Zahl codiert, beginnend
-            // mit
-            // 0 für 30T ohne Abzug, wie im Programm unter
-            // "Einstellungen". Falls nicht angegeben, wird die
+            // mit 0 für 30T ohne Abzug, wie im Programm unter "Einstellungen". Falls nicht angegeben, wird die
             // Zahlungsbedingung vom Kunden übernommen.
             if (lineitem.isCollmexCredit()) {
                 csv[32] = "10"; // Bei Gutschrift keine Zahlungsbedingungen = 10
@@ -1474,7 +1469,7 @@ public class AccountingServiceBean implements AccountingService {
             // nicht angegeben, wird die Rabattgruppe vom Kunden übernommen.
             // 36 Schluss-Rabatt I 8 Schluss-Rabatt in Prozent.
             // 37 Rabattgrund C 255 Grund für den Rabatt.
-            // 38 Rechnungskoptext
+            // 38 Rechnungskopftext
 
             // csv[39] = COLLMEX_NULL; // 39 Schlusstext C 1024 Falls (NULL), wird
             // der Text aus den Standard-Textbausteinen ermittelt.
@@ -1482,7 +1477,8 @@ public class AccountingServiceBean implements AccountingService {
             csv[40] = "Position am " + NLS.toUserString(LocalDateTime.now())
                       + " exportiert"; // 40 Internes Memo C 1024
             csv[41] = "0"; // 41 Gelöscht I 8 0 = nicht gelöscht, 1 = gelöscht.
-            csv[42] = "0"; // 42 Sprache I 8 0 = Deutsch, 1 = Englisch.
+            csv[42] = lineitem.getOutputLanguage(); // 42 Sprache I 8,  0 = Deutsch, 1 = Englisch.
+
             // 43 Bearbeiter I 8 Mitarbeiternummer des Bearbeiters. Falls nicht
             // angegeben, wird der Bearbeiter automatisch bestimmt.
             // 44 Vermittler I 8 Mitarbeiter Nummer des Vermittlers für die
@@ -1564,22 +1560,11 @@ public class AccountingServiceBean implements AccountingService {
                 price = Amount.of(price.getAmount().multiply(BigDecimal.valueOf(-1)));
             }
             csv[74] = NLS.toUserString(price);
-            // Einzelpreis M 18 Falls nicht angegeben, wird / der
-            // Preis über das Produkt bestimmt.
+            // Einzelpreis M 18 Falls nicht angegeben, wird / der Preis über das Produkt bestimmt.
             csv[75] = NLS.toUserString(lineitem.getQuantity()); // Preismenge N 18
-            // Falls
-            // nicht angegeben, wird
-            // die Preismenge über
-            // das Produkt bestimmt
-            // bzw. auf 1 gesetzt.
-            csv[76] = NLS.toUserString(lineitem.getPositionDiscount());// 76
-            // Positionsrabatt
-            // M 18
-            // Positionsrabatt
-            // in
-            // Prozent
-            // mit
-            // zwei Nachkommastellen.
+            // Falls nicht angegeben, wird die Preismenge über das Produkt bestimmt bzw. auf 1 gesetzt.
+            csv[76] = NLS.toUserString(lineitem.getPositionDiscount());// 76 Positionsrabatt M 18
+            // Positionsrabatt in Prozent mit zwei Nachkommastellen.
             // 77 Positionswert M 18 Nur für Export. Beim Import wird der
             // Positionswert automatisch aus Preis und Rabatt berechnet.
             csv[78] = "0"; // 78 Produktart I 18 Wird beim Import nur verwendet,
@@ -1622,6 +1607,7 @@ public class AccountingServiceBean implements AccountingService {
             sum = lineitem.getPrice();
             sum = sum.decreasePercent(lineitem.getPositionDiscount());
             sum = sum.times (lineitem.getQuantity());
+            sum = round(sum,2);
             addToCounter(1);
             return sum;
         }
@@ -1942,7 +1928,9 @@ public class AccountingServiceBean implements AccountingService {
             sb.append(company.getAddress().getStreet() + ";");
             sb.append(company.getAddress().getZip() + ";");
             sb.append(company.getAddress().getCity() + ";");
-            sb.append(";0;DE;;;;;;;;;;;0 30 Tage ohne Abzug;0 ;;;0 Druck;;;;0 Standard;EUR;0;;;0;0;;0 Deutsch;;");
+            sb.append(";0;");
+            sb.append(company.getAddress().getCountry().toUpperCase());
+            sb.append(";;;;;;;;;;;0 30 Tage ohne Abzug;0 ;;;0 Druck;;;;0 Standard;EUR;0;;;0;0;;0 Deutsch;;");
 
             pw.println(sb.toString());
 

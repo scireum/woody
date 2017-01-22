@@ -42,15 +42,13 @@ import java.util.List;
 
 public class Offer extends BizEntity {
 
-    @Part
-    private static Tenants tenants;
 
     private static final int MIN_OFFER_NR = 20001;
 
     private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column COMPANY = Column.named("company");
 
-    @Unique
+    @Unique(within = "tenant")
     @Length(20)
     private String number;
     public static final Column NUMBER = Column.named("number");

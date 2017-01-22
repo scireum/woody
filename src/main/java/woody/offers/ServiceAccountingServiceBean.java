@@ -305,40 +305,53 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                         int ggg = 1;
                     }
                 }
-                // price
-                priceNettoSum = priceNettoSum.add(item.getPrice());
-                priceNettoSumBlock = priceNettoSumBlock.add(item.getPrice());
-                Amount vatItem = item.getPrice();
+                // singleprice
+                Amount vatItem = Amount.ZERO;
+                Amount bruttoPrice = Amount.ZERO;
+                if(item.isService()) {
+                    priceNettoSum = priceNettoSum.add(item.getPrice());
+                    priceNettoSumBlock = priceNettoSumBlock.add(item.getPrice());
+                    vatItem = item.getPrice();
+                    bruttoPrice = item.getPrice();
+                }
+                if(item.isLicense()) {
+                    Amount singlePrice = item.getSinglePrice();
+                    singlePrice = singlePrice.times(item.getQuantity());
+                    singlePrice = singlePrice.decreasePercent(item.getDiscount());
+                    item.setOfferSinglePrice(singlePrice);
+                    priceNettoSum = priceNettoSum.add(singlePrice);
+                    priceNettoSumBlock = priceNettoSumBlock.add(singlePrice);
+                    vatItem = singlePrice;
+                    bruttoPrice = singlePrice;
+                }
                 if(vatItem == null) {
                     vatItem = Amount.ZERO;
                 }
                 vatItem = vatItem.times(vatRate);
                 vatItem = vatItem.divideBy(Amount.ONE_HUNDRED);
                 priceVatSum = priceVatSum.add(vatItem);
-                Amount bruttoPrice = item.getPrice();
                 if(bruttoPrice == null) {
                     bruttoPrice = Amount.ZERO;
                 }
                 bruttoPrice = bruttoPrice.add(vatItem);
                 priceBruttoSum = priceBruttoSum.add(bruttoPrice);
-                //cyclicPrice
-                cyclicPriceNettoSum = cyclicPriceNettoSum.add(item.getCyclicPrice());
-                cyclicPriceNettoSumBlock = cyclicPriceNettoSumBlock.add(item.getCyclicPrice());
-                vatItem = item.getCyclicPrice();
-                if(vatItem != null) {
-                    vatItem = vatItem.times(vatRate);
-                    vatItem = vatItem.divideBy(Amount.ONE_HUNDRED);
-                } else {
-                    vatItem = Amount.ZERO;
-                }
-                cyclicPriceVatSum = cyclicPriceVatSum.add(vatItem);
-                bruttoPrice = item.getCyclicPrice();
-                if(bruttoPrice == null) {
-                    bruttoPrice = Amount.ZERO;
-                }
-                bruttoPrice = bruttoPrice.add(vatItem);
-                cyclicPriceBruttoSum = cyclicPriceBruttoSum.add(bruttoPrice);
 
+                //cyclicPrice
+                if(item.isLicense()) {
+                    cyclicPriceNettoSum = cyclicPriceNettoSum.add(item.getPrice());
+                    cyclicPriceNettoSumBlock = cyclicPriceNettoSumBlock.add(item.getPrice());
+                    vatItem = item.getPrice();
+                    if(vatItem != null) {
+                        vatItem = vatItem.times(vatRate);
+                        vatItem = vatItem.divideBy(Amount.ONE_HUNDRED);
+                    } else {
+                        vatItem = Amount.ZERO;
+                    }
+                    cyclicPriceVatSum = cyclicPriceVatSum.add(vatItem);
+                    bruttoPrice = item.getPrice();
+                    bruttoPrice = bruttoPrice.add(vatItem);
+                    cyclicPriceBruttoSum = cyclicPriceBruttoSum.add(bruttoPrice);
+                }
             }
             String termsOfPayment = "";
             if(cyclicPriceNettoSum.isNonZero())  {
