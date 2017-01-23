@@ -123,7 +123,7 @@ public class Person extends BizEntity {
         return contact;
     }
 
-    public AddressData getAddress() {
+    public InternationalAddressData getAddress() {
         return address;
     }
 
