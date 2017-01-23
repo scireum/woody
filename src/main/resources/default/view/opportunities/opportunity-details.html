@@ -68,24 +68,22 @@
         value:    NLS.toUserString(opportunity.getNextInteraction()),
         labelKey: "Opportunity.nextInteraction")
     </div>
-        <table>
-            <tr>
-                <td style="width:1cm">
-                    <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1d">+1d</a>
-                </td>
-                <td style="width:1cm">
-                    <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1w">+1w</a>
-                </td>
-                <td style="width:1cm">
-                    <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1m">+1m</a>
-                </td>
-                <td style="width:1cm">
-                    <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1y">+1y</a>
-                </td>
 
-            </tr>
-        </table>
-
+    <tr>
+        <td><b>Datum ändern</b></td>
+        <td style="border:1cm">
+            <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1d">&nbsp;&nbsp;+1d</a>
+        </td>
+        <td>
+            <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1w">&nbsp;&nbsp;+1w</a>
+        </td>
+        <td>
+            <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1m">&nbsp;&nbsp;+1m</a>
+        </td>
+        <td>
+            <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1y">&nbsp;&nbsp;+1y</a>
+        </td>
+    </tr>
 }
 
 @formBar() {

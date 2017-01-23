@@ -11,6 +11,7 @@ package woody.xrm;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.BizEntity;
 import sirius.biz.model.ContactData;
+import sirius.biz.model.InternationalAddressData;
 import sirius.biz.model.LoginData;
 import sirius.biz.model.PersonData;
 import sirius.biz.web.Autoloaded;
@@ -44,7 +45,7 @@ public class Person extends BizEntity {
     private LocalDate birthday;
     public static final Column BIRTHDAY = Column.named("birthday");
 
-    private final AddressData address = new AddressData(AddressData.Requirements.NONE, null);
+    private final InternationalAddressData address = new InternationalAddressData(AddressData.Requirements.NONE, null);
     public static final Column ADDRESS = Column.named("address");
 
     private final ContactData contact = new ContactData(true);
@@ -65,7 +66,7 @@ public class Person extends BizEntity {
     private final Commented comments = new Commented(this);
     public static final Column COMMENTS = Column.named("comments");
 
-    private final boolean offline = false;
+    private boolean offline = false;
     public static final Column OFFLINE = Column.named("offline");
 
     @BeforeSave

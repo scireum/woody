@@ -214,7 +214,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                         .set("company", lineitem.getCompanyName()).handle();
         }
         lineitem.setCustomerNr(customerNr);
-        lineitem.setMeasurement(offerItem.getAccountingUnit());
+        lineitem.setMeasurement(offerItem.getQuantityUnit());
         lineitem.setPackageName(offerItem.getPackageDefinition().getValue().getName());
         lineitem.setQuantity(offerItem.getQuantity());
         lineitem.setDescription(makeDescription(offerItem));
@@ -316,8 +316,15 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 }
                 if(item.isLicense()) {
                     Amount singlePrice = item.getSinglePrice();
+                    if(singlePrice == null) {
+                        singlePrice = Amount.ZERO;
+                    }
                     singlePrice = singlePrice.times(item.getQuantity());
-                    singlePrice = singlePrice.decreasePercent(item.getDiscount());
+                    Amount discount = Amount.ZERO;
+                    if(item.getDiscount() != null) {
+                        discount =  item.getDiscount();
+                    }
+                    singlePrice = singlePrice.decreasePercent(discount);
                     item.setOfferSinglePrice(singlePrice);
                     priceNettoSum = priceNettoSum.add(singlePrice);
                     priceNettoSumBlock = priceNettoSumBlock.add(singlePrice);
@@ -370,7 +377,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             }
             if(OfferItemType.LICENSE.equals(item.getOfferItemType())) {
                 offer.setLicenceItemPresent(true);
-                licenceItemCyclicUnit = item.getAccountingUnit();
+                licenceItemCyclicUnit = item.getQuantityUnit();
             }
 
         }
@@ -618,7 +625,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             newOfferitem.setPrice(o.getPrice());
             newOfferitem.setPriceBase(o.getPriceBase());
             newOfferitem.setQuantity(o.getQuantity());
-            newOfferitem.setAccountingUnit(o.getAccountingUnit());
+            newOfferitem.setQuantityUnit(o.getQuantityUnit());
             newOfferitem.setSinglePrice(o.getSinglePrice());
             newOfferitem.setText(o.getText());
             newOfferitem.setHistory(MessageFormat.format("*** kopiert von Angebot {0} ***",offer.getNumber()));

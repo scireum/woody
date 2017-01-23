@@ -104,8 +104,8 @@ public class OfferItem extends BizEntity {
     @Autoloaded
     @NullAllowed
     @Length(5)
-    private String accountingUnit;
-    public static final Column ACCOUNTINGUNIT = Column.named("accountingUnit");
+    private String quantityUnit;
+    public static final Column ACCOUNTINGUNIT = Column.named("quantityUnit");
 
 
     @Autoloaded
@@ -215,7 +215,7 @@ public class OfferItem extends BizEntity {
             keyword = "";
             state = OfferItemState.UNUSED;
             priceBase = "nicht benutzt";
-            accountingUnit = "";
+            quantityUnit = "";
             if (quantity!=null) {
                 throw Exceptions.createHandled().withNLSKey("OfferItem.infoTextNoQuatity").handle();
             }
@@ -232,14 +232,14 @@ public class OfferItem extends BizEntity {
                 keyword = "";
                 state = OfferItemState.UNUSED;
                 priceBase = "nicht benutzt";
-                accountingUnit = "";
+                quantityUnit = "";
                 if(Strings.isEmpty(text)) {
                     text = "Zwischensummen:";
                 }
             } else {
                 if (isLicense()) {
                     offerItemType = OfferItemType.LICENSE;
-                    accountingUnit = packageDefinition.getValue().getAccountingUnit();
+                    quantityUnit = packageDefinition.getValue().getAccountingUnit();
                     // set keyword and text with default-values from the packageDefinition  (CRM-64)
                     if(this.getKeyword()== null ) {
                         this.setKeyword(this.getPackageDefinition().getValue().getName());
@@ -358,14 +358,14 @@ public class OfferItem extends BizEntity {
                     }
                 }
                 // check te accountingUnit
-                if (Strings.isEmpty(accountingUnit)) {
+                if (Strings.isEmpty(quantityUnit)) {
                     if (ProductType.LICENSE.equals(packageDefinition.getValue().getProduct().getValue().getProductType())) {
-                        accountingUnit = packageDefinition.getValue().getAccountingUnit();
+                        quantityUnit = packageDefinition.getValue().getAccountingUnit();
                     }
                     if (ProductType.SERVICE.equals(packageDefinition.getValue().getProduct().getValue().getProductType())) {
-                        accountingUnit = "PT";
+                        quantityUnit = "PT";
                     }
-                    if (Strings.isEmpty(accountingUnit)) {
+                    if (Strings.isEmpty(quantityUnit)) {
                         throw Exceptions.createHandled().withNLSKey("OfferItem.quantityUnitMissing").handle();
                     }
                 }
@@ -482,7 +482,7 @@ public class OfferItem extends BizEntity {
         if(o.isInfoText() || o.isSum()) {
             // do nothing
         } else {
-            s = s+o.getPriceBase() + NLS.toUserString(o.getSinglePrice()) + NLS.toUserString(o.getQuantity()) + o.getAccountingUnit() +
+            s = s+o.getPriceBase() + NLS.toUserString(o.getSinglePrice()) + NLS.toUserString(o.getQuantity()) + o.getQuantityUnit() +
             o.getOffer().getValue().getUniqueName(); // getUnqiueObjectName();
             if(getDiscountPresent()) {
                 s = s + NLS.toUserString(discount.toString());
@@ -648,12 +648,12 @@ public class OfferItem extends BizEntity {
         this.quantity = quantity;
     }
 
-    public String getAccountingUnit() {
-        return accountingUnit;
+    public String getQuantityUnit() {
+        return quantityUnit;
     }
 
-    public void setAccountingUnit(String accountingUnit) {
-        this.accountingUnit = accountingUnit;
+    public void setQuantityUnit(String quantityUnit) {
+        this.quantityUnit = quantityUnit;
     }
 
     public Amount getSinglePrice() {
