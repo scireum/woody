@@ -33,8 +33,6 @@ import sirius.web.services.JSONStructuredOutput;
 import woody.core.relations.Relations;
 import woody.core.tags.Tagged;
 import woody.sales.contracts.AccountingService;
-import woody.sales.contracts.Contract;
-import woody.sales.contracts.Lineitem;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -68,12 +66,11 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/licenceAccounting")
     public void licenceAccounting(WebContext ctx) {
-        LocalDate referenceDate = LocalDate.of(2017, 1, 2);
-        boolean dryRun = false;
-        boolean foreignCountry = false;
-        DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
-                                                         /*TaskMonitor monitor,*/ foreignCountry);
-        int vvv = 1;
+//        LocalDate referenceDate = LocalDate.of(2017, 1, 2);
+//        boolean dryRun = true;
+//        DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
+//                                                         /*TaskMonitor monitor,*/ foreignCountry);
+//        int vvv = 1;
     }
 
     @DefaultRoute
@@ -206,25 +203,8 @@ public class XRMController extends BizController {
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/company/:1/contracts")
-    public void companyContracts(WebContext ctx, String companyId) {
-        Company company = findForTenant(Company.class, companyId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Contract> query = oma.select(Contract.class)
-                                        .eq(Contract.COMPANY, company)
-                                        .orderAsc(Contract.ACCOUNTINGGROUP)
-                                        .orderAsc(Contract.STARTDATE);
-
-        Tagged.applyTagSuggestions(Contract.class, search, query);
-        PageHelper<Contract> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/sales/company-contracts.html", company, ph.asPage(), search.getSuggestionsString());
-    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/persons")
+
     public void persons(WebContext ctx) {
         // ToDo: Wofür ist dieser Code?
         MagicSearch search = MagicSearch.parseSuggestions(ctx);
@@ -328,18 +308,5 @@ public class XRMController extends BizController {
             }
         }
         ctx.respondWith().template("view/xrm/person-css.html", person.getCompany().getValue(), person);
-    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/company/:1/contract/:2/delete")
-    public void deleteContract(WebContext ctx, String companyId, String contractId) {
-        Optional<Contract> contract = tryFind(Contract.class, contractId);
-        if (contract.isPresent()) {
-            assertTenant(contract.get().getCompany().getValue());
-            oma.delete(contract.get());
-            showDeletedMessage();
-        }
-        companyContracts(ctx, companyId);
     }
 }

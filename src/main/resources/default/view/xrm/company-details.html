@@ -47,10 +47,40 @@
     </div>
     @subHeading("Company.contact")
     <div class="row">
+<<<<<<< HEAD
         @textfield(span: "6", name: "contact_email", value: company.getContact().getEmail(), labelKey: "ContactData.email")
         @textfield(span: "6", name: "contact_fax", value: company.getContact().getFax(), labelKey: "ContactData.fax")
         @textfield(span: "6", name: "contact_phone", value: company.getContact().getPhone(), labelKey: "ContactData.phone")
         @textfield(span: "6", name: "contact_mobile", value: company.getContact().getMobile(), labelKey: "ContactData.mobile")
+=======
+        @textfield(span: "4", name: "postboxAddress_street", value: company.getPostboxAddress().getStreet(), labelKey: "PostboxAddressData.street")
+        @textfield(span: "2", name: "postboxAddress_zip", value: company.getPostboxAddress().getZip(), labelKey: "AddressData.zip")
+        @textfield(span: "3", name: "postboxAddress_city", value: company.getPostboxAddress().getCity(), labelKey: "AddressData.city")
+        @codelistSelect(span: "2", list: "countries", name: "postboxAddress_country",
+          value: company.getPostboxAddress().getCountry(), labelKey: "AddressData.country", optional: true)
+    </div>
+    <div class="row">
+        @codelistSelect(span: "6", list: "invoicemedium", name: "companyAccountingData_invoiceMedium", value: company.getCompanyAccountingData().getInvoiceMedium(), labelKey: "Company.invoiceMedium")
+        @textfield(span: "6", name: "companyAccountingData_invoiceMailAdr", value: company.getCompanyAccountingData().getInvoiceMailAdr(), labelKey: "Company.invoiceMailAdr")
+    </div>
+    <div class="row">
+        @textfield(span: "4", name: "companyAccountingData_invoiceAddress_street", value: company.getCompanyAccountingData().getInvoiceAddress().getStreet(), labelKey: "AddressData.street")
+        @textfield(span: "2", name: "companyAccountingData_invoiceAddress_zip", value: company.getCompanyAccountingData().getInvoiceAddress().getZip(), labelKey: "AddressData.zip")
+        @textfield(span: "3", name: "companyAccountingData_invoiceAddress_city", value: company.getCompanyAccountingData().getInvoiceAddress().getCity(), labelKey: "AddressData.city")
+        @codelistSelect(span: "2", list: "countries", name: "companyAccountingData_invoiceAddress_country",
+          value: company.getCompanyAccountingData().getInvoiceAddress().getCountry(), labelKey: "AddressData.country", optional: true)
+        @codelistSelect(span: "2", list: "outputLanguage", name: "CompanyAccountingData_outputLanguage",
+        value: company.getCompanyAccountingData().getOutputLanguage(), labelKey: "CompanyAccountingData.outputLanguage", optional: false)
+    </div>
+
+    <div class="row">
+        @textfield(span: "6", name: "homepage", value: company.getHomepage(), labelKey: "Company.homepage")
+        @textfield(span: "6", name: "image", value: company.getImage(), labelKey: "Company.image")
+    </div>
+    <div class="row">
+        @textfield(span: "6", name: "mainPhoneNr", value: company.getMainPhoneNr(), labelKey: "Company.mainPhoneNr")
+        @textfield(span: "6", name: "mainMailAddress", value: company.getMainMailAddress(), labelKey: "Company.mainMailAdr")
+>>>>>>> gha/woody
     </div>
     <div class="row">
         @autocompleteMultiSelect(span: "12", name: "tags", labelKey: "Tag.plural", serviceUri: "tags/COMPANY/autocomplete", optional: true) {
@@ -59,7 +89,6 @@
             }
          }
     </div>
-
 }
 
 @formBar() {

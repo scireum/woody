@@ -102,6 +102,9 @@ public class Person extends BizEntity implements HasComments, HasRelations {
         return code;
     }
 
+    private boolean offline = false;
+    public static final Column OFFLINE = Column.named("offline");
+
     @BeforeSave
     protected void onSave() {
         if (Strings.isEmpty(uniquePath) && company.isFilled()) {
@@ -166,6 +169,7 @@ public class Person extends BizEntity implements HasComments, HasRelations {
         return tags;
     }
 
+    @Override
     public Commented getComments() {
         return comments;
     }
@@ -182,6 +186,7 @@ public class Person extends BizEntity implements HasComments, HasRelations {
         this.birthday = birthday;
     }
 
+    @Override
     public Relations getRelations() {
         return relations;
     }

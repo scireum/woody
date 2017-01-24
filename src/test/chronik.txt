@@ -9,3 +9,5 @@ Anmeldung: gha
             - Codeliste accountingUnit erstellt und Klasse AccountingUnit gelöscht
 
 09.01.2017  - Konsistenter Stand mit Company, Person, Contract, Offer, Product, PackageDefinition comitted
+16.01.2017  - Änderungen aus CRM-63,64, 65 und 67 übernommen.
+22.01.2017  - Konsistenter Stand für Opportunity + Änderungen vom 16.1.2017 comitted

@@ -48,8 +48,13 @@ public class CompanyAccountingData extends Composite {
     @NullAllowed
     @Numeric(scale = 3, precision = 15)
     private Amount ptPrice;
-
     public static final Column PTPRICE = Column.named("ptPrice");
+
+    @Autoloaded
+    @Length(1)
+    private String outputLanguage = "0";
+    public static final Column OUTPUTLANGUAGE = Column.named("outputLanguage");
+
 
     public InternationalAddressData getInvoiceAddress() {
         return invoiceAddress;
@@ -77,5 +82,13 @@ public class CompanyAccountingData extends Composite {
 
     public void setPtPrice(Amount ptPrice) {
         this.ptPrice = ptPrice;
+    }
+
+    public String getOutputLanguage() {
+        return outputLanguage;
+    }
+
+    public void setOutputLanguage(String outputLanguage) {
+        this.outputLanguage = outputLanguage;
     }
 }

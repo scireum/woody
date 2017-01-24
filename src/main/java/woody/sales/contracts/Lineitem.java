@@ -125,6 +125,32 @@ public class Lineitem extends BizEntity {
     private String description;
     public static final Column DESCRIPTION = Column.named("description");
 
+    @Length(1)
+    private String outputLanguage = "0";
+    public static final Column OUTPUTLANGUAGE = Column.named("outputLanguage");
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        asString(sb);
+        return sb.toString();
+    }
+
+    protected void asString(StringBuilder sb) {
+        sb.append(lineitemType == null ? LINEITEMTYPE_LA : lineitemType);
+        sb.append("/");
+        sb.append(NLS.toUserString(getLineitemDate()));
+        sb.append(":");
+        sb.append(companyName);
+    }
+
+    public String getOutputLanguage() {
+        return outputLanguage;
+    }
+
+    public void setOutputLanguage(String outputLanguage) {
+        this.outputLanguage = outputLanguage;
+    }
+
     public LocalDate getLineitemDate() {
         return lineitemDate;
     }
@@ -285,12 +311,5 @@ public class Lineitem extends BizEntity {
         this.lineitemType = lineitemType;
     }
 
-    protected void asString(StringBuilder sb) {
-        sb.append(lineitemType == null ? LINEITEMTYPE_LA : lineitemType);
-        sb.append("/");
-        sb.append(NLS.toUserString(getLineitemDate()));
-        sb.append(":");
-        sb.append(companyName);
-    }
 
 }

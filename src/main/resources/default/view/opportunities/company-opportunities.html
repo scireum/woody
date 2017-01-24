@@ -1,0 +1,87 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.xrm.Company
+@import woody.xrm.Person
+@import woody.opportunities.Opportunity
+@import woody.opportunities.OpportunityState
+@args Company company, Page opportunities, String suggestions
+@extends(view.xrm.company.html, company, "opportunities")
+
+@section(breadcrumbs) {
+
+    <li><a href="/companies">@i18n("Company.plural")</a></li>
+    <li><a href="/company/@company.getId()">@company.getName()</a></li>
+    <li><a href="/company/@company.getId()/opportunities">@i18n("Opportunity.plural")</a></li>
+}
+
+@magicsearch(opportunities, ("company/" + company.getId() + "/opportunities"), "opportunities/suggest", suggestions) {
+    <a class="btn btn-primary" href="/company/@company.getId()/opportunity/new">@i18n("Model.create")</a>
+}
+
+@table(opportunities) {
+    <thead>
+        <tr>
+            <th>
+                @i18n("Opportunity.source")
+            </th>
+            <th>
+                @i18n("Opportunity.state")
+            </th>
+            <th>
+                @i18n("Opportunity.product")
+            </th>
+            <th>
+                @i18n("Opportunity.employee")
+            </th>
+            <th>
+                @i18n("Opportunity.person")
+            </th>
+            <th>
+                @i18n("Opportunity.nextInteraction")
+            </th>
+            <th />
+        </tr>
+    </thead>
+    <tbody>
+        @for(Opportunity opportunity : opportunities.getItems()) {
+        <tr>
+            <td>
+                <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()">@opportunity.getSource()</a>
+            </td>
+            <td>
+                @if(opportunity.getState() == null) {---} else {@opportunity.getState().toString()}
+            </td>
+            <td>
+                @opportunity.getProduct().getValue().getName()
+            </td>
+            <td>
+                @opportunity.getUseraccount().getValue()
+            </td>
+            <td>
+                @if(opportunity.getPerson() == null) {***} else {@opportunity.getPerson().getValue().toString()}
+            </td>
+
+           <td>
+                @NLS.toUserString(opportunity.getNextInteraction() )
+            </td>
+
+            <td class="col-md-2 align-center">
+                @if( opportunity.getState().equals(OpportunityState.ACCEPTED) ) {} else
+                    {<a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/stateIO">IO</a>}
+                @if( opportunity.getState().equals(OpportunityState.REJECTED) ) {} else
+                    {<a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/stateNIO">NIO</a>}
+                @if( opportunity.getState().equals(OpportunityState.CLOSED) ) {} else
+                    {<a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/stateCLOSE">CLOSE</a>}
+                @deleteLink(("company/"+company.getId() + "/opportunity/" + opportunity.getId() + "/delete?" + opportunities.createQueryString()))
+            </td>
+        </tr>
+    }
+    </tbody>
+}
+
+@pagination(opportunities, "opportunities")
