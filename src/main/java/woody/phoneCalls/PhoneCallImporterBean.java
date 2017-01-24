@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Register(name = "fetchPhoneCalls", classes = {PhoneCallImporter.class, EveryMinute.class, Command.class})
+@Register(name = "fetchPhoneCalls", classes = {PhoneCallImporter.class, /*EveryMinute.class,*/ Command.class})
 public class PhoneCallImporterBean implements EveryMinute, Command {
     /**
      * <code>

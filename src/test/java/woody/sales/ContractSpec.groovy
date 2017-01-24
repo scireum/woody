@@ -14,6 +14,8 @@ import sirius.db.mixing.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.commons.Amount
 import sirius.kernel.di.std.Part
+import woody.sales.contracts.AccountingIntervalType
+import woody.sales.contracts.Contract
 import woody.xrm.Company
 import woody.xrm.Person
 

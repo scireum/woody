@@ -11,7 +11,6 @@ package woody.xrm;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.PersonData;
-import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
 import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
@@ -31,10 +30,11 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import sirius.web.services.JSONStructuredOutput;
+import woody.core.relations.Relations;
 import woody.core.tags.Tagged;
-import woody.sales.AccountingService;
-import woody.sales.Contract;
-import woody.sales.Lineitem;
+import woody.sales.contracts.AccountingService;
+import woody.sales.contracts.Contract;
+import woody.sales.contracts.Lineitem;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -89,6 +89,7 @@ public class XRMController extends BizController {
                             Company.CUSTOMER_NUMBER,
                             Company.MATCHCODE);
         Tagged.applyTagSuggestions(Company.class, search, query);
+        Relations.applySuggestions(Company.class, search, query);
         PageHelper<Company> ph = PageHelper.withQuery(query).forCurrentTenant();
         ph.withContext(ctx);
         ctx.respondWith().template("view/xrm/companies.html", ph.asPage(), search.getSuggestionsString());
@@ -98,7 +99,10 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed(value = "/companies/suggest", jsonCall = true)
     public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
-        MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Company.class, q, c));
+        MagicSearch.generateSuggestions(ctx, (q, c) -> {
+            Tagged.computeSuggestions(Company.class, q, c);
+            Relations.computeSuggestions(Company.class, q, c);
+        });
     }
 
     @LoginRequired
@@ -137,6 +141,18 @@ public class XRMController extends BizController {
     @Routed("/company/:1")
     public void company(WebContext ctx, String companyId) {
         Company cl = findForTenant(Company.class, companyId);
+        if (cl.isNew()) {
+            ctx.respondWith().template("view/xrm/company-details.html", cl);
+        } else {
+            ctx.respondWith().template("view/xrm/company-overview.html", cl);
+        }
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/edit")
+    public void editCompany(WebContext ctx, String companyId) {
+        Company cl = findForTenant(Company.class, companyId);
         if (ctx.isPOST()) {
             try {
                 boolean wasNew = cl.isNew();
@@ -156,21 +172,6 @@ public class XRMController extends BizController {
             }
         }
         ctx.respondWith().template("view/xrm/company-details.html", cl);
-    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/company/:1/postComment")
-    public void postComment(WebContext ctx, String companyId) {
-        Company company = findForTenant(Company.class, companyId);
-        assertNotNew(company);
-        company.getComments()
-               .addComment(getUser().getUserObject(UserAccount.class).getPerson().toString(),
-                           getUser().getUserId(),
-                           ctx.get("comment").asString(),
-                           ctx.get("publicVisible").asBoolean());
-
-        ctx.respondWith().template("view/xrm/company-details.html", company);
     }
 
     @LoginRequired
@@ -233,9 +234,10 @@ public class XRMController extends BizController {
                                               Person.PERSON.inner(PersonData.TITLE),
                                               Person.PERSON.inner(PersonData.FIRSTNAME),
                                               Person.PERSON.inner(PersonData.LASTNAME),
+                                              Person.COMPANY.join(Company.ID),
                                               Person.COMPANY.join(Company.CUSTOMER_NUMBER),
                                               Person.COMPANY.join(Company.NAME))
-                                      .eq(Person.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
+                                      .eq(Person.COMPANY.join(Company.TENANT), currentTenant())
                                       .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                                       .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME));
         search.applyQueries(query,
@@ -269,6 +271,18 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/person/:2")
     public void person(WebContext ctx, String companyId, String personId) {
+        Company company = findForTenant(Company.class, companyId);
+        Person person = find(Person.class, personId);
+        assertNotNew(company);
+        setOrVerify(person, person.getCompany(), company);
+
+        ctx.respondWith().template("view/xrm/person-overview.html", company, person);
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/person/:2/edit")
+    public void editPerson(WebContext ctx, String companyId, String personId) {
         Company company = findForTenant(Company.class, companyId);
         Person person = find(Person.class, personId);
         assertNotNew(company);
@@ -314,23 +328,6 @@ public class XRMController extends BizController {
             }
         }
         ctx.respondWith().template("view/xrm/person-css.html", person.getCompany().getValue(), person);
-    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/company/:1/person/:2/postComment")
-    public void postPersonComment(WebContext ctx, String companyId, String personId) {
-        Person person = find(Person.class, personId);
-        assertNotNew(person);
-        assertTenant(person.getCompany().getValue());
-
-        person.getComments()
-              .addComment(getUser().getUserObject(UserAccount.class).getPerson().toString(),
-                          getUser().getUserId(),
-                          ctx.get("comment").asString(),
-                          ctx.get("publicVisible").asBoolean());
-
-        ctx.respondWith().template("view/xrm/person-details.html", person.getCompany().getValue(), person);
     }
 
     @LoginRequired

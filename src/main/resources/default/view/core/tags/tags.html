@@ -24,6 +24,9 @@
                 <th>
                     @i18n("Tag.targetType")
                 </th>
+                <th>
+                    @i18n("Tag.viewInList")
+                </th>
                 <th />
             </tr>
             </thead>
@@ -35,6 +38,9 @@
                     </td>
                     <td>
                         @controller.translateType(t.getTargetType())
+                    </td>
+                    <td>
+                        @NLS.toUserString(t.isViewInList())
                     </td>
                     <td class="col-md-2 align-center">
                         @deleteLink(("tag/" + t.getId() + "/delete?" + tags.createQueryString()))

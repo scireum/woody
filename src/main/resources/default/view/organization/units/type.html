@@ -1,0 +1,29 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@args woody.core.units.UnitType type
+@extends(view.wondergem.template.html, title: NLS.get("UnitType"))
+@section(breadcrumbs) {
+    <li>
+        <a href="/units/types">@i18n("UnitType.plural")</a>
+    </li>
+    <li>
+        <a href="/units/type/@type.getId()">@i18n("UnitType")</a>
+    </li>
+}
+
+@pageHeader("UnitType")
+
+@editForm(("units/type/" + type.getIdAsString())) {
+<div class="row">
+    @textfield(span: "6", name: "name", value: type.getName(), labelKey: "Model.name", required: true)
+</div>
+}
+
+@formBar() {
+    <a href="/units/types" class="btn">@i18n("NLS.back")</a>
+}

@@ -1,0 +1,4 @@
+@args woody.core.relations.Relations relations
+@for(sirius.kernel.commons.ComparableTuple relation : relations.getListRelations()) {
+    <a href="@relation.getSecond()" target="_blank">@relation.getFirst()</a>
+}

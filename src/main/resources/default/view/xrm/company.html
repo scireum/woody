@@ -36,12 +36,16 @@
 
 
                 <li class="nav-header"></li>
+                <li @if(page == "overview") { class="active" }>
+                    <a href="/company/@company.getId()" class="link">
+                        <i class="icon-users"></i>@i18n("Model.overview")
+                    </a>
+                </li>
                 <li @if(page == "details") { class="active" }>
-                    <a href="@prefix/company/@company.getId()" class="link">
+                    <a href="/company/@company.getId()/edit" class="link">
                         <i class="icon-users"></i>@i18n("Model.details")
                     </a>
                 </li>
-
                 <li @if(page == "persons") { class="active" }>
                     <a href="@prefix/company/@company.getId()/persons" class="link">
                         <i class="icon-users"></i>@i18n("Person.plural")
@@ -60,7 +64,7 @@
                 </li>
             }
 
-            <a href="@prefix/company/@company.getId()" class="btn btn-block">@i18n("NLS.back")</a>
+            <a href="/companies" class="btn btn-block">@i18n("NLS.back")</a>
         </div>
     }
     <div class="@if (company.isNew()) { col-md-12 } else { col-md-9 }">

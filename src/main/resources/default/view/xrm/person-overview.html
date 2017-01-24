@@ -1,0 +1,51 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.xrm.Company
+@import woody.xrm.Person
+@args Company company, Person person
+@extends(view.xrm.person.html, company, person, "overview")
+
+
+<div class="row">
+    <div class="col-md-6">
+        @subHeading("Comment.plural")
+        <a name="comments"></a>
+        <form action="/person/@company.getId()/postComment" method="post" id="commentForm">
+            <textarea name="comment" rows="3">
+
+            </textarea>
+            <button type="submit" value="Senden">Add</button>
+        </form>
+
+        @for(woody.core.comments.Comment comment : person.getComments().getAllComments()) {
+            <div class="comment">
+                @comment.getPersonName()<br>
+                @comment.getTod()<br>
+                @comment.getTextContent()
+            </div>
+        }
+    </div>
+    <div class="col-md-6">
+        @subHeading("Relation.plural")
+        @for(woody.core.relations.Relation relation : person.getRelations().getRelations()) {
+            <div class="relation">
+                <div style="float:left"><span class="badge">@relation.getType().getValue().getName()</span></div>
+                <div style="float:right">@company.getRelations().getTargetName(relation)</div>
+                <div class="clearfix">
+                    <i>@relation.getDescription()</i>
+                </div>
+            </div>
+        }
+        <form action="/person/@person.getId()/addRelation" method="post" id="relationForm">
+            @autocompleteSingleSelect(span: "12", name: "relation", serviceUri: "relations/PERSON/autocomplete")
+            <button type="submit" value="Senden">Add</button>
+        </form>
+    </div>
+</div>
+
+

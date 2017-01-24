@@ -17,30 +17,19 @@
 }
 
 @magicsearch(persons, ("company/" + company.getId() + "/persons"), "persons/suggest", suggestions) {
-    <a class="btn btn-primary" href="/company/@company.getId()/person/new">@i18n("Model.create")</a>
+    <a class="btn btn-primary" href="/company/@company.getId()/person/edit/new">@i18n("Model.create")</a>
 }
 
 @table(persons) {
     <thead>
         <tr>
             <th>
-                @i18n("PersonData.lastname")<br>
-                <span class="muted">@i18n("PersonData.firstname")</span>
+                @i18n("Model.name")
             </th>
             <th>
-                @i18n("ContactData.phone")
+                @i18n("Tag.plural")<br>
+                <span class="muted">@i18n("Relation.plural")</span>
             </th>
-            <th>
-                @i18n("ContactData.email")
-            </th>
-            <th>
-                @i18n("ContactData.mobile")
-            </th>
-
-            <th>
-                @i18n("Person.offline")
-            </th>
-
             <th />
         </tr>
     </thead>
@@ -52,20 +41,16 @@
                 <span class="muted">@person.getPerson().getFirstname()</span>
             </td>
             <td>
-                @person.getContact().getPhone()
+                @for(woody.core.tags.Tag t : person.getTags().getTags()) {
+                    @if (t.isViewInList()) {
+                        <span class="badge">@t.getName()</span>
+                    }
+                }
+                <br>
+                @for(String relation : person.getRelations().getListRelations()) {
+                    <span class="badge">@relation</span>
+                }
             </td>
-            <td>
-                @person.getContact().getEmail()
-            </td>
-            <td>
-                @person.getContact().getMobile()
-            </td>
-            <td>
-                @checkbox(span: "4", name: "offline",
-                value: person.isOffline(),
-                labelKey: "Person.offline")
-            </td>
-
             <td class="col-md-2 align-center">
                 @deleteLink(("company/" + company.getId() + "/person/" + person.getId() + "/delete?" + persons.createQueryString()))
             </td>

@@ -11,50 +11,46 @@
 @extends(view.xrm.company.html, company, "details")
 
 
-@editForm(("company/" + company.getIdAsString())) {
+@editForm(("company/" + company.getIdAsString() + "/edit")) {
     <div class="row">
         @textfield(name: "name", value: company.getName(), labelKey: "Company.name", required: true)
-        @textfield(name: "name2",value: company.getName2(), labelKey: "Company.name2")
+        @textfield(span: "3", name: "customerNumber", value: company.getCustomerNumber(), labelKey: "Company.customerNumber")
+        @textfield(span: "3", name: "matchcode", value:    company.getMatchcode(), labelKey: "Company.matchcode")
     </div>
 
     <div class="row">
-        @textfield(span: "6", name: "customerNumber", value: company.getCustomerNumber(), labelKey: "Company.customerNumber")
-        @textfield(span: "6", name: "matchcode", value:    company.getMatchcode(), labelKey: "Company.matchcode")
+        @textfield(span: "6", name: "name2",value: company.getName2(), labelKey: "Company.name2")
+        @textfield(span: "6", name: "website", value: company.getWebsite(), labelKey: "Company.website")
     </div>
 
     <div class="row">
-        @textfield(span: "4", name: "address_street", value: company.getAddress().getStreet(), labelKey: "AddressData.street")
-        @textfield(span: "2", name: "address_zip", value: company.getAddress().getZip(), labelKey: "AddressData.zip")
-        @textfield(span: "3", name: "address_city", value: company.getAddress().getCity(), labelKey: "AddressData.city")
-        @codelistSelect(span: "2", list: "countries", name: "address_country",
-          value: company.getAddress().getCountry(), labelKey: "AddressData.country", optional: true)
+        <div class="col-md-6">
+            @subHeading("Company.address")
+            <div class="row">
+                @textfield(span: "12", name: "address_street", value: company.getAddress().getStreet(), labelKey: "AddressData.street")
+                @textfield(span: "4", name: "address_zip", value: company.getAddress().getZip(), labelKey: "AddressData.zip")
+                @textfield(span: "8", name: "address_city", value: company.getAddress().getCity(), labelKey: "AddressData.city")
+                @codelistSelect(span: "12", list: "countries", name: "address_country",
+                    value: company.getAddress().getCountry(), labelKey: "AddressData.country", optional: true)
+            </div>
+        </div>
+        <div class="col-md-6">
+            @subHeading("Company.postboxAddress")
+            <div class="row">
+                @textfield(span: "12", name: "postboxAddress_street", value: company.getPostboxAddress().getStreet(), labelKey: "PostboxAddressData.street")
+                @textfield(span: "4", name: "postboxAddress_zip", value: company.getPostboxAddress().getZip(), labelKey: "AddressData.zip")
+                @textfield(span: "8", name: "postboxAddress_city", value: company.getPostboxAddress().getCity(), labelKey: "AddressData.city")
+                @codelistSelect(span: "12", list: "countries", name: "postboxAddress_country",
+                  value: company.getPostboxAddress().getCountry(), labelKey: "AddressData.country", optional: true)
+            </div>
+        </div>
     </div>
+    @subHeading("Company.contact")
     <div class="row">
-        @textfield(span: "4", name: "postboxAddress_street", value: company.getPostboxAddress().getStreet(), labelKey: "PostboxAddressData.street")
-        @textfield(span: "2", name: "postboxAddress_zip", value: company.getPostboxAddress().getZip(), labelKey: "AddressData.zip")
-        @textfield(span: "3", name: "postboxAddress_city", value: company.getPostboxAddress().getCity(), labelKey: "AddressData.city")
-        @codelistSelect(span: "2", list: "countries", name: "postboxAddress_country",
-          value: company.getPostboxAddress().getCountry(), labelKey: "AddressData.country", optional: true)
-    </div>
-    <div class="row">
-        @codelistSelect(span: "6", list: "invoicemedium", name: "companyAccountingData_invoiceMedium", value: company.getCompanyAccountingData().getInvoiceMedium(), labelKey: "Company.invoiceMedium")
-        @textfield(span: "6", name: "companyAccountingData_invoiceMailAdr", value: company.getCompanyAccountingData().getInvoiceMailAdr(), labelKey: "Company.invoiceMailAdr")
-    </div>
-    <div class="row">
-        @textfield(span: "4", name: "companyAccountingData_invoiceAddress_street", value: company.getCompanyAccountingData().getInvoiceAddress().getStreet(), labelKey: "AddressData.street")
-        @textfield(span: "2", name: "companyAccountingData_invoiceAddress_zip", value: company.getCompanyAccountingData().getInvoiceAddress().getZip(), labelKey: "AddressData.zip")
-        @textfield(span: "3", name: "companyAccountingData_invoiceAddress_city", value: company.getCompanyAccountingData().getInvoiceAddress().getCity(), labelKey: "AddressData.city")
-        @codelistSelect(span: "2", list: "countries", name: "companyAccountingData_invoiceAddress_country",
-          value: company.getCompanyAccountingData().getInvoiceAddress().getCountry(), labelKey: "AddressData.country", optional: true)
-    </div>
-
-    <div class="row">
-        @textfield(span: "6", name: "homepage", value: company.getHomepage(), labelKey: "Company.homepage")
-        @textfield(span: "6", name: "image", value: company.getImage(), labelKey: "Company.image")
-    </div>
-    <div class="row">
-        @textfield(span: "6", name: "mainPhoneNr", value: company.getMainPhoneNr(), labelKey: "Company.mainPhoneNr")
-        @textfield(span: "6", name: "mainMailAddress", value: company.getMainMailAddress(), labelKey: "Company.mainMailAdr")
+        @textfield(span: "6", name: "contact_email", value: company.getContact().getEmail(), labelKey: "ContactData.email")
+        @textfield(span: "6", name: "contact_fax", value: company.getContact().getFax(), labelKey: "ContactData.fax")
+        @textfield(span: "6", name: "contact_phone", value: company.getContact().getPhone(), labelKey: "ContactData.phone")
+        @textfield(span: "6", name: "contact_mobile", value: company.getContact().getMobile(), labelKey: "ContactData.mobile")
     </div>
     <div class="row">
         @autocompleteMultiSelect(span: "12", name: "tags", labelKey: "Tag.plural", serviceUri: "tags/COMPANY/autocomplete", optional: true) {
@@ -68,20 +64,5 @@
 
 @formBar() {
     @tracing(company.getTrace())
-}
-
-<form action="/company/@company.getId()/postComment" method="post" id="commentForm">
-    <textarea name="comment" rows="3">
-
-    </textarea>
-    <button type="submit" value="Senden"></button>
-</form>
-
-@for(woody.core.comments.Comment comment : company.getComments().getAllComments()) {
-    <div class="comment">
-        @comment.getPersonName()<br>
-        @comment.getTod()<br>
-        @comment.getTextContent()
-    </div>
 }
 

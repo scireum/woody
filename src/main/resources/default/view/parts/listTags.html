@@ -1,0 +1,6 @@
+@args woody.core.tags.Tagged tags
+@for(woody.core.tags.Tag t : tags.getTags()) {
+    @if (t.isViewInList()) {
+        <span class="badge">@t.getName()</span>
+    }
+}

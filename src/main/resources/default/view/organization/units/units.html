@@ -1,0 +1,66 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+@import woody.core.units.Unit
+@args Page units, String suggestions
+@extends(view.wondergem.template.html, title: NLS.get("Unit.plural"))
+
+@section(breadcrumbs) {
+    <li><a href="/units">@i18n("Unit.plural")</a></li>
+}
+
+@pageHeader("Unit.plural")
+
+@magicsearch(units, "units", "units/suggest", suggestions) {
+<a class="btn btn-primary" href="/unit/new">@i18n("Model.create")</a>
+}
+
+@table(units) {
+    <thead>
+        <tr>
+            <th>
+                @i18n("Model.name") <span class="muted">(@i18n("Unit.code"))</span><br>
+                <span class="muted">@i18n("Model.type")</span>
+            </th>
+            <th>
+                @i18n("Unit.parent")<br>
+                <span class="muted">@i18n("Model.type")</span>
+            </th>
+            <th>
+                @i18n("Tag.plural")<br>
+                <span class="muted">@i18n("Relation.plural")</span>
+            </th>
+            <th />
+        </tr>
+    </thead>
+    <tbody>
+    @for(Unit unit : units.getItems()) {
+        <tr>
+            <td>
+                <a class="link" href="/unit/@unit.getId()">@unit.getName()</a>@if (Strings.isFilled(unit.getCode())) { <span class="muted">(@unit.getCode())</span>}<br>
+                <span class="muted"><small>@unit.getType().getValue().getName()</small></span>
+            </td>
+            <td>
+                @if (unit.getParent().isFilled()) {
+                    @unit.getParent().getValue().getName()<br>
+                    <span class="muted">@unit.getParent().getValue().getType().getValue().getName()</span>
+                }
+            </td>
+            <td>
+                @listTags(unit.getTags())
+                <br>
+                @listRelations(unit.getRelations())
+            </td>
+            <td class="col-md-2 align-center">
+                @deleteLink(("unit/" + unit.getId() + "/delete?" + units.createQueryString()))
+            </td>
+        </tr>
+    }
+    </tbody>
+}
+
+@pagination(units, "units")

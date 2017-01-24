@@ -28,10 +28,21 @@
                 <li>
                     @company.getName()
                 </li>
+                <li>
+                    <a href="mailto:@person.getContact().getEmail()">@person.getContact().getEmail()</a>
+                </li>
+                <li>
+                    @person.getContact().getPhone()
+                </li>
 
                 <li class="nav-header"></li>
-                <li @if(page == "details") { class="active" }>
+                <li @if(page == "overview") { class="active" }>
                     <a href="/company/@company.getId()/person/@person.getId()" class="link">
+                        <i class="icon-users"></i>@i18n("Model.overview")
+                    </a>
+                </li>
+                <li @if(page == "details") { class="active" }>
+                    <a href="/company/@company.getId()/person/@person.getId()/edit" class="link">
                         <i class="icon-users"></i>@i18n("Model.details")
                     </a>
                 </li>

@@ -11,7 +11,7 @@
 @extends(view.xrm.person.html, company, person, "details")
 
 
-@editForm(("company/" + company.getIdAsString() + "/person/" + person.getIdAsString())) {
+@editForm(("company/" + company.getIdAsString() + "/person/" + person.getIdAsString() + "/edit")) {
     <div class="row">
         @codelistSelect(span: "2", list: "salutations", name: "person_salutation", value: person.getPerson().getSalutation(), labelKey: "PersonData.salutation")
         @textfield(span: "2", name: "person_title", value: person.getPerson().getTitle(), labelKey: "PersonData.title")
@@ -19,9 +19,7 @@
         @textfield(span: "3", name: "person_firstname", value: person.getPerson().getFirstname(), labelKey: "PersonData.firstname")
     </div>
     <div class="row">
-        @checkbox(span: "2", name: "offline", value: person.isOffline(),labelKey: "Person.offline")
         @textfield(span: "2", name: "birthday", value: person.getBirthday(), labelKey: "Person.birthday")
-        @textfield(span: "4", name: "position", value: person.getPosition(), labelKey: "Person.position")
     </div>
 
     <div class="row">

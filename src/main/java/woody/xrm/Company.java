@@ -8,6 +8,7 @@
 
 package woody.xrm;
 
+import com.google.common.base.Strings;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.InternationalAddressData;
@@ -21,12 +22,16 @@ import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.nls.NLS;
 import woody.core.comments.Commented;
+import woody.core.comments.HasComments;
+import woody.core.relations.HasRelations;
+import woody.core.relations.Relateable;
+import woody.core.relations.Relations;
 import woody.core.tags.Tagged;
 
 /**
  * Created by aha on 06.10.15.
  */
-public class Company extends TenantAware {
+public class Company extends TenantAware implements HasComments, HasRelations {
 
     @Trim
     @Autoloaded
@@ -74,16 +79,22 @@ public class Company extends TenantAware {
     private final InternationalAddressData postboxAddress =
             new InternationalAddressData(InternationalAddressData.Requirements.NOT_PARTIAL,
                                          NLS.get("Company.postboxAddress"));
-    public static final Column POSTBOXADDRESS = Column.named("postboxAddress");
+    public static final Column POSTBOX_ADDRESS = Column.named("postboxAddress");
 
-    private final ContactData contactData = new ContactData(true);
-    public static final Column CONTACT_DATA = Column.named("contactData");
+    private final ContactData contact = new ContactData(true);
+    public static final Column CONTACT = Column.named("contact");
 
     private final Tagged tags = new Tagged(this);
     public static final Column TAGS = Column.named("tags");
 
     private final Commented comments = new Commented(this);
     public static final Column COMMENTS = Column.named("comments");
+
+    public static final Column RELATIONS = Column.named("relations");
+    private final Relations relations = new Relations(this);
+
+    public static final Column RELATEABLE = Column.named("relateable");
+    private Relateable relateable = new Relateable(this);
 
     @Override
     public String toString() {
@@ -92,6 +103,11 @@ public class Company extends TenantAware {
         } else {
             return super.toString();
         }
+    }
+
+    public String getUniquePath() {
+        //TODO unify...
+        return Strings.padStart(Long.toString(id, 36), 6, '0');
     }
 
     @BeforeSave
@@ -206,7 +222,19 @@ public class Company extends TenantAware {
         return comments;
     }
 
-    public ContactData getContactData() {
-        return contactData;
+    public ContactData getContact() {
+        return contact;
+    }
+
+    public Relations getRelations() {
+        return relations;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
     }
 }

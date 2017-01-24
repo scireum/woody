@@ -20,19 +20,12 @@
     <thead>
         <tr>
             <th>
-                @i18n("Model.name")
+                @i18n("Model.name")<br>
+                <span class="muted">@i18n("Model.company")</span>
             </th>
             <th>
-                @i18n("Model.company")
-            </th>
-            <th>
-                @i18n("ContactData.phone")
-            </th>
-            <th>
-                @i18n("ContactData.email")
-            </th>
-            <th>
-                @i18n("ContactData.mobile")
+                @i18n("Tag.plural")<br>
+                <span class="muted">@i18n("Relation.plural")</span>
             </th>
         </tr>
     </thead>
@@ -40,19 +33,19 @@
     @for(Person person : persons.getItems()) {
         <tr>
             <td>
-                <a class="link" href="/company/@person.getCompany().getId()/person/@person.getId()">@person</a>
+                <a class="link" href="/company/@person.getCompany().getId()/person/@person.getId()">@person</a><br>
+                <span class="small"><a class="link" href="/company/@person.getCompany().getId()">@person.getCompany().getValue().getName()</a></span>
             </td>
             <td>
-                <a class="link" href="/company/@person.getCompany().getId()">@person.getCompany().getValue().getName()</a>
-            </td>
-            <td>
-                @person.getContact().getPhone()
-            </td>
-            <td>
-                @person.getContact().getEmail()
-            </td>
-            <td>
-                @person.getContact().getMobile()
+                @for(woody.core.tags.Tag t : person.getTags().getTags()) {
+                    @if (t.isViewInList()) {
+                        <span class="badge">@t.getName()</span>
+                    }
+                }
+                <br>
+                @for(String relation : person.getRelations().getListRelations()) {
+                    <span class="badge">@relation</span>
+                }
             </td>
         </tr>
     }

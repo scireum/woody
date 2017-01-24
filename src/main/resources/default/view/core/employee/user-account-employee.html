@@ -7,40 +7,24 @@
 *@
 @import woody.core.employees.Employee
 @import sirius.biz.tenants.UserAccount
-@args UserAccount account, List departments, List accounts
+@args UserAccount account
 @extends(view.tenants.user-account.html, account, "employee")
 
 @editForm(("user-account/" + account.getIdAsString() + "/employee")) {
     <div class="row">
-        @textfield(span:     "6",
+        @textfield(span:     "4",
                    name:     "Employee_employeeNumber",
                    value:    account.as(Employee.class).getEmployeeNumber(),
                    labelKey: "Employee.employeeNumber")
-        @textfield(span:     "6",
+        @textfield(span:     "4",
+                   name:     "Employee_shortName",
+                   value:    account.as(Employee.class).getShortName(),
+                   labelKey: "Employee.shortName")
+        @textfield(span:     "4",
                    name:     "Employee_phoneExtension",
                    value:    account.as(Employee.class).getPhoneExtension(),
                    labelKey: "Employee.phoneExtension")
 
-    </div>
-    <div class="row">
-        @singleSelect(span: "6",
-                      name: "Employee_department",
-                      optional: true,
-                      labelKey: "Employee.department") {
-            @for(woody.core.employees.Department department : departments) {
-                <option value="@department.getId()"
-                        @if (account.as(Employee.class).getDepartment().is(department)) { selected="selected" }>@department.getName() (@department.getCode())</option>
-            }
-        }
-        @singleSelect(span: "6",
-                      name: "Employee_mentor",
-                      optional: true,
-                      labelKey: "Employee.mentor") {
-            @for(sirius.biz.tenants.UserAccount possibleMentor : accounts) {
-                <option value="@possibleMentor.getId()"
-                        @if (account.as(Employee.class).getMentor().is(possibleMentor)) { selected="selected" }>@possibleMentor.getPerson()</option>
-            }
-        }
     </div>
     <div class="row">
         <div class="col-md-6">

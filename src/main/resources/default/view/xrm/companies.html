@@ -16,23 +16,23 @@
 @pageHeader("Company.plural")
 
 @magicsearch(companies, "companies", "companies/suggest", suggestions) {
-    <a class="btn btn-primary" href="@prefix/company/new">@i18n("Model.create")</a>
+    <a class="btn btn-primary" href="@prefix/company/edit/new">@i18n("Model.create")</a>
 }
 
 @table(companies) {
     <thead>
         <tr>
             <th>
-                @i18n("Company.name")
+                @i18n("Company.name")<br>
+                <span class="muted">@i18n("Company.customerNumber")</span>
             </th>
             <th>
-                @i18n("Company.customerNumber")
+                @i18n("AddressData.city")<br>
+                <span class="muted">@i18n("InternationalAddressData.country")</span>
             </th>
             <th>
-                @i18n("InternationalAddressData.city")
-            </th>
-            <th>
-                @i18n("InternationalAddressData.country")
+                @i18n("Tag.plural")<br>
+                <span class="muted">@i18n("Relation.plural")</span>
             </th>
             <th />
         </tr>
@@ -41,16 +41,17 @@
     @for(Company company : companies.getItems()) {
         <tr>
             <td>
-                <a class="link" href="@prefix/company/@company.getId()">@company.getName()</a>
+                <a class="link" href="@prefix/company/@company.getId()">@company.getName()</a><br>
+                <span class="muted">@company.getCustomerNumber()</span>
             </td>
             <td>
-                @company.getCustomerNumber()
+                @company.getAddress().getCity()<br>
+                <span class="muted">@codeLists.getValue("countries", company.getAddress().getCountry())</span>
             </td>
             <td>
-                @company.getAddress().getCity()
-            </td>
-            <td>
-                @codeLists.getValue("countries", company.getAddress().getCountry())
+                @listTags(company.getTags())
+                <br>
+                @listRelations(company.getRelations())
             </td>
             <td class="col-md-2 align-center">
                 @deleteLink(("company/" + company.getId() + "/delete?" + companies.createQueryString()))

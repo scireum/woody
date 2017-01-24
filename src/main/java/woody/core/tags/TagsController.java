@@ -10,9 +10,10 @@ package woody.core.tags;
 
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
+import sirius.db.mixing.EntityDescriptor;
 import sirius.db.mixing.OMA;
+import sirius.db.mixing.Schema;
 import sirius.db.mixing.constraints.Like;
-import sirius.kernel.di.std.ConfigValue;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
@@ -27,7 +28,9 @@ import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by aha on 18.07.16.
@@ -40,15 +43,33 @@ public class TagsController extends BizController {
 
     private static final String MANAGE_TAGS = "permission-manage-tags";
 
-    @ConfigValue("tags.targetTypes")
+    private Map<String, String> typeMap;
     private List<String> targetTypes;
 
+    @Part
+    private Schema schema;
+
     public List<String> getTargetTypes() {
+        if (targetTypes == null) {
+            targetTypes = schema.getDesciptors()
+                                .stream()
+                                .filter(descriptor -> descriptor.hasComposite(Tagged.class))
+                                .map(descriptor -> Schema.getNameForType(descriptor.getType()))
+                                .collect(Collectors.toList());
+            targetTypes.sort(String::compareTo);
+        }
         return targetTypes;
     }
 
     public String translateType(String targetType) {
-        return NLS.get("Tag.targetType."+targetType);
+        if (typeMap == null) {
+            typeMap = schema.getDesciptors()
+                            .stream()
+                            .filter(descriptor -> descriptor.hasComposite(Tagged.class))
+                            .collect(Collectors.toMap(descriptor -> Schema.getNameForType(descriptor.getType()),
+                                                      EntityDescriptor::getPluralLabel));
+        }
+        return typeMap.get(targetType);
     }
 
     @DefaultRoute
@@ -56,14 +77,14 @@ public class TagsController extends BizController {
     @Permission(MANAGE_TAGS)
     @Routed("/tags")
     public void tags(WebContext ctx) {
-        PageHelper<Tag> ph = PageHelper.withQuery(oma.select(Tag.class).orderAsc(Tag.NAME));
+        PageHelper<Tag> ph = PageHelper.withQuery(oma.select(Tag.class).orderAsc(Tag.TARGET_TYPE).orderAsc(Tag.NAME));
         ph.withContext(ctx);
         ph.withSearchFields(Tag.NAME).forCurrentTenant();
         Facet typeFilter = new Facet(NLS.get("Tag.targetType"),
                                      Tag.TARGET_TYPE.getName(),
                                      ctx.get(Tag.TARGET_TYPE.getName()).asString(null),
                                      null);
-        for(String type : getTargetTypes()) {
+        for (String type : getTargetTypes()) {
             typeFilter.addItem(type, translateType(type), -1);
         }
         ph.addFilterFacet(typeFilter);
@@ -95,10 +116,11 @@ public class TagsController extends BizController {
                     tag.setTargetType(ctx.get(Tag.TARGET_TYPE.getName()).asString(null));
                 }
                 tag.setName(ctx.get(Tag.NAME.getName()).asString());
+                tag.setViewInList(ctx.get(Tag.VIEW_IN_LIST.getName()).asBoolean(false));
                 oma.update(tag);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith().redirectTemporarily(WebContext.getContextPrefix() + "/tag/" + tag.getId());
+                    ctx.respondWith().redirectToGet("/tag/" + tag.getId());
                     return;
                 }
             } catch (Throwable e) {
@@ -122,4 +144,5 @@ public class TagsController extends BizController {
                });
         });
     }
+
 }

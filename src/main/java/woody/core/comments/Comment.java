@@ -10,6 +10,7 @@ package woody.core.comments;
 
 import sirius.db.mixing.Column;
 import sirius.db.mixing.Entity;
+import sirius.db.mixing.annotations.Index;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Lob;
 import sirius.kernel.commons.Strings;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 /**
  * Created by aha on 25.11.15.
  */
+@Index(name = "target_lookup", columns = "targetEntity")
 public class Comment extends Entity {
 
     public static final String PERMISSION_EDIT_COMMENTS = "permission-edit-comments";
@@ -46,6 +48,12 @@ public class Comment extends Entity {
 
     private boolean publicVisible;
     public static final Column PUBLIC_VISIBLE = Column.named("publicVisible");
+
+    private boolean deleted;
+    public static final Column DELETED = Column.named("deleted");
+
+    private boolean edited;
+    public static final Column EDITED = Column.named("edited");
 
     public boolean canBeEditedByCurrentUser() {
         UserInfo currentUser = UserContext.getCurrentUser();
@@ -99,5 +107,21 @@ public class Comment extends Entity {
 
     public void setTod(LocalDateTime tod) {
         this.tod = tod;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public boolean isEdited() {
+        return edited;
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
     }
 }

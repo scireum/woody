@@ -20,13 +20,20 @@
 
 @editForm(("tag/" + t.getIdAsString())) {
 <div class="row">
-    @singleSelect(name: "targetType", labelKey: "Tag.targetType") {
-        @for(String type : controller.getTargetTypes()) {
-            <option value=""></option>
-            <option value="@type" @if (type.equals(t.getTargetType())) { selected="selected" }>@controller.translateType(type)</option>
+    @if (t.isNew()) {
+        @singleSelect(name: "targetType", labelKey: "Tag.targetType") {
+            @for(String type : controller.getTargetTypes()) {
+                <option value=""></option>
+                <option value="@type" @if (type.equals(t.getTargetType())) { selected="selected" }>@controller.translateType(type)</option>
+            }
         }
+    } else {
+        @textfield(span: "6", name: "targetType", value: controller.translateType(t.getTargetType()), labelKey: "Tag.targetType", readonly: true)
     }
     @textfield(span: "6", name: "name", value: t.getName(), labelKey: "Model.name", required: true)
+</div>
+<div class="row">
+    @checkbox(span: "6", name: "viewInList", value: t.isViewInList(), labelKey: "Tag.viewInList")
 </div>
 }
 

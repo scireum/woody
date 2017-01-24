@@ -62,6 +62,10 @@ public class Commented extends Composite {
                   .queryList();
     }
 
+    public String getAuthHash() {
+        return CommentsController.computeAuthHash(owner.getUniqueName());
+    }
+
     public void addComment(String personName, String personEntity, String comment, boolean publicVisible) {
         if (Strings.isEmpty(comment)) {
             return;

@@ -1,0 +1,41 @@
+@args Page types
+@extends(view.wondergem.template.html, title: NLS.get("InventoryType.plural"))
+
+@section(breadcrumbs) {
+    <li><a href="/unit-types">@i18n("InventoryType.plural")</a></li>
+}
+@pageHeader("InventoryType.plural")
+
+<div class="row">
+    <div class="col-md-12">
+        @tableSearchHeader(types, "inventory/types") {
+          <a class="btn btn-primary" href="/inventory/type/new">@i18n("Model.create")</a>
+        }
+
+        @table(types) {
+            <thead>
+            <tr>
+                <th>
+                    @i18n("Model.name")
+                </th>
+                <th />
+            </tr>
+            </thead>
+            <tbody>
+            @for(woody.core.inventory.InventoryType type : types.getItems()) {
+                <tr>
+                    <td>
+                        <a class="link" href="/inventory/type/@type.getId()">@type.getName()</a>
+                    </td>
+                    <td class="col-md-2 align-center">
+                        @deleteLink(("inventory/type/" + type.getId() + "/delete?" + types.createQueryString()))
+                    </td>
+                </tr>
+            }
+            </tbody>
+        }
+
+        @pagination(types, "inventory/types")
+    </div>
+</div>
+

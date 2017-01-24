@@ -13,6 +13,7 @@ import sirius.biz.web.MagicSearch;
 import sirius.db.mixing.Composite;
 import sirius.db.mixing.Entity;
 import sirius.db.mixing.OMA;
+import sirius.db.mixing.Schema;
 import sirius.db.mixing.SmartQuery;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
@@ -70,6 +71,10 @@ public class Tagged extends Composite {
 
     protected List<TagAssignment> getAssignedTags() {
         return oma.select(TagAssignment.class)
+                  .fields(TagAssignment.ID,
+                          TagAssignment.TAG,
+                          TagAssignment.TAG.join(Tag.NAME),
+                          TagAssignment.TAG.join(Tag.VIEW_IN_LIST))
                   .orderAsc(TagAssignment.TAG.join(Tag.NAME))
                   .eq(TagAssignment.TARGET_ENTITY, owner.getId())
                   .eq(TagAssignment.TARGET_TYPE, owner.getTypeName())
@@ -187,7 +192,7 @@ public class Tagged extends Composite {
             query = query.substring(1);
         }
         oma.select(Tag.class)
-           .eq(Tag.TARGET_TYPE, Entity.getTypeName(type))
+           .eq(Tag.TARGET_TYPE, Schema.getNameForType(type))
            .orderAsc(Tag.NAME)
            .where(Like.on(Tag.NAME).ignoreCase().ignoreEmpty().contains(query))
            .iterateAll(t -> {
@@ -212,11 +217,11 @@ public class Tagged extends Composite {
                 if (TYPE_TAG.equals(suggestion.getType())) {
                     query.where(Exists.matchingIn(Entity.ID, TagAssignment.class, TagAssignment.TARGET_ENTITY)
                                       .where(FieldOperator.on(TagAssignment.TAG).eq(id))
-                                      .where(FieldOperator.on(TagAssignment.TARGET_TYPE).eq(Entity.getTypeName(type))));
+                                      .where(FieldOperator.on(TagAssignment.TARGET_TYPE).eq(Schema.getNameForType(type))));
                 } else if (TYPE_NOTTAG.equals(suggestion.getType())) {
                     query.where(Exists.notMatchingIn(Entity.ID, TagAssignment.class, TagAssignment.TARGET_ENTITY)
                                       .where(FieldOperator.on(TagAssignment.TAG).eq(id))
-                                      .where(FieldOperator.on(TagAssignment.TARGET_TYPE).eq(Entity.getTypeName(type))));
+                                      .where(FieldOperator.on(TagAssignment.TARGET_TYPE).eq(Schema.getNameForType(type))));
                 }
             } catch (NumberFormatException e) {
                 Exceptions.ignore(e);

@@ -21,20 +21,23 @@ import sirius.kernel.commons.Strings;
  */
 public class Tag extends TenantAware {
 
+    public static final Column UNQIUE_NAME = Column.named("uniqueName");
     @Length(255)
     @Unique(within = {"tenant", "targetType"})
     private String uniqueName;
-    public static final Column UNQIUE_NAME = Column.named("uniqueName");
 
+    public static final Column NAME = Column.named("name");
     @Trim
     @Length(255)
     private String name;
-    public static final Column NAME = Column.named("name");
 
+    public static final Column TARGET_TYPE = Column.named("targetType");
     @Trim
     @Length(255)
     private String targetType;
-    public static final Column TARGET_TYPE = Column.named("targetType");
+
+    public static final Column VIEW_IN_LIST = Column.named("viewInList");
+    private boolean viewInList;
 
     @BeforeSave
     protected void clearTagName() {
@@ -68,5 +71,13 @@ public class Tag extends TenantAware {
 
     public void setTargetType(String targetType) {
         this.targetType = targetType;
+    }
+
+    public boolean isViewInList() {
+        return viewInList;
+    }
+
+    public void setViewInList(boolean viewInList) {
+        this.viewInList = viewInList;
     }
 }
