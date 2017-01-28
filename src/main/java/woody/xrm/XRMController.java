@@ -11,6 +11,7 @@ package woody.xrm;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.PersonData;
+import sirius.biz.tenants.Tenants;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
 import sirius.biz.web.MagicSearch;
@@ -28,9 +29,12 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
+import sirius.web.security.UserInfo;
 import sirius.web.services.JSONStructuredOutput;
 
+import woody.core.employees.Employee;
 import woody.core.tags.Tagged;
+import woody.phoneCalls.Starface;
 import woody.sales.AccountingService;
 import woody.sales.Lineitem;
 import woody.sales.Contract;
@@ -265,6 +269,27 @@ public class XRMController extends BizController {
         }
         ctx.respondWith().template("view/xrm/person-details.html", company, person);
     }
+
+    @Part
+    private static Starface stf;
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/company/:1/person/:2/createPhonecall")
+    public void personCreatePhonecall(WebContext ctx, String companyId, String personId) {
+        Company company = findForTenant(Company.class, companyId);
+        Person person = find(Person.class, personId);
+        assertNotNew(company);
+        setOrVerify(person, person.getCompany(), company);
+
+        String phonenumber = person.getContact().getPhone();
+        UserInfo userInfo = UserContext.getCurrentUser();
+        UserAccount uac = userInfo.getUserObject(UserAccount.class);
+        Employee employee = uac.as(Employee.class);
+        stf.createPhoneCall(employee, phonenumber);
+        ctx.respondWith().template("view/xrm/person-details.html", company, person);
+    }
+
 
     @LoginRequired
     @Permission(MANAGE_XRM)

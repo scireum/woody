@@ -16,6 +16,7 @@ import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
+import sirius.db.mixing.annotations.Numeric;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
@@ -37,6 +38,7 @@ public class Opportunity extends BizEntity {
     public static final Column SOURCE = Column.named("source");
 
     @Autoloaded
+    @Numeric(scale = 3, precision = 15)
     @NullAllowed
     private Amount contractValue;
     public static final Column CONTRACT_VALUE = Column.named("contractValue");

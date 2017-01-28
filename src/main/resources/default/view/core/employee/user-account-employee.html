@@ -30,12 +30,12 @@
     <div class="row">
         @textfield(span:     "4",
                                      name:     "Employee_homePhone",
-                                     value:    account.as(Employee.class).getHomePhone(),
+                                     value:    account.as(Employee.class).getHomeContact().getPhone(),
                                      labelKey: "Employee.homePhone",
                                      helpKey:  null)
         @textfield(span:     "4",
                                      name:     "Employee_mobilePhone",
-                                     value:    account.as(Employee.class).getMobilePhone(),
+                                     value:    account.as(Employee.class).getHomeContact().getMobile(),
                                      labelKey: "Employee.mobilePhone",
                                      helpKey:  null)
     </div>
@@ -50,6 +50,18 @@
                                      value:    (NLS.toUserString(account.as(Employee.class).getBirthday())),
                                      labelKey: "Employee.birthday",
                                      helpKey:  null)
+    </div>
+    <div class="row">
+        @textfield(span:     "4",
+        name:     "Employee_pbxId",
+        value:    (account.as(Employee.class).getPbxId()),
+        labelKey: "Employee.pbxId",
+        helpKey:  null)
+        @textfield(span:     "4",
+        name:     "Employee_pbxAccessToken",
+        value:    (account.as(Employee.class).getPbxAccessToken()),
+        labelKey: "Employee.pbxAccessToken",
+        helpKey:  null)
     </div>
     <div class="form-actions">
         <a onclick="$('#editForm').submit()" class="btn btn-primary"><i class="icon-ok"></i> @i18n("NLS.save")</a>

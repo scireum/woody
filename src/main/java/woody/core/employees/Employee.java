@@ -21,6 +21,9 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Mixin;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
+import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.Part;
+import woody.phoneCalls.Starface;
 
 import java.time.LocalDate;
 
@@ -92,12 +95,20 @@ public class Employee extends Mixable {
     private String pbxId;
     public static final Column PBXID = Column.named("pbxId");
 
+    @NullAllowed
+    @Length(50)
+    private String pbxAccessToken;
+    public static final Column PBXACCESSTOKEN = Column.named("pbxAccessToken");
+
+
     private final AddressData homeAddress = new AddressData(AddressData.Requirements.NONE, null);
     public static final Column ADDRESS = Column.named("address");
 
     private final ContactData homeContact = new ContactData(true);
     public static final Column CONTACT = Column.named("contact");
 
+    @Part
+    private static Starface stf;
 
     @BeforeSave
     protected void checkIntegrity(UserAccount parent) {
@@ -111,6 +122,16 @@ public class Employee extends Mixable {
                                                 .getProperty(Column.mixin(Employee.class).inner(DEPARTMENT))
                                                 .getLabel(), getDepartment().getValue());
         }
+
+        // build the pbxAccessToken
+        if(pbxId != null && Strings.isFilled(pbxId)) {
+            String pbxCleartextPassword = pbxId + pbxId + pbxId + pbxId;
+            pbxAccessToken = stf.buildMd5HexString(pbxId + "*" + pbxCleartextPassword);
+            pbxCleartextPassword = "";
+        } else {
+            pbxAccessToken = null;
+        }
+
     }
 
     public LocalDate getTerminationDate() {
@@ -191,5 +212,13 @@ public class Employee extends Mixable {
 
     public ContactData getHomeContact() {
         return homeContact;
+    }
+
+    public String getPbxAccessToken() {
+        return pbxAccessToken;
+    }
+
+    public void setPbxAccessToken(String pbxAccessToken) {
+        this.pbxAccessToken = pbxAccessToken;
     }
 }

@@ -11,12 +11,11 @@ package woody.offers;
 
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
-import com.mysql.jdbc.Connection;
-import com.mysql.jdbc.DatabaseMetaData;
+
 import sirius.biz.model.BizEntity;
 import sirius.biz.tenants.Tenants;
 import sirius.biz.web.Autoloaded;
-import sirius.db.jdbc.Database;
+
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.annotations.AfterSave;
@@ -39,9 +38,7 @@ import woody.sales.Product;
 import woody.sales.ProductType;
 import woody.xrm.Company;
 
-import javax.sql.DataSource;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -488,8 +485,11 @@ public class OfferItem extends BizEntity {
                 s = s + NLS.toUserString(discount.toString());
             }
         }
+        return buildMd5HexString(s);
+    }
 
-//        String md5 = BaseEncoding.base64().encode(Hashing.md5().hashString(s, Charsets.UTF_8).asBytes());
+    private String buildMd5HexString(String s) {
+        //        String md5 = BaseEncoding.base64().encode(Hashing.md5().hashString(s, Charsets.UTF_8).asBytes());
         byte[] md5HashBytes = Hashing.md5().hashString(s, Charsets.UTF_8).asBytes();
         StringBuilder sb = new StringBuilder(md5HashBytes.length * 2);
         for (int i = 0; i < md5HashBytes.length; i++) {
@@ -499,7 +499,6 @@ public class OfferItem extends BizEntity {
         String md5 = sb.toString();
         return md5;
     }
-
 
     /**
      * Computes the hex-representation of the given byte array.

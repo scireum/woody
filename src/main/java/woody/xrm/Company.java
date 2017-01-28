@@ -25,6 +25,7 @@ import sirius.kernel.nls.NLS;
 import sirius.web.mails.Mails;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
+import woody.phoneCalls.SyncAsterisk;
 import woody.sales.CompanyAccountingData;
 import woody.sales.Contract;
 
@@ -116,6 +117,10 @@ public class Company extends TenantAware {
         }
     }
 
+
+    @Part
+    private static Mails mails;
+
    @BeforeSave
     protected void onSave() {
         // check the presence of a customer-number if contracts are existing
@@ -126,8 +131,9 @@ public class Company extends TenantAware {
                             .handle();
         }
         // normalize the mainPhoneNr
-        if(Strings.isFilled(this.getMainPhoneNr())) {
-            this.setMainPhoneNr(normalizePhoneNumber(this.getMainPhoneNr()));
+       String phoneNumber = this.getMainPhoneNr();
+        if(phoneNumber != null && Strings.isFilled(phoneNumber)) {
+            this.setMainPhoneNr(SyncAsterisk.normalizePhonenumberForStarfaceAddressbook(phoneNumber, true));
         }
         //check the mainMailAddress
         if(Strings.isFilled(this.getMainMailAddress())) {
@@ -174,38 +180,6 @@ public class Company extends TenantAware {
            }
        }
 
-    }
-
-    @Part
-    private static Mails mails;
-
-    private String normalizePhoneNumber(String number) {
-        if(Strings.isFilled(number)) {
-            number = number.replace(" ", "");
-            // (0) am Anfang durch 0 ersetzen
-            if(number.startsWith("(0)")) {
-                number = "0" + number.substring(3);
-            }
-            // (0 nach +49 o.ä. weglöschen
-            number = number.replace("(0", "");
-            // Aus +49 0049 machen
-            number = number.replace("+", "00");
-            // Alles außer Ziffern kommt raus.
-            number = number.replaceAll("[^\\d]", "");
-            // Ohne Ländervorwahl ist es Deutschland
-            if(number.startsWith("0") && !number.startsWith("00")) {
-                number = "0049" + number.substring(1);
-            }
-
-            // set "000" to "00"
-            for(int i=0; i<number.length()-1; i++)   {
-                if(!(number.substring(i, i+1).equals("0"))) {
-                    number = "00" + number.substring(i);
-                    break;
-                }
-            }
-        }
-        return number;
     }
 
     // called by JSF

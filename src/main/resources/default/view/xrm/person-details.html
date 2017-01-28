@@ -33,6 +33,10 @@
     </div>
 
     @heading("Person.contact")
+    <tr>
+        <a class="link" href="/company/@company.getId()/person/@person.getId()/createPhonecall">Telefonanruf bei @person.getContact().getPhone()</a>
+    </tr>
+
     <div class="row">
         @textfield(name: "contact_phone", value: person.getContact().getPhone(), labelKey: "ContactData.phone")
         @textfield(name: "contact_email", value: person.getContact().getEmail(), labelKey: "ContactData.email")
