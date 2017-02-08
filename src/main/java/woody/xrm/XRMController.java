@@ -34,12 +34,14 @@ import sirius.web.services.JSONStructuredOutput;
 
 import woody.core.employees.Employee;
 import woody.core.tags.Tagged;
+import woody.offers.ServiceAccountingService;
 import woody.phoneCalls.Starface;
 import woody.sales.AccountingService;
 import woody.sales.Lineitem;
 import woody.sales.Contract;
 import woody.opportunities.Opportunity;
 
+import java.security.Provider;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -55,6 +57,17 @@ public class XRMController extends BizController {
     @Part
     private AccountingService asb;
 
+    @Part
+    private ServiceAccountingService sas;
+
+
+    @DefaultRoute
+    @Routed("/")
+    public void main(WebContext ctx) {
+        ctx.respondWith().template("view/main/main.html");
+    }
+
+
 
     @LoginRequired
     @Permission(MANAGE_XRM)
@@ -62,7 +75,7 @@ public class XRMController extends BizController {
     public void exportLineitems(WebContext ctx) {
 
         try {
-            asb.exportLicenceLineitems(1000,null);
+            asb.exportLicenceLineitems(300,null);
             int vvv = 1;
 
         } catch (Exception e) {
@@ -72,18 +85,45 @@ public class XRMController extends BizController {
 
     @LoginRequired
     @Permission(MANAGE_XRM)
+    @Routed("/exportInvoiceitems")
+    public void exportInvoiceitems(WebContext ctx) {
+
+        try {
+            sas.exportInvoiceItemsToCollmex();
+            int vvv = 1;
+
+        } catch (Exception e) {
+            Exceptions.handle();
+        }
+    }
+    private boolean block = false;
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
     @Routed("/licenceAccounting")
     public void licenceAccounting(WebContext ctx) {
-        LocalDate referenceDate = LocalDate.of(2017,1,2);
-        boolean dryRun = true;
-        boolean foreignCountry = false;
+        if(!block) {
+            block = true;
+            LocalDate referenceDate = LocalDate.of(2017, 1, 2);
+            boolean dryRun = false;
+            boolean foreignCountry = false;
             DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
-                                                         /*TaskMonitor monitor,*/ foreignCountry);
+                                                                   /*TaskMonitor monitor,*/ foreignCountry);
             int vvv = 1;
+        }
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/serviceAccounting")
+    public void serviceAccounting(WebContext ctx) {
+        boolean dryRun = false;
+        DataCollector<Lineitem> lineitemCollection = (DataCollector<Lineitem>) sas.accountAllServiceOffers(dryRun);;
+        int vvv = 1;
+        ctx.respondWith().template("view/main/main.html");
     }
 
 
-    @DefaultRoute
     @LoginRequired
     @Permission(MANAGE_XRM)
     @Routed("/companies")

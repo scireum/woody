@@ -48,8 +48,8 @@
             @textfield( span: "2", name:     "quantity", value:    NLS.toUserString(offerItem.getQuantity() ),
             labelKey: "OfferItem.quantity", readOnly: false )
             @if(OfferItemType.SERVICE.equals(offerItem.getOfferItemType() )  ) {
-                @codelistSelect(span: "3", list: "accountingUnit", name:     "accountingUnit", value:    offerItem.getAccountingUnit(),
-                labelKey: "OfferItem.accountingUnit", readOnly: true )
+                @codelistSelect(span: "3", list: "quantityUnit", name:     "quantityUnit", value:    offerItem.getQuantityUnit(),
+                labelKey: "OfferItem.quantityUnit", readOnly: true )
             }
         }
     </div>
@@ -63,8 +63,8 @@
                   }
             }
             @if(OfferItemType.LICENSE.equals(offerItem.getOfferItemType() )  ) {
-                @codelistSelect(span: "3", list: "accountingUnit", name:     "accountingUnit", value:    offerItem.getAccountingUnit(),
-                labelKey: "OfferItem.accountingUnit", readOnly: true )
+                @codelistSelect(span: "3", list: "quantityUnit", name:     "quantityUnit", value:    offerItem.getQuantityUnit(),
+                labelKey: "OfferItem.quantityUnit", readOnly: true )
             }
 
         </div>

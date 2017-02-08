@@ -27,7 +27,8 @@ public class LicenseAccountingJob extends SystemJobDescription {
 
     @Override
     public void collectParameters(Consumer<JobParameterDescription> consumer) {
-         //           consumer.accept(new JobParameterDescription());
+        int ggg = 1;
+        consumer.accept(new JobParameterDescription());
 
     }
 // ToDO LicenseAccounting Job fertig machen
@@ -48,6 +49,12 @@ public class LicenseAccountingJob extends SystemJobDescription {
     @Nonnull
     @Override
     public String getName() {
+        int gg = 1;
         return "license-accounting-job";
     }
+
+    @Override
+    public String getTitle() {
+        int gg = 1;
+        return "Licence-Accounting-Job";}
 }

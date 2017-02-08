@@ -107,7 +107,7 @@ public class Lineitem extends BizEntity {
     public static final Column COLLMEXCREDIT = Column.named("collmexCredit");
 
     @Numeric(scale = 3, precision = 15)
-    private Amount positionDiscount;
+    private Amount positionDiscount = Amount.NOTHING;
     public static final Column POSITION_DISCOUNT = Column.named("positionDiscount");
 
     @Numeric(scale = 3, precision = 15)

@@ -12,6 +12,7 @@ package woody.offers;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.Context;
 
+import sirius.kernel.commons.DataCollector;
 import woody.offers.Offer;
 import woody.offers.OfferItem;
 import woody.offers.OfferItemState;
@@ -36,7 +37,7 @@ public interface ServiceAccountingService {
      * @param monitor
      * @return  List of teh generated lineitems
      */
-    public List<Lineitem> accountAllServiceOffers(boolean dryRun /*, TaskMonitor monitor*/) ;
+    public DataCollector<Lineitem> accountAllServiceOffers(boolean dryRun /*, TaskMonitor monitor*/) ;
 
     /**
      *  @return   ProdUmsatz

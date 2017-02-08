@@ -48,7 +48,7 @@ public class Offer extends BizEntity {
     private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column COMPANY = Column.named("company");
 
-    @Unique(within = "tenant")
+    @Unique   // TODO Unique(within=tenant) funktioniert nicht !!!
     @Length(20)
     private String number;
     public static final Column NUMBER = Column.named("number");

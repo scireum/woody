@@ -60,13 +60,12 @@ public class PackageDefinition extends BizEntity {
     private int defaultPosition;
     public static final Column DEFAULTPOSITION = Column.named("defaultPosition");
 
-    @NullAllowed
     @Numeric(scale = 3, precision = 15)
-    private Amount singlePrice;
+    private Amount singlePrice = Amount.NOTHING;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
 
     @Numeric(scale = 3, precision = 15)
-    private Amount unitPrice;
+    private Amount unitPrice = Amount.NOTHING;
     public static final Column UNITPRICE = Column.named("unitPrice");
 
     @Length(1000)

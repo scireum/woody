@@ -133,5 +133,10 @@ public interface AccountingService {
 	 */
 	public String dateTimeFilename(String space, LocalDateTime dateTime);
 
+	/**
+	 * gets the last (the smallest) virtual invoiceNr
+	 */
+	public Long getMinInvoiceNr();
+
 
 }

@@ -89,10 +89,9 @@ public class Contract extends BizEntity {
     public static final Column POS_LINE = Column.named("posLine");
 
     /* this is the contractSinglePrice */
-    @NullAllowed
     @Numeric(scale = 3, precision = 15)
     @Autoloaded
-    private Amount singlePrice = null;
+    private Amount singlePrice = Amount.NOTHING;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
 
     //    @Filter(position = 10)
@@ -101,10 +100,9 @@ public class Contract extends BizEntity {
     public static final Column SINGLEPRICESTATE = Column.named("singlePriceState");
 
     /* this is the contractUnitPrice */
-    @NullAllowed
     @Numeric(scale = 3, precision = 15)
     @Autoloaded
-    private Amount unitPrice = null;
+    private Amount unitPrice = Amount.NOTHING;;
     public static final Column UNITPRICE = Column.named("unitPrice");
 
     /*
@@ -145,17 +143,15 @@ public class Contract extends BizEntity {
 
     // the discount is written as percent-value: 7,5% --> 7.5
     @Autoloaded
-    @NullAllowed
     @Numeric(scale = 3, precision = 15)
-    private Amount discountPercent;
+    private Amount discountPercent = Amount.NOTHING;
     public static final Column DISCOUNTPERCENT = Column.named("discountPercent");
 
     // this is a absoluteDiscount, eg. price = 100, absoluteDiscount = 15
     // end-price = 100 - 15 = 85
     @Autoloaded
-    @NullAllowed
     @Numeric(scale = 3, precision = 15)
-    private Amount discountAbsolute;
+    private Amount discountAbsolute = Amount.NOTHING;
     public static final Column DISCOUNTABSOLUTE = Column.named("discountAbsolute");
 
     @Override
@@ -200,6 +196,10 @@ public class Contract extends BizEntity {
 
     @BeforeSave
     protected void onSave() {
+        discountPercent = checkIfNull(discountPercent);
+        discountAbsolute = checkIfNull(discountAbsolute);
+        singlePrice = checkIfNull(singlePrice);
+        unitPrice = checkIfNull(unitPrice);
         //completeParameter(this);
         checkParameterSyntax(this.getParameter());
         // check the customerNr of the company, because the customerNr is needed to account the contract
@@ -216,7 +216,7 @@ public class Contract extends BizEntity {
         }
 
         // check the unitPrice. If the unitPrice is null, fetch the unitPrice from the packetDefinition
-        if (getUnitPrice() == null) {
+        if (getUnitPrice().isEmpty()) {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
                       .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
             if (packageDefinition != null) {
@@ -227,11 +227,11 @@ public class Contract extends BizEntity {
         }
 
         // check the singlePrice. If the singlePrice is null, fetch the singlePrice from the packetDefinition
-        if (getSinglePrice() == null) {
+        if (getSinglePrice().isEmpty()) {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
                        .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
             if (packageDefinition != null) {
-                if (packageDefinition.getSinglePrice() != null)  {
+                if (packageDefinition.getSinglePrice().isFilled() )  {
                     this.setSinglePrice(packageDefinition.getSinglePrice());
                 }
             }
@@ -275,9 +275,9 @@ public class Contract extends BizEntity {
         // noAccounting auf true stehen.
         if(getPackageDefinition() != null) {
             PackageDefinition pd = getPackageDefinition().getValue();
-            if(pd.getUnitPrice() != null) {
+            if(pd.getUnitPrice().isFilled()) {
                 if(pd.getUnitPrice().isPositive()) {
-                    if(getUnitPrice() != null && !(getUnitPrice().isPositive()) ) {
+                    if(getUnitPrice().isZero() ) {
                         if(!isNoAccounting()) {
                             throw Exceptions.createHandled().withNLSKey("Contract.unitPriceWrong")
                                             .set("contract", this.toString())
@@ -289,7 +289,7 @@ public class Contract extends BizEntity {
                 }
                 // CRM-7: Wenn der unitPrice im Contract <> unitPrice in der Packagedefinition ist, sollte eine Warnung ausgegeben
                 // werden. ACHTUNG Abweichender Preis.
-                if(getUnitPrice() != null) {
+                if(getUnitPrice().isFilled()) {
                     if( ! getUnitPrice().equals(pd.getUnitPrice())) {   // CRM-52 != durch !.equals ersetzt
                         // ToDo Warnmeldung ausgeben.
 //                        ApplicationController.addInfoMessage(MessageFormat.format(
@@ -339,6 +339,13 @@ public class Contract extends BizEntity {
         }
         // check the contractList
         checkContractIsSingle(contractList);
+    }
+
+    private Amount checkIfNull(Amount amount) {
+        if(amount == null) {
+            return Amount.NOTHING;
+        }
+        return amount;
     }
 
     /**

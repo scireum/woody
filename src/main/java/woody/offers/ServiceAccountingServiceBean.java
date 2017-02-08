@@ -27,6 +27,7 @@ import sirius.web.security.UserContext;
 import sirius.web.templates.Templates;
 import woody.core.employees.Employee;
 import woody.sales.AccountingService;
+import woody.sales.AccountingServiceBean;
 import woody.sales.Contract;
 import woody.sales.Lineitem;
 import woody.sales.PackageDefinition;
@@ -62,7 +63,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 //    @Part
 //    private SocialService ss;
     @Part
-    private AccountingService as;
+    private static AccountingService as;
 
 
 
@@ -75,6 +76,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
     @Part
     private static Templates templates;
+
 
     @Override
     public OfferItemState getNextState(OfferItem oi) {
@@ -97,7 +99,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
 
     @Override
-    public List<Lineitem> accountAllServiceOffers(final boolean dryRun /* , TaskMonitor monitor*/) {
+    public DataCollector<Lineitem> accountAllServiceOffers(final boolean dryRun /* , TaskMonitor monitor*/) {
         DataCollector<Lineitem> itemCollector = new DataCollector<Lineitem>() {
             @Override
             public void add(Lineitem entity) {
@@ -117,13 +119,16 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             prodUmsatz =Amount.ZERO;
         }
 
+        Long invoiceNr = as.getMinInvoiceNr();
+        LocalDateTime clearingDate = LocalDateTime.now();
+
         // get a list with all offers
         List<Offer> offerList = oma.select(Offer.class).orderAsc(Offer.NUMBER).queryList();
+
         // process this List
-        long invoiceNr = 0;
         for (Offer offer : offerList) {
             invoiceNr--;
-
+            System.out.println(offer.toString());
             //get a list with all positions from this offer
             List<OfferItem> offerItemList = oma.select(OfferItem.class)
                     .eq(OfferItem.OFFER, offer)
@@ -133,13 +138,20 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
                 if (OfferItemState.ACCEPTED.equals(offerItem.getState())) {
                     //this position is accepted by the customer --> account it
-                    Lineitem lineitem = generateLineitem(referenceDate, invoiceNr, offer, offerItem);
+                    System.err.println(offer.toString());
+                    Lineitem lineitem = generateLineitem(referenceDate, invoiceNr, offer, offerItem,
+                                                         clearingDate);
                     // calculate the sum-values
-                    Amount price = null;
-                    price = offerItem.getQuantity().times(offerItem.getSinglePrice());
-                    if (offerItem.getDiscount() != null) {
-                        price = price.decreasePercent(offerItem.getDiscount());
-                    }
+
+                    Amount quantity = offerItem.getQuantity().fill(Amount.ONE);
+//                    if(quantity == null || quantity.isEmpty()) {
+//                      quantity = Amount.ONE;
+//                    }
+                    Amount price = quantity.times(offerItem.getSinglePrice());
+                    Amount discount =  offerItem.getDiscount().fill(Amount.ZERO);
+//                     if (offerItem.getDiscount() != null) {
+                        price = price.decreasePercent(discount);
+//                     }
                     if (dryRun) {
                         testUmsatz = testUmsatz.add(price);
                     } else {
@@ -157,17 +169,12 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         for (Lineitem lineitem : itemCollector.getData()) {
             counter++;
             Amount price = lineitem.getPrice().times(lineitem.getQuantity());
-            if(lineitem.getPositionDiscount().isPositive())  {
+            if(lineitem.getPositionDiscount() != null && lineitem.getPositionDiscount().isPositive())  {
                price = price.decreasePercent(lineitem.getPositionDiscount());
             }
             summe = summe.add(price);
         }
 
-//        if (dryRun) {
-//            testUmsatz = summe;
-//        } else {
-//            prodUmsatz = summe;
-//        }
         String text =  MessageFormat
                 .format("Service-Abrechnung zum Referenzdatum {0} im Modus {1} erstellt, {2} Rechnungspositionen, Netto-Umsatz: {3} EUR",
                         NLS.toUserString(referenceDate),
@@ -182,9 +189,9 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 //                                dryRun == true ? "Test" : "Produktiv", NLS.toUserString(counter),
 //                                NLS.toUserString(summe)))
 //                .loginRequired(true).setUser(Users.getCurrentUser()).publish();
-
+        System.err.println(text);
         accountingDate = LocalDate.now();
-        return itemCollector.getData();
+        return itemCollector;
     }
 
     /**
@@ -195,9 +202,23 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
      * @param offerItem
      * @return
      */
-    private Lineitem generateLineitem(LocalDate referenceDate, long invoiceNr, Offer offer, OfferItem offerItem) {
+    private Lineitem generateLineitem(LocalDate referenceDate, long invoiceNr, Offer offer, OfferItem offerItem,
+                                      LocalDateTime clearingDate) {
         Lineitem lineitem = new Lineitem();
+
+        Company company = offer.getCompany().getValue();
+        String customerNr = company.getCustomerNr();
+        if (Strings.isEmpty(customerNr)) {
+            // no accounting without a customerNr!!!
+            throw Exceptions.createHandled().withNLSKey("ServiceAccountingServiceBean.customerNrMissing")
+                            .set("company", lineitem.getCompanyName()).handle();
+        }
+        lineitem.setCustomerNr(customerNr);
+
+        String outputLanguage = company.getCompanyAccountingData().getOutputLanguage();
+        lineitem.setOutputLanguage(outputLanguage);
         lineitem.setFinalDiscountSum(Amount.ZERO); // finalDiscountSum is not used
+        lineitem.setFinalDiscountAmount(Amount.ZERO); // finalDiscountAmount is not used
         lineitem.setCollmexCredit(false);
         lineitem.setCredit(false);
         lineitem.setLineitemType(Lineitem.LINEITEMTYPE_OA);
@@ -205,22 +226,20 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         lineitem.setPrice(offerItem.getSinglePrice());
         lineitem.setInvoiceNr(invoiceNr);
         lineitem.setStatus(Lineitem.LINEITEMSTATUS_NEW);
-        lineitem.setClearingDate(LocalDateTime.now());
+        lineitem.setClearingDate(clearingDate);
         lineitem.setCompanyName(offer.getCompany().getValue().getName());
-        String customerNr = offer.getCompany().getValue().getCustomerNr();
-        if (Strings.isEmpty(customerNr)) {
-            // no accounting without a customerNr!!!
-            throw Exceptions.createHandled().withNLSKey("ServiceAccountingServiceBean.customerNrMissing")
-                        .set("company", lineitem.getCompanyName()).handle();
-        }
-        lineitem.setCustomerNr(customerNr);
         lineitem.setMeasurement(offerItem.getQuantityUnit());
         lineitem.setPackageName(offerItem.getPackageDefinition().getValue().getName());
         lineitem.setQuantity(offerItem.getQuantity());
         lineitem.setDescription(makeDescription(offerItem));
         lineitem.setPosition(offerItem.getPosition());
         lineitem.setArticle(offerItem.getBaseProduct().getValue().getArticle());
-        lineitem.setPositionDiscount(offerItem.getDiscount());
+        Amount discount = offerItem.getDiscount();
+        // TODO Amount.NOTHING bring exception bei update.
+//        if(discount == null) {
+//            discount = Amount.NOTHING;
+//        }
+        lineitem.setPositionDiscount(discount);
         if (offerItem.isInfoText() ) {
             lineitem.setPositionType(lineitem.getLineitemCollmexTextposition());
         } else {
@@ -237,9 +256,20 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
     private String makeDescription(OfferItem offerItem) {
 
         Offer offer = offerItem.getOffer().getValue();
-        String s = MessageFormat.format("Angebot Nr. {0} vom {1}: {2}, Position {3}: {4}, Leistungserbringung am: {5}",
+        String s = MessageFormat.format("Angebot Nr. {0} vom {1}: {2}, Position {3}: {4}, Leistungserbringung am: {5}.",
                 NLS.toUserString(offer.getNumber()), NLS.toUserString(offer.getDate()), offer.getKeyword(), NLS.toUserString(offerItem.getPosition()),
             offerItem.getKeyword(), NLS.toUserString(offerItem.getAcceptanceDate()));
+
+            if (offerItem.getDiscount() != null && offerItem.getDiscount().isPositive()) {
+                Amount discount =  offerItem.getQuantity().times(offerItem.getDiscount());
+                discount = discount.divideBy(Amount.ONE_HUNDRED);
+                discount = discount.times(offerItem.getSinglePrice());
+                s += MessageFormat
+                        .format(" Es wird ein Rabatt von {0}% = {1} EUR berücksichtigt.",
+                                NLS.toUserString(offerItem.getDiscount()),
+                                NLS.toUserString(discount));
+            }
+
         return s;
     }
 
@@ -311,19 +341,20 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 if(item.isService()) {
                     priceNettoSum = priceNettoSum.add(item.getPrice());
                     priceNettoSumBlock = priceNettoSumBlock.add(item.getPrice());
-                    vatItem = item.getPrice();
-                    bruttoPrice = item.getPrice();
+//                    Amount price = item.getPrice().fill(Amount.ZERO);
+//                    vatItem = price;
+//                    bruttoPrice = price;
                 }
                 if(item.isLicense()) {
-                    Amount singlePrice = item.getSinglePrice();
-                    if(singlePrice == null) {
-                        singlePrice = Amount.ZERO;
-                    }
+                    Amount singlePrice = item.getSinglePrice().fill(Amount.ZERO);
+//                    if(singlePrice == null) {
+//                        singlePrice = Amount.ZERO;
+//                    }
                     singlePrice = singlePrice.times(item.getQuantity());
-                    Amount discount = Amount.ZERO;
-                    if(item.getDiscount() != null) {
-                        discount =  item.getDiscount();
-                    }
+                    Amount discount = item.getDiscount().fill(Amount.ZERO);
+//                    if(item.getDiscount() != null) {
+//                        discount =  item.getDiscount();
+//                    }
                     singlePrice = singlePrice.decreasePercent(discount);
                     item.setOfferSinglePrice(singlePrice);
                     priceNettoSum = priceNettoSum.add(singlePrice);
@@ -331,31 +362,32 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                     vatItem = singlePrice;
                     bruttoPrice = singlePrice;
                 }
-                if(vatItem == null) {
-                    vatItem = Amount.ZERO;
-                }
+//                if(vatItem == null) {
+//                    vatItem = Amount.ZERO;
+//                }
                 vatItem = vatItem.times(vatRate);
                 vatItem = vatItem.divideBy(Amount.ONE_HUNDRED);
                 priceVatSum = priceVatSum.add(vatItem);
-                if(bruttoPrice == null) {
-                    bruttoPrice = Amount.ZERO;
-                }
+//                if(bruttoPrice == null) {
+//                    bruttoPrice = Amount.ZERO;
+//                }
                 bruttoPrice = bruttoPrice.add(vatItem);
                 priceBruttoSum = priceBruttoSum.add(bruttoPrice);
 
                 //cyclicPrice
                 if(item.isLicense()) {
-                    cyclicPriceNettoSum = cyclicPriceNettoSum.add(item.getPrice());
-                    cyclicPriceNettoSumBlock = cyclicPriceNettoSumBlock.add(item.getPrice());
-                    vatItem = item.getPrice();
-                    if(vatItem != null) {
+                    Amount price = item.getPrice().fill(Amount.ZERO);
+                    cyclicPriceNettoSum = cyclicPriceNettoSum.add(price);
+                    cyclicPriceNettoSumBlock = cyclicPriceNettoSumBlock.add(price);
+                    vatItem = price;
+//                    if(vatItem != null) {
                         vatItem = vatItem.times(vatRate);
                         vatItem = vatItem.divideBy(Amount.ONE_HUNDRED);
-                    } else {
-                        vatItem = Amount.ZERO;
-                    }
+//                    } else {
+//                        vatItem = Amount.ZERO;
+//                    }
                     cyclicPriceVatSum = cyclicPriceVatSum.add(vatItem);
-                    bruttoPrice = item.getPrice();
+                    bruttoPrice = price;
                     bruttoPrice = bruttoPrice.add(vatItem);
                     cyclicPriceBruttoSum = cyclicPriceBruttoSum.add(bruttoPrice);
                 }
@@ -664,7 +696,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         List<Lineitem> invoiceItemList = oma.select(Lineitem.class)
                 .eq(Lineitem.STATUS, Lineitem.LINEITEMSTATUS_NEW)
                 .eq(Lineitem.LINEITEMTYPE, Lineitem.LINEITEMTYPE_OA)
-               .orderDesc(Lineitem.INVOICENR)
+                .orderDesc(Lineitem.INVOICENR)
                 .orderAsc(Lineitem.POSITION).queryList();
         if (invoiceItemList.size() <= 0) {
             //ToDo Rechtsnachfolger für ss.orBackendStream(
@@ -680,7 +712,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
         }
         // export them to the file
-        File file = as .createCsvFilename("invoiceItem",-1);
+        File file = as.createCsvFilename("invoiceItem",-1);
         try {
             FileOutputStream output = new FileOutputStream(file);
             Writer fw = new OutputStreamWriter(output, "ISO_8859_1");
@@ -699,6 +731,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                         NLS.toUserString(i),
                         NLS.toUserString(sum),
                         file.getAbsoluteFile());
+                System.out.println(text);
                 // ToDo  ss.forBackendStream(
 //                ss.forBackendStream(
 //                        DisplayMarkdownFactory.FACTORY_NAME,
@@ -721,8 +754,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
      * @param invoiceDate
      * @return sum = quantity * (price * (1-discount))
      */
-    private Amount generateCollmexInvoiceLine(PrintWriter pw,
-                                              Lineitem invoiceItem, Calendar invoiceDate) {
+    private Amount generateCollmexInvoiceLine(PrintWriter pw, Lineitem invoiceItem, LocalDate invoiceDate) {
         Amount sum = Amount.ZERO;
 
         // step 2: generate a csv-line for the export in Collmex-Notation
@@ -731,9 +763,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         // csv[0] is not used
         csv[1] = "CMXINV"; // Satzart C Festwert CMXINV
         csv[2] = NLS.toUserString(invoiceItem.getInvoiceNr()); // Rechnungsnummer I
-        // 8 Die
-        // Rechnungsnummer
-        // identifiziert die Rechnung eindeutig. Siehe auch Nummernvergabe.
+        // 8 Die Rechnungsnummer identifiziert die Rechnung eindeutig. Siehe auch Nummernvergabe.
         // 03 = Position I 8 Positionsnummer der Rechnungsposition. Wenn nicht
         // angegeben, wird die Positionsnummer automatisch fortlaufend vergeben.
 
@@ -743,12 +773,9 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         // Verwaltung -> Firma anzeigen und ändern angezeigt.
         // 06 = Auftrag Nr I 8 Nummer des Kundenauftrags, auf den sich die
         // Rechnung bezieht.
-        csv[7] = NLS.toUserString(invoiceItem.getCustomerNr()); // 07 = Kunden-Nr I
-        // 8
-        // Der Kunde muss in Collmex existieren.
-        // Referenz ausschliesslich über die Kundennummer
-        // 08 Anrede C 10 Felder 8 - 27 ist die Kundenadresse. Nur für den
-        // Export. Die Felder werden beim Import ignoriert.
+        csv[7] = NLS.toUserString(invoiceItem.getCustomerNr()); // 07 = Kunden-Nr I8
+        // Der Kunde muss in Collmex existieren. Referenz ausschliesslich über die Kundennummer
+        // 08 Anrede C 10 Felder 8 - 27 ist die Kundenadresse. Nur für den Export. Die Felder werden beim Import ignoriert.
         // 09 Titel C 10
         // 10 Vorname C 40
         // 11 Name C 40
@@ -769,8 +796,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         // 26 BIC C 20
         // 27 Bank C 20
         // 28 = USt.IdNr C 20
-        csv[29] = "0"; // Privatperson I8, 0 = keine Privatperson , 1 =
-        // Privatperson
+        csv[29] = "0"; // Privatperson I8, 0 = keine Privatperson , 1 = Privatperson
         if (invoiceDate == null) { // 30 // Rechnungsdatum
             csv[30] = NLS.toUserString(invoiceItem.getLineitemDate());
         } else {
@@ -802,7 +828,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         csv[40] = "Position am " + NLS.toUserString(LocalDateTime.now())
                 + " exportiert"; // 40 Internes Memo C 1024
         csv[41] = "0"; // 41 Gelöscht I 8 0 = nicht gelöscht, 1 = gelöscht.
-        csv[42] = "0"; // 42 Sprache I 8 0 = Deutsch, 1 = Englisch.
+        csv[42] = invoiceItem.getOutputLanguage(); // 42 Sprache I 8 0 = Deutsch, 1 = Englisch.
         // 43 Bearbeiter I 8 Mitarbeiternummer des Bearbeiters. Falls nicht
         // angegeben, wird der Bearbeiter automatisch bestimmt.
         // 44 Vermittler I 8 Mitarbeiter Nummer des Vermittlers für die
@@ -924,10 +950,17 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         invoiceItem.setClearingDate(LocalDateTime.now());
         oma.update(invoiceItem);
         // Step 6: calculate the position-sum
-        sum = invoiceItem.getPrice().times(invoiceItem.getQuantity());
-        if(invoiceItem.getPositionDiscount() != null) {
-            sum = sum.decreasePercent(invoiceItem.getPositionDiscount());
-        }
+        Amount quantity = invoiceItem.getQuantity().fill(Amount.ONE);
+        Amount price = invoiceItem.getPrice().fill(Amount.ZERO);
+//        if(quantity == null || quantity.isEmpty()) {
+//            quantity = Amount.ONE;
+//        }
+        sum = price.times(quantity);
+        Amount discount =  invoiceItem.getPositionDiscount().fill(Amount.ZERO);
+        sum = sum.decreasePercent(discount);
+//        if(invoiceItem.getPositionDiscount() != null) {
+//            sum = sum.decreasePercent(invoiceItem.getPositionDiscount());
+//        }
         // System.err.println(invoiceItem.getCompanyName() + "   " + NLS.toUserString(sum));
         return sum;
 

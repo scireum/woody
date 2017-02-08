@@ -12,6 +12,7 @@ import sirius.biz.tenants.TenantAware;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
+import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
@@ -35,6 +36,15 @@ public class Tag extends TenantAware {
     @Length(255)
     private String targetType;
     public static final Column TARGET_TYPE = Column.named("targetType");
+
+    /**
+     * Column only for migration CRM --> woody
+     * This column contains the id of the industry-tag in the CRM.table
+     * */
+    @NullAllowed
+    private Long crmIndustryId = Long.valueOf(-1);
+    private static final Column CRMINDUSTRYID = Column.named("crmIndustryId");
+
 
     @BeforeSave
     protected void clearTagName() {
@@ -68,5 +78,13 @@ public class Tag extends TenantAware {
 
     public void setTargetType(String targetType) {
         this.targetType = targetType;
+    }
+
+    public long getCrmIndustryId() {
+        return crmIndustryId;
+    }
+
+    public void setCrmIndustryId(long crmIndustryId) {
+        this.crmIndustryId = crmIndustryId;
     }
 }

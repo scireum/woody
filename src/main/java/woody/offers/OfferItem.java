@@ -81,55 +81,45 @@ public class OfferItem extends BizEntity {
     public static final Column PACKAGEDEFINITION = Column.named("packageDefinition");
 
     @Autoloaded
-    @NullAllowed
     @Length(100)
     private String keyword;
     public static final Column KEYWORD = Column.named("keyword");
 
     @Autoloaded
-    @NullAllowed
     @Length(1000)
     private String text;
     public static final Column TEXT = Column.named("text");
 
     @Autoloaded
-    @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount quantity;
     public static final Column QUANTITY = Column.named("quantity");
 
     @Autoloaded
-    @NullAllowed
     @Length(5)
     private String quantityUnit;
-    public static final Column ACCOUNTINGUNIT = Column.named("quantityUnit");
+    public static final Column QUANTITYUNIT = Column.named("quantityUnit");
 
 
     @Autoloaded
-    @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount singlePrice;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
-
 
     @NullAllowed
     @Length(20)
     private String priceBase;
     public static final Column PRICEBASE = Column.named("priceBase");
 
-
-    @NullAllowed
     @Autoloaded
     @Numeric(scale = 2, precision = 15)
     private Amount discount;
     public static final Column DISCOUNT = Column.named("discount");
 
-    @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount price;
     public static final Column PRICE = Column.named("price");
 
-    @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount cyclicPrice;
     public static final Column CYCLICPRICE = Column.named("cyclicPrice");
@@ -200,6 +190,11 @@ public class OfferItem extends BizEntity {
 
     @BeforeSave
     protected void onSave()  {
+        quantity = checkIfNull(quantity);
+        singlePrice = checkIfNull(singlePrice);
+        discount =  checkIfNull(discount);
+        cyclicPrice = checkIfNull(cyclicPrice);
+        price = checkIfNull(price);
         // check te Role of the user
         UserInfo userInfo = UserContext.getCurrentUser();
         userInfo.assertPermission("offers");
@@ -234,7 +229,16 @@ public class OfferItem extends BizEntity {
                     text = "Zwischensummen:";
                 }
             } else {
-                if (isLicense()) {
+                if(!discount.isEmpty()) {
+                    if(discount.isNegative()) {
+                        throw Exceptions.createHandled().withNLSKey("OfferItem.discountNegative").handle();
+                    }
+                    if(discount.compareTo(Amount.ONE_HUNDRED) == 1) {
+                        throw Exceptions.createHandled().withNLSKey("OfferItem.discountGreaterHundred").handle();
+                    }
+                }
+
+               if (isLicense()) {
                     offerItemType = OfferItemType.LICENSE;
                     quantityUnit = packageDefinition.getValue().getAccountingUnit();
                     // set keyword and text with default-values from the packageDefinition  (CRM-64)
@@ -301,7 +305,7 @@ public class OfferItem extends BizEntity {
                 // check the singlePrice
                 if (isService()) {
                     // ToDo Exception bei singlePrice == null :                     if (singlePrice.isZeroOrNull()) {
-                    if (singlePrice == null || singlePrice.isZeroOrNull()) {
+                    if (/*singlePrice == null ||*/ singlePrice.isZeroOrNull()) {
                         //  is a price for this company present? -> take the company-price
                         CompanyAccountingData companyAccountingData = company.getCompanyAccountingData();
                         if(companyAccountingData != null) {
@@ -309,35 +313,34 @@ public class OfferItem extends BizEntity {
                                 singlePrice = companyAccountingData.getPtPrice();
                                 priceBase = "Firma";
                             }
-                        }
-
-                        // is a Package-price present? --> take the package-price
-                         pd = oma.select(PackageDefinition.class)
-                                .eq(PackageDefinition.NAME, packageDefinition.getValue().getName())
-                                .eq(PackageDefinition.PRODUCT, baseProduct)
-                                .queryFirst();
-                        if (pd != null) {
-                            singlePrice = pd.getUnitPrice();
-                            priceBase = "Paket";
                         } else {
+                            // is a Package-price present? --> take the package-price
                             pd = oma.select(PackageDefinition.class)
-                                    .eq(PackageDefinition.PRODUCT, baseProduct).queryFirst();
+                                    .eq(PackageDefinition.NAME, packageDefinition.getValue().getName())
+                                    .eq(PackageDefinition.PRODUCT, baseProduct)
+                                    .queryFirst();
                             if (pd != null) {
                                 singlePrice = pd.getUnitPrice();
-                                priceBase = "Produkt";
+                                priceBase = "Paket";
+                            } else {
+                                pd = oma.select(PackageDefinition.class).eq(PackageDefinition.PRODUCT, baseProduct).queryFirst();
+                                if (pd != null) {
+                                    singlePrice = pd.getUnitPrice();
+                                    priceBase = "Produkt";
+                                }
                             }
                         }
 
                     }
-                    if (singlePrice == null || singlePrice.isZeroOrNull()) {
+                    if (/*singlePrice == null ||*/ singlePrice.isZeroOrNull()) {
                         throw Exceptions.createHandled().withNLSKey("OfferItem.singlePriceMissing").handle();
                     }
                 }
                 if (isLicense()) {
-                    if(cyclicPrice == null ) {
+                    if(cyclicPrice == Amount.NOTHING ) {
                         cyclicPrice = packageDefinition.getValue().getUnitPrice();
                     }
-                    if (cyclicPrice == null) {
+                    if (cyclicPrice == Amount.NOTHING) {
                         throw Exceptions.createHandled().withNLSKey("OfferItem.cyclicPriceMissing").handle();
                     }
                     priceBase = "Paket";
@@ -367,11 +370,8 @@ public class OfferItem extends BizEntity {
                     }
                 }
                 // calculate the price
-                Amount discount1 = Amount.ZERO;
-                if (discount != null && discount.isPositive() && (discount.compareTo(Amount.ONE_HUNDRED) < 1)) {
-                    discount1 = discount;
-                }
-                if(singlePrice != null) {
+                Amount discount1 = discount.fill(Amount.ZERO);
+//                if(singlePrice != null) {
                     if (isService()) {
                         price = quantity.times(singlePrice);
                         price = price.decreasePercent(discount1);
@@ -380,7 +380,7 @@ public class OfferItem extends BizEntity {
                         price = quantity.times(cyclicPrice);
                         price = price.decreasePercent(discount1);
                     }
-                }
+//                }
                 // store the dates
                 if (OfferItemState.OFFER.equals(state)) {
                     if (offerDate == null) {
@@ -457,6 +457,13 @@ public class OfferItem extends BizEntity {
             }
 
         }
+    }
+
+    private Amount checkIfNull(Amount data) {
+        if(data == null) {
+            return Amount.NOTHING;
+        }
+        return data;
     }
 
     @AfterSave

@@ -50,8 +50,8 @@ public class AccountingServiceBean implements AccountingService {
     @Part
     protected OMA oma;
 
-    private Amount prodUmsatz = null;
-    private Amount testUmsatz = null;
+    private Amount prodUmsatz = Amount.NOTHING;
+    private Amount testUmsatz = Amount.NOTHING;
     private LocalDate accountingDate = null;
 
     private static final String LINEITEMNAME = "lineitem.csv";
@@ -89,8 +89,8 @@ public class AccountingServiceBean implements AccountingService {
             }
         };
 
-        prodUmsatz = null;
-        testUmsatz = null;
+        prodUmsatz = Amount.NOTHING;
+        testUmsatz = Amount.NOTHING;
 
         //create a list wit the companies
         // is a company given?
@@ -110,7 +110,7 @@ public class AccountingServiceBean implements AccountingService {
 
         // Step1: process the companyList
         for (Company company : companyList) {
-//			System.err.println("Firma: " + company.getName());
+			System.err.println("Firma: " + company.getName());
             String name = company.getName() ;
 //            if (company.getName().startsWith("Testfirma14")) {
 //			if("10174".equals(company.getCustomerNr())) {
@@ -168,9 +168,8 @@ public class AccountingServiceBean implements AccountingService {
                         List<ContractToDos<Contract, Contract, Contract, Integer>> toDoList = checkContractList(contractList, referenceDate);
                         if (toDoList.size() > 0) {
                             // Step5: process the toDoList
-                            // listen! the InvoiceNr is a virtual invoiceNr for collmex.
-                            // all invoiceNr are negative and a new invoiceNr is
-                            // a new "smaller" negative number!
+                            // listen! the InvoiceNr is a virtual invoiceNr for collmex. All invoiceNr are negative
+                            // and a new invoiceNr is a new "smaller" negative number!
                             if (companyInvoiceNr != invoiceNr) {
                                 invoiceNr--;
                                 companyInvoiceNr = invoiceNr;
@@ -221,13 +220,10 @@ public class AccountingServiceBean implements AccountingService {
         System.err.println("---------------------------------------------------------") ;
         for ( Lineitem lineitem : itemCollector.getData() ) {
             counter++;
-            Amount discount = lineitem.getPositionDiscount();
-            if (discount == null) {
-                discount = Amount.ZERO;
-            }
-            Amount price = lineitem.getPrice();
+            Amount discount = lineitem.getPositionDiscount().fill(Amount.ZERO);
+            Amount price = lineitem.getPrice().fill(Amount.ZERO);
             price = price.decreasePercent(discount);
-            Amount quantity = lineitem.getQuantity();
+            Amount quantity = lineitem.getQuantity().fill(Amount.ONE);
             Amount amount = quantity.times(price);
             summe = summe.add(amount);
             text = lineitem.getCompanyName() + ";" + lineitem.getCustomerNr() + ";" + NLS.toUserString(amount);
@@ -301,10 +297,8 @@ public class AccountingServiceBean implements AccountingService {
 
         }
 
-        /**
-         * gets the last (the smallest) virtual invoiceNr
-         */
-        private Long getMinInvoiceNr() {
+        @Override
+        public Long getMinInvoiceNr() {
             Lineitem lineitem = oma.select(Lineitem.class)
                                    .orderAsc(Lineitem.INVOICENR).queryFirst();
             if (lineitem != null) {
@@ -415,15 +409,15 @@ public class AccountingServiceBean implements AccountingService {
             }
             positionPrice = round(positionPrice,2);
 
-            Amount positionDiscount = getSolidPositionDiscount(contract);
+            Amount positionDiscount = contract.getDiscountPercent().fill(Amount.ZERO);
             if(positionDiscount.isPositive()) {
                 int gggg = 1;
             }
-            Amount discountAmount = getSolidFinalDiscountAmount(contract);
+            Amount discountAmount = contract.getDiscountAbsolute().fill(Amount.ZERO);
             if(discountAmount.isPositive()) {
                 int hhh = 1;
             }
-            Amount reducedPrice = positionPrice.decreasePercent(getSolidPositionDiscount(contract));
+            Amount reducedPrice = positionPrice.decreasePercent(positionDiscount);
             Amount discount = positionPrice.subtract(reducedPrice);
             discount = round(discount, 2);
             // build the lineitem-data
@@ -464,8 +458,8 @@ public class AccountingServiceBean implements AccountingService {
         private void accountSinglePrice(DataCollector<Lineitem> itemCollector,
                                         Contract contract, LocalDate referenceDate, Long invoiceNr,
                                         Amount singlePrice, LocalDateTime clearingDate) {
-            // check: is the single price not null or = 0
-            if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
+            // check: is the single price <= 0
+            if (! singlePrice.isPositive()) {
                 throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenoValidPrice")
                         .set("abr", contract.getAccountingGroup())
                         .set("contract", contract.toString()).handle();
@@ -717,9 +711,8 @@ public class AccountingServiceBean implements AccountingService {
                                  .set("quantity", contract.getQuantity()).format();
                 }
                 Amount unitPrice = getSolidUnitPrice(contract);
-                if (unitPrice != null && unitPrice.getAmount().doubleValue() > 0D) {
-                    s = s
-                        + Formatter.create(" je ${unitPrice} EUR")
+                if (unitPrice.isPositive()) {
+                    s = s + Formatter.create(" je ${unitPrice} EUR")
                                    .set("unitPrice", unitPrice).format();
                 }
                 return s;
@@ -744,38 +737,16 @@ public class AccountingServiceBean implements AccountingService {
            return Amount.of(a);
         }
 
-        /**
-         * get the discountPercent
-         */
-        private Amount getSolidPositionDiscount(Contract contract) {
-            Amount discount = contract.getDiscountPercent();
-            if (discount == null) {
-                discount = Amount.ZERO;
-            }
-            return discount;
-        }
-
-        /**
-         * get the discountAbsolute
-         */
-        private Amount getSolidFinalDiscountAmount(Contract contract) {
-            Amount discount = contract.getDiscountAbsolute();
-            if (discount == null) {
-                discount = Amount.ZERO;
-            }
-            return discount;
-        }
-
         @Override
         public Amount getSolidUnitPrice(Contract contract) {
-            Amount price = null;
+            Amount price = Amount.NOTHING;
             try {
                 price = contract.getUnitPrice();
-                if (price == null) {
+                if (price.isEmpty()) {
                     Optional packageDefinitionOpt = oma.find(PackageDefinition.class, contract
                                     .getPackageDefinition().getValue().getId());
                     PackageDefinition packageDefinition = (PackageDefinition) packageDefinitionOpt.get();
-                    price = packageDefinition.getUnitPrice();
+                    price = packageDefinition.getUnitPrice().fill(Amount.ZERO);
                     contract.setUnitPrice(price);
                 }
             } catch (Exception e) {
@@ -787,15 +758,14 @@ public class AccountingServiceBean implements AccountingService {
 
         @Override
         public Amount getSolidSinglePrice(Contract contract) {
-            Amount price = null;
+            Amount price = Amount.NOTHING;
             try {
                 price = contract.getSinglePrice();
-                if (price == null) {
-                     Optional packageDefinitionOpt = oma.find(
-                            PackageDefinition.class, contract
+                if (price.isEmpty()) {
+                     Optional packageDefinitionOpt = oma.find( PackageDefinition.class, contract
                                     .getPackageDefinition().getValue().getId());
                     PackageDefinition packageDefinition = (PackageDefinition) packageDefinitionOpt.get();
-                    price = packageDefinition.getSinglePrice();
+                    price = packageDefinition.getSinglePrice().fill(Amount.ZERO);
                     contract.setSinglePrice(price);
                 }
             } catch (Exception e) {
@@ -1399,8 +1369,7 @@ public class AccountingServiceBean implements AccountingService {
         /**
          * generates a invoice-position in Colmex
          */
-        private Amount generateCollmexInvoiceLine(PrintWriter pw,
-                                                  Lineitem lineitem, LocalDate invoiceDate) {
+        private Amount generateCollmexInvoiceLine(PrintWriter pw, Lineitem lineitem, LocalDate invoiceDate) {
             Amount sum = Amount.ZERO;
 
             // generate a csv-line for the export in Collmex-Notation
@@ -1557,7 +1526,7 @@ public class AccountingServiceBean implements AccountingService {
             // invoice-linitem)
             // you have also to change the signum of the value
             if (lineitem.isCollmexCredit()) {
-                price = Amount.of(price.getAmount().multiply(BigDecimal.valueOf(-1)));
+                price = price.times(Amount.of(-1));
             }
             csv[74] = NLS.toUserString(price);
             // Einzelpreis M 18 Falls nicht angegeben, wird / der Preis über das Produkt bestimmt.
@@ -1655,8 +1624,8 @@ public class AccountingServiceBean implements AccountingService {
                                                          PackageDefinition pd)  {
             Amount singlePrice = pd.getSinglePrice();
 
-            if (givenContract.getSinglePrice() == null) {     //TASK 7362
-                singlePrice = pd.getSinglePrice();
+            if (givenContract.getSinglePrice().isEmpty() ) {     //== null) {     //TASK 7362
+                singlePrice = pd.getSinglePrice().fill(Amount.ZERO);
             }
             switch (givenContract.getSinglePriceState()) {
                 case NO_ACCOUNTING:
@@ -1674,7 +1643,8 @@ public class AccountingServiceBean implements AccountingService {
                                         .set("accTo", NLS.toUserString(givenContract.getAccountedTo()))
                                         .handle();
                     }
-                    if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
+       //             if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
+                    if (! singlePrice.isPositive()) {
                         throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenoValidPrice")
                                         .set("abr", givenContract.getAccountingGroup())
                                         .set("contract", givenContract.toString()).handle();
@@ -1701,8 +1671,8 @@ public class AccountingServiceBean implements AccountingService {
             // get the singleprice from the package-definition
             Amount singlePrice = pd.getSinglePrice();
             // if a singleprice in the contract is present, take this one
-            if (givenContract.getSinglePrice() == null) {     // TASK 7362
-                singlePrice = pd.getSinglePrice();
+            if (givenContract.getSinglePrice().isEmpty()) {   // == null) {     // TASK 7362
+                singlePrice = pd.getSinglePrice().fill(Amount.ZERO);
             }
 
             Product product = pd.getProduct().getValue();
@@ -1737,7 +1707,7 @@ public class AccountingServiceBean implements AccountingService {
                                 .set("accTo", NLS.toUserString(givenContract.getAccountedTo())).handle();
                     }
                     // check: a real singleprice shoud be existent
-                    if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
+                    if (! singlePrice.isPositive()) {
                         throw Exceptions.createHandled().withNLSKey("AccountingServiceBean.singlePricenoValidPrice")
                                   .set("abr", givenContract.getAccountingGroup())
                                   .set("contract", givenContract.toString()).handle();
