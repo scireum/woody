@@ -45,6 +45,8 @@ public class SyncAsterisk implements EveryDay {
     private static final boolean dryrun = true; // --> no updates in the starface-database
 //    private static final boolean dryrun = false; // --> updates in the starface-database
 
+    boolean testSystem = true;
+
     @Part
     private static Databases databases;
 
@@ -58,6 +60,11 @@ public class SyncAsterisk implements EveryDay {
 //            CRM.LOG.INFO("Not fetching any phoneCalls in the debug system!");
 //            return;
 //        }
+
+        if(testSystem) {
+            LOG.INFO("SyncAsterisk: no synchronizing with starface");
+            return;
+        }
 
         LOG.INFO(NLS.toUserString("Start Synchronisation Telefonanlage Asterisk, dryrun: " + NLS.toUserString(dryrun)));
 

@@ -26,9 +26,11 @@ import sirius.web.security.UserContext;
 
 import sirius.web.templates.Templates;
 import woody.core.employees.Employee;
+import woody.sales.AccountingIntervalType;
 import woody.sales.AccountingService;
 import woody.sales.AccountingServiceBean;
 import woody.sales.Contract;
+import woody.sales.ContractSinglePriceType;
 import woody.sales.Lineitem;
 import woody.sales.PackageDefinition;
 import woody.sales.Product;
@@ -42,6 +44,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -594,6 +597,55 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             return pdList;
         }
         return null;
+    }
+
+    @Override
+    public Contract createContractFromOfferItem(OfferItem offerItem) {
+        if(!offerItem.isLicense()) {
+            return null;
+        }
+
+        Offer offer = offerItem.getOffer().getValue();
+        Company company = offer.getCompany().getValue();
+        Contract contract = new Contract();
+        PackageDefinition pd = offerItem.getPackageDefinition().getValue();
+
+        contract.getCompany().setValue(company);
+        contract.setAccountingGroup("1");
+        contract.getPackageDefinition().setValue(pd);
+        contract.getContractPartner().setValue(offer.getPerson().getValue());
+        contract.setAccountingInterval(AccountingIntervalType.YEAR);
+        Amount discount = offerItem.getDiscount().fill(Amount.ZERO);
+        if(discount.isPositive()) {
+            contract.setDiscountPercent(discount);
+        } else {
+            contract.setDiscountPercent(Amount.NOTHING);
+        }
+        Amount quantity = offerItem.getQuantity().fill(Amount.ONE);
+        contract.setQuantity(quantity.getAmount().intValue());
+        Amount unitPrice = offerItem.getCyclicPrice().fill(Amount.ZERO);
+        contract.setUnitPrice(unitPrice);
+        Amount singlePrice = offerItem.getSinglePrice().fill(Amount.ZERO);
+        if(singlePrice.isPositive()) {
+            contract.setSinglePrice(singlePrice);
+            contract.setSinglePriceState(ContractSinglePriceType.ACCOUNT_NOW);
+        } else {
+            contract.setSinglePrice(Amount.NOTHING);
+            contract.setSinglePriceState(ContractSinglePriceType.NO_SINGLEPRICE);
+        }
+        contract.setSigningDate(offerItem.getOrderDate());
+        contract.setPosition(pd.getDefaultPosition());
+        LocalDate now = LocalDate.now();
+        int year = now.getYear();
+        int month = now.getMonthValue();
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        contract.setStartDate(startDate);
+        if(Strings.isFilled(pd.getParameter())) {
+            contract.setParameter(pd.getParameter());
+        }
+
+        // ToDO weitermachen
+        return contract;
     }
 
     private File createPdfFromContext(Context context, String templateName) {

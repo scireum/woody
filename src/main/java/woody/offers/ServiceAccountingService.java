@@ -16,6 +16,7 @@ import sirius.kernel.commons.DataCollector;
 import woody.offers.Offer;
 import woody.offers.OfferItem;
 import woody.offers.OfferItemState;
+import woody.sales.Contract;
 import woody.sales.Lineitem;
 import woody.sales.PackageDefinition;
 
@@ -121,5 +122,10 @@ public interface ServiceAccountingService {
     public void sendOffer(Offer offer);
 
     public List<PackageDefinition> getAllPackageDefinitions(Object object);
+
+    /**
+     * creates a contract from the given offerItem
+     */
+    public Contract createContractFromOfferItem(OfferItem offerItem);
 
 }

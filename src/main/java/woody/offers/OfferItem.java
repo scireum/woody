@@ -33,6 +33,7 @@ import sirius.kernel.nls.NLS;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 import woody.sales.CompanyAccountingData;
+import woody.sales.Contract;
 import woody.sales.PackageDefinition;
 import woody.sales.Product;
 import woody.sales.ProductType;
@@ -190,11 +191,20 @@ public class OfferItem extends BizEntity {
 
     @BeforeSave
     protected void onSave()  {
-        quantity = checkIfNull(quantity);
-        singlePrice = checkIfNull(singlePrice);
-        discount =  checkIfNull(discount);
-        cyclicPrice = checkIfNull(cyclicPrice);
-        price = checkIfNull(price);
+        // TODO prüfen, ob das generell gelöst werden kann
+
+//        quantity = checkIfNull(quantity);
+//        singlePrice = checkIfNull(singlePrice);
+//        discount =  checkIfNull(discount);
+//        cyclicPrice = checkIfNull(cyclicPrice);
+//        price = checkIfNull(price);
+
+        Contract.checkValue(quantity, true, false, false, false,  null, NLS.get("OfferItem.quantity"));
+        Contract.checkValue(singlePrice, true, false, false, false,  null, NLS.get("OfferItem.singlePrice"));
+        Contract.checkValue(discount, true, false, false, true,  Amount.of(100), NLS.get("OfferItem.discount"));
+        Contract.checkValue(cyclicPrice, true, false, false, false,  null, NLS.get("OfferItem.cyclicPrice"));
+        Contract.checkValue(price, true, false, false, false,  null, NLS.get("OfferItem.price"));
+
         // check te Role of the user
         UserInfo userInfo = UserContext.getCurrentUser();
         userInfo.assertPermission("offers");
@@ -229,6 +239,7 @@ public class OfferItem extends BizEntity {
                     text = "Zwischensummen:";
                 }
             } else {
+                // TODO ggfs. verzichtbar, wenn checkValue läuft
                 if(!discount.isEmpty()) {
                     if(discount.isNegative()) {
                         throw Exceptions.createHandled().withNLSKey("OfferItem.discountNegative").handle();
@@ -304,8 +315,7 @@ public class OfferItem extends BizEntity {
                 }
                 // check the singlePrice
                 if (isService()) {
-                    // ToDo Exception bei singlePrice == null :                     if (singlePrice.isZeroOrNull()) {
-                    if (/*singlePrice == null ||*/ singlePrice.isZeroOrNull()) {
+                    if (singlePrice.isZeroOrNull()) {
                         //  is a price for this company present? -> take the company-price
                         CompanyAccountingData companyAccountingData = company.getCompanyAccountingData();
                         if(companyAccountingData != null) {

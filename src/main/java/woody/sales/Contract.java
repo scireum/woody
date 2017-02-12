@@ -196,10 +196,19 @@ public class Contract extends BizEntity {
 
     @BeforeSave
     protected void onSave() {
-        discountPercent = checkIfNull(discountPercent);
-        discountAbsolute = checkIfNull(discountAbsolute);
-        singlePrice = checkIfNull(singlePrice);
-        unitPrice = checkIfNull(unitPrice);
+        // TODO prüfen, ob das generell gelöst werden kann.
+        // TODO Problem: gibt man " " ein (ein Blank), so ist das Ergebnis == null und kein Amount mit dem Wert null
+//        // check if == null --> set to Amount.NOTHING
+//        discountPercent = checkIfNull(discountPercent);
+//        discountAbsolute = checkIfNull(discountAbsolute);
+//        singlePrice = checkIfNull(singlePrice);
+//        unitPrice = checkIfNull(unitPrice);
+        checkValue(Amount.of(quantity), true, false, false, false, null, NLS.get("Contract.quantity"));
+        checkValue(unitPrice, true, false, false, false, null, NLS.get("Contract.unitPrice"));
+        checkValue(singlePrice, true, false, false, false, null, NLS.get("Contract.singlePrice"));
+        checkValue(discountPercent, true, false, false, true, Amount.of(100), NLS.get("Contract.discountPercent"));
+        checkValue(discountAbsolute, true, false, false, false, null, NLS.get("Contract.discountAbsolute"));
+
         //completeParameter(this);
         checkParameterSyntax(this.getParameter());
         // check the customerNr of the company, because the customerNr is needed to account the contract
@@ -339,6 +348,48 @@ public class Contract extends BizEntity {
         }
         // check the contractList
         checkContractIsSingle(contractList);
+    }
+
+    public static void checkValue(Amount value, boolean notNegative, boolean notZero, boolean notPositive, boolean testLimit, Amount limit, String name) {
+        if(notNegative) {
+            if (value.isNegative()) {
+                throw Exceptions.createHandled().withNLSKey("Contract.valueIsNegative").set("name", name).handle();
+            }
+        }
+        if(notZero) {
+            if(!value.isZero()) {
+                throw Exceptions.createHandled().withNLSKey("Contract.valueIsNotZero")
+                                .set("name", name).handle();
+            }
+        }
+        if(notPositive) {
+            if(value.isPositive()) {
+                throw Exceptions.createHandled().withNLSKey("Contract.valueIsPositive")
+                                .set("name", name).handle();
+            }
+        }
+        if(testLimit) {
+            if(limit.isNegative()) {
+              if(value.compareTo(limit) < 0) {
+                  throw Exceptions.createHandled()
+                                  .withNLSKey("Contract.valueIsGreater")
+                                  .set("name", name)
+                                  .set("limit", NLS.toUserString(limit))
+                                  .handle();
+              }
+            } else {
+                if (value.compareTo(limit) > 0) {
+                    throw Exceptions.createHandled()
+                                    .withNLSKey("Contract.valueIsGreater")
+                                    .set("name", name)
+                                    .set("limit", NLS.toUserString(limit))
+                                    .handle();
+                }
+            }
+        }
+
+
+
     }
 
     private Amount checkIfNull(Amount amount) {

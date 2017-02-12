@@ -12,3 +12,4 @@ Anmeldung: gha
 16.01.2017  - Änderungen aus CRM-63,64, 65 und 67 übernommen.
 22.01.2017  - Konsistenter Stand für Opportunity + Änderungen vom 16.1.2017 comitted
 28.01.2017  - Telefon-Schnittstelle zu Starface, exemplarische Anwendung in person-details.html, MD5-Schlüssel und "normalizePhoneNumber vereinheitlicht"
+xx.xx.2017  - main-html als vorläufige Startseite eingeführt.

@@ -23,6 +23,7 @@ import woody.sales.AccountingService;
 import woody.xrm.Person;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -130,11 +131,15 @@ public class SendOfferView /* extends BasicView*/ {
 
     //TODO mailschnittstelle mit PDF file
 //    private void sendMailToPerson(String eMailAdr, LocalDate sendDate, String namedObjectName, VFile file, Person person) {
-//        mail.createEmail()
+//             // prepare subject and text for HTML and XML
+//    String subject =  Tools.nl2br(Tools.escapeXML(subjectBox.getValue()));
+//    String text =  Tools.nl2br(Tools.escapeXML(textArea.getValue()));
+
+//      mail.createEmail()
 //                .from("support@scireum.net", "scireum-Support")
-//                .subject(subjectBox.getValue())
+//                .subject(subject)
 //                .to(eMailAdr, person.getName())
-//                .textContent(textArea.getValue())
+//                .textContent(text)
 //                .addAttachment(new DataSource() {
 //                    @Override
 //                    public InputStream getInputStream() throws IOException {
@@ -158,14 +163,44 @@ public class SendOfferView /* extends BasicView*/ {
 //                })
 //                .send();
 
+//    // generate a pdf-document from the mail-text
+//    Context context = new Context();
+//    context.set("dateString", NLS.toUserString(cal.getTime(), true));
+//    context.set("eMailAdr", eMailAdr);
+//    context.set("subject", subject);
+//    context.set("textArea", text);
+//    context.set("objectName", namedObjectName);
+//    context.set("file", file.getFile().getPath());
+//    ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+//    try {
+//        ContentGenerator.getInstance().generate("/plugins/scireum/crm/mailoffer.pdf", byteOut, context);
+//    } catch (IOException e) {
+//        ApplicationController.handle(e);
+//    }
+//
+//    // store the subject and the mail-text (as pdf-document) in the attachment-area
+//    NamedObject namedObject = nos.getNamedObject(namedObjectName);
+//    DataArea area = areas.getAttachmentsArea(namedObject);
+//    byte[] mailtext = byteOut.toByteArray();
+//    InputStream in = new ByteArrayInputStream(mailtext);
+//    String timeStamp = as.dateTimeFilename("_", cal);
+//    String filename = MessageFormat.format("{0}Mail_an_{1}{2}_{3}", timeStamp, person.getLastname(),
+//                                           person.getFirstname() == null ? "" : person.getFirstname(), attachmentName);
+//    try {
+//        file = area.addFile(null, filename, in);
+//    } catch (IOException e) {
+//        ApplicationController.handle(e);
+//    }
 
-        // store the mail in a notice of the person
+
+
+    // store the mail in a notice of the person
         //ToDO: andere Lösung um notes zu speichern
 //        Note note = new Note();
 //        note.setCompany(person.getCompany());
 //        note.setDate(cal.getTime());
 //        note.setEmployee(CRM.getCurrent());
-//        String text = MessageFormat.format("{0} \n\n{1}\n\nAnlagen: \n{2}\n\nuniqueObjectName: {3}, filename: {4}",
+//        text = MessageFormat.format("{0} \n\n{1}\n\nAnlagen: \n{2}\n\nuniqueObjectName: {3}, filename: {4}",
 //                subjectBox.getValue(), textArea.getValue(), attachmentArea.getValue(), namedObjectName,  file.getFile().getPath());
 //        note.setNotice(text);
 //        note.setNoticeType(NoticeType.EMAIL_OUT);

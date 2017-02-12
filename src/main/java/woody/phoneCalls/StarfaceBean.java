@@ -45,7 +45,7 @@ public class StarfaceBean implements Starface {
                                 .set("employeeShortName", employee.getShortName()).handle();
 
             }
-            // normalize the phone-number 07151 / 741-08 --> 0049715174108
+            // normalize the phone-number 07151 / 741-08 --> +49715174108
             destination = SyncAsterisk.normalizePhonenumberForStarfaceAddressbook(destination, true);
 
             try {
@@ -60,7 +60,8 @@ public class StarfaceBean implements Starface {
                 out.beginOutput("methodCall").property("methodName","ucp.v22.requests.connection.login").endResult();
                 XMLStructuredInput in = call.getInput();
                 if(test) {
-                    System.out.println(in.toString());}
+                    System.out.println(in.toString());
+                }
 
                 // create the phoneCall
                 call = XMLCall.to(url);
