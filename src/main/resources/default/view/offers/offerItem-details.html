@@ -8,11 +8,11 @@
 
 @import woody.xrm.Company
 @import woody.xrm.Person
-@import woody.offers.Offer
-@import woody.offers.OfferState
-@import woody.offers.OfferItem
-@import woody.offers.OfferItemState
-@import woody.offers.OfferItemType
+@import woody.sales.offers.Offer
+@import woody.sales.offers.OfferState
+@import woody.sales.offers.OfferItem
+@import woody.sales.offers.OfferItemState
+@import woody.sales.offers.OfferItemType
 @import woody.sales.PackageDefinition
 @import woody.sales.Product
 @import sirius.kernel.commons.NumberFormat;
@@ -48,7 +48,7 @@
             @textfield( span: "2", name:     "quantity", value:    NLS.toUserString(offerItem.getQuantity() ),
             labelKey: "OfferItem.quantity", readOnly: false )
             @if(OfferItemType.SERVICE.equals(offerItem.getOfferItemType() )  ) {
-                @codelistSelect(span: "3", list: "accountingUnit", name:     "accountingUnit", value:    offerItem.getAccountingUnit(),
+                @codelistSelect(span: "3", list: "accountingUnit", name:     "accountingUnit", value:    offerItem.getQuantityUnit(),
                 labelKey: "OfferItem.accountingUnit", readOnly: true )
             }
         }
@@ -63,7 +63,7 @@
                   }
             }
             @if(OfferItemType.LICENSE.equals(offerItem.getOfferItemType() )  ) {
-                @codelistSelect(span: "3", list: "accountingUnit", name:     "accountingUnit", value:    offerItem.getAccountingUnit(),
+                @codelistSelect(span: "3", list: "accountingUnit", name:     "accountingUnit", value:    offerItem.getQuantityUnit(),
                 labelKey: "OfferItem.accountingUnit", readOnly: true )
             }
 

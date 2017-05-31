@@ -17,33 +17,25 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
-import sirius.web.security.UserContext;
 
 /**
- * Created by aha on 09.05.15.
+ * Provides the editor UI for employee information embedded within the user account management.
  */
 @Register(classes = Controller.class)
 public class EmployeeController extends BizController {
 
+    /**
+     * Handles the page within the user account editor which is responsible for editing the employee data.
+     *
+     * @param ctx       the current request
+     * @param accountId the id of the user account to edit
+     */
     @Routed("/user-account/:1/employee")
     @LoginRequired
     @Permission(UserAccountController.PERMISSION_MANAGE_USER_ACCOUNTS)
     public void employee(WebContext ctx, String accountId) {
-        UserAccount userAccount = find(UserAccount.class, accountId);
-        assertTenant(userAccount);
-        assertNotNew(userAccount);
-
-        if (ctx.isPOST()) {
-            try {
-                load(ctx, userAccount);
-                oma.update(userAccount);
-                showSavedMessage();
-            } catch (Exception e) {
-                UserContext.handle(e);
-            }
-        }
-        ctx.respondWith()
-           .template("view/core/employee/user-account-employee.html",
-                     userAccount);
+        UserAccount userAccount = findForTenant(UserAccount.class, accountId);
+        prepareSave(ctx).saveEntity(userAccount);
+        ctx.respondWith().template("view/core/employee/user-account-employee.html", userAccount);
     }
 }

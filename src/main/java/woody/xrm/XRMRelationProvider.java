@@ -23,6 +23,7 @@ import sirius.kernel.nls.NLS;
 import woody.core.relations.RelationProvider;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -46,10 +47,23 @@ public class XRMRelationProvider implements RelationProvider {
     }
 
     @Override
-    public void computeSuggestions(String subType,
-                                   String query,
-                                   boolean forSearch,
-                                   Consumer<Tuple<String, String>> consumer) {
+    public void computeSearchSuggestions(@Nullable String subType,
+                                         @Nonnull String query,
+                                         @Nonnull Consumer<Tuple<String, String>> consumer) {
+        computeSuggestions(subType, query, true, consumer);
+    }
+
+    @Override
+    public void computeTargetSuggestions(@Nullable String subType,
+                                         @Nonnull String query,
+                                         @Nonnull Consumer<Tuple<String, String>> consumer) {
+        computeSuggestions(subType, query, false, consumer);
+    }
+
+    private void computeSuggestions(String subType,
+                                    String query,
+                                    boolean forSearch,
+                                    Consumer<Tuple<String, String>> consumer) {
         if (subType == null || "PERSON".equals(subType)) {
             oma.select(Person.class)
                .fields(Person.ID,
@@ -95,10 +109,6 @@ public class XRMRelationProvider implements RelationProvider {
 
     @Override
     public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
-        if (Strings.isEmpty(uniqueObjectName)) {
-            return Optional.empty();
-        }
-
         Tuple<String, String> typeAndId = Strings.split(uniqueObjectName, "-");
         if (typeAndId.getSecond().length() <= 6) {
             return oma.select(Company.class)
@@ -127,8 +137,8 @@ public class XRMRelationProvider implements RelationProvider {
     @Override
     public List<Tuple<String, String>> getSourceTypes() {
         List<Tuple<String, String>> result = Lists.newArrayList();
-        result.add(Tuple.create("XRM-PERSON", NLS.get("Person.plural")+"(Y)"));
-        result.add(Tuple.create("XRM-COMPANY", NLS.get("Company.plural")+"(Y)"));
+        result.add(Tuple.create("XRM-PERSON", NLS.get("Person.plural") + "(Y)"));
+        result.add(Tuple.create("XRM-COMPANY", NLS.get("Company.plural") + "(Y)"));
         return result;
     }
 

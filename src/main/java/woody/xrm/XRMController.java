@@ -16,7 +16,6 @@ import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
 import sirius.db.mixing.constraints.Like;
-import sirius.kernel.commons.DataCollector;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
@@ -30,11 +29,10 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import sirius.web.services.JSONStructuredOutput;
-import woody.core.relations.Relations;
+import woody.core.relations.RelationHelper;
 import woody.core.tags.Tagged;
 import woody.sales.contracts.AccountingService;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 /**
@@ -48,6 +46,9 @@ public class XRMController extends BizController {
 
     @Part
     private AccountingService asb;
+
+    @Part
+    private RelationHelper relations;
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
@@ -85,21 +86,36 @@ public class XRMController extends BizController {
                             Company.ADDRESS.inner(AddressData.CITY),
                             Company.CUSTOMER_NUMBER,
                             Company.MATCHCODE);
+
         Tagged.applyTagSuggestions(Company.class, search, query);
-        Relations.applySuggestions(Company.class, search, query);
+        relations.applySuggestions(Company.class, search, query);
         PageHelper<Company> ph = PageHelper.withQuery(query).forCurrentTenant();
+        ph.enableAdvancedSearch();
+        ph.withSearchFields(Company.NAME,
+                            Company.ADDRESS.inner(AddressData.CITY),
+                            Company.CUSTOMER_NUMBER,
+                            Company.MATCHCODE);
         ph.withContext(ctx);
         ctx.respondWith().template("view/xrm/companies.html", ph.asPage(), search.getSuggestionsString());
     }
 
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
+//    @LoginRequired
+//    @Permission(PERMISSION_MANAGE_XRM)
     @Routed(value = "/companies/suggest", jsonCall = true)
     public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
-        MagicSearch.generateSuggestions(ctx, (q, c) -> {
-            Tagged.computeSuggestions(Company.class, q, c);
-            Relations.computeSuggestions(Company.class, q, c);
+        out.beginArray("results");
+        Tagged.computeSuggestions(Company.class, ctx.get("query").asString(), s -> {
+            out.beginObject("result");
+            out.property("name", s.getName());
+            out.property("value", "::" + s.getType() + ":" + s.getValue() + ":" + s.getName() + "::");
+            out.endObject();
         });
+        out.endArray();
+
+//        MagicSearch.generateSuggestions(ctx, (q, c) -> {
+//            Tagged.computeSuggestions(Company.class, q, c);
+//            relations.computeSuggestions(Company.class, q, c);
+//        });
     }
 
     @LoginRequired

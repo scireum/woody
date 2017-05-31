@@ -9,8 +9,8 @@
 package woody.sales.offers;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import sirius.biz.model.PersonData;
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
 import sirius.kernel.commons.Context;
@@ -27,6 +27,7 @@ import sirius.web.security.UserContext;
 import sirius.web.templates.Templates;
 import woody.core.tags.Tagged;
 import woody.xrm.Company;
+import woody.xrm.Person;
 import woody.xrm.XRMController;
 
 import java.io.OutputStream;
@@ -44,13 +45,11 @@ public class OffersController extends BizController {
 
     private static final String MANAGE_XRM = "permission-manage-xrm";
 
-
     @Part
     private static ServiceAccountingService sas;
 
     @Part
     private static Templates templates;
-
 
     @LoginRequired
     @Permission(MANAGE_OFFER)
@@ -63,7 +62,6 @@ public class OffersController extends BizController {
         sas.sendOffer(offer);
         companyOffers(ctx, companyId);
     }
-
 
     @LoginRequired
     @Permission(MANAGE_OFFER)
@@ -105,14 +103,13 @@ public class OffersController extends BizController {
     @Routed("/company/:1/offers")
     public void companyOffers(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
 
-        Tagged.applyTagSuggestions(Offer.class, search, query);
+//        Tagged.applyTagSuggestions(Offer.class, search, query);
         PageHelper<Offer> ph = PageHelper.withQuery(query);
         ph.withContext(ctx);
         ctx.respondWith()
-           .template("view/offers/company-offers.html", company, ph.asPage(), search.getSuggestionsString());
+           .template("view/offers/company-offers.html", company, ph.asPage(),"");
     }
 
     @LoginRequired
@@ -125,7 +122,7 @@ public class OffersController extends BizController {
         setOrVerify(offer, offer.getCompany(), company);
 
         if (ctx.isPOST() && getUser().hasPermission(MANAGE_OFFER)) {
-           try {
+            try {
                 boolean wasNew = offer.isNew();
                 load(ctx, offer);
                 oma.update(offer);
@@ -144,7 +141,15 @@ public class OffersController extends BizController {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/offers/offer-details.html", company, offer);
+        ctx.respondWith()
+           .template("view/offers/offer-details.html",
+                     company,
+                     offer,
+                     oma.select(Person.class)
+                        .eq(Person.COMPANY, company)
+                        .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
+                        .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
+                        .queryList());
     }
 
     @LoginRequired
@@ -219,7 +224,7 @@ public class OffersController extends BizController {
     @LoginRequired
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2/offerItem/:3")
-    public void offerItem(WebContext ctx,  String companyId, String offerId, String offerItemId) {
+    public void offerItem(WebContext ctx, String companyId, String offerId, String offerItemId) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
         Offer offer = findForTenant(Offer.class, offerId);
@@ -261,5 +266,4 @@ public class OffersController extends BizController {
         }
         offerOfferItems(ctx, companyId, offerId);
     }
-
 }

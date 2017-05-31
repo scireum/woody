@@ -26,11 +26,14 @@ import woody.core.relations.Relateable;
 import java.time.LocalDate;
 
 /**
- * Created by aha on 09.05.15.
+ * Extends a <tt>UserAccount</tt> with information related to an employee.
  */
 @Mixin(UserAccount.class)
 public class Employee extends Mixable {
 
+    /**
+     * Contains the employee number assigned to the user.
+     */
     public static final Column EMPLOYEE_NUMBER = Column.named("employeeNumber");
     @Unique(within = "tenant")
     @Trim
@@ -39,6 +42,9 @@ public class Employee extends Mixable {
     @Autoloaded
     private String employeeNumber;
 
+    /**
+     * Contains the short name assigned to the user.
+     */
     public static final Column SHORT_NAME = Column.named("shortName");
     @Unique(within = "tenant")
     @Trim
@@ -47,6 +53,9 @@ public class Employee extends Mixable {
     @Autoloaded
     private String shortName;
 
+    /**
+     * Contains the phone extension of the user.
+     */
     public static final Column PHONE_EXTENSION = Column.named("phoneExtension");
     @Trim
     @Length(30)
@@ -54,30 +63,53 @@ public class Employee extends Mixable {
     @Autoloaded
     private String phoneExtension;
 
+    /**
+     * Contains the date when the user joined the company.
+     */
     public static final Column JOIN_DATE = Column.named("joinDate");
     @NullAllowed
     @Autoloaded
     private LocalDate joinDate;
 
+    /**
+     * Contains the date when the user left the company.
+     */
     public static final Column DISCHARGE_DATE = Column.named("dischargeDate");
     @NullAllowed
     @Autoloaded
     private LocalDate dischargeDate;
 
+    /**
+     * Contains the birthday of the user.
+     */
     public static final Column BIRTHDAY = Column.named("birthday");
     @NullAllowed
     @Autoloaded
     private LocalDate birthday;
 
+    /**
+     * Contains the personal address of the user.
+     */
     public static final Column ADDRESS = Column.named("address");
     private final AddressData personalAddress = new AddressData(AddressData.Requirements.NONE, null);
 
+    /**
+     * Contains the personal contact information of the user.
+     */
     public static final Column CONTACT = Column.named("contact");
     private final ContactData personalContact = new ContactData(true);
 
+    /**
+     * Contains relations from other objects to this user.
+     */
     public static final Column RELATEABLE = Column.named("relateable");
     private final Relateable relateable;
 
+    /**
+     * Represents the constructor which is used to properly initialize the <tt>Relateable</tt>.
+     *
+     * @param owner the entity for which this mixin was created.
+     */
     public Employee(UserAccount owner) {
         relateable = new Relateable(owner);
     }

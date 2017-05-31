@@ -8,10 +8,10 @@
 
 @import woody.xrm.Company
 @import woody.xrm.Person
-@import woody.offers.Offer
-@import woody.offers.OfferState
+@import woody.sales.offers.Offer
+@import woody.sales.offers.OfferState
 
-@args Company company, Offer offer
+@args Company company, Offer offer, List persons
 @extends(view.offers.offer.html, company, offer, "details")
 
 @editForm(("company/" + company.getIdAsString() + "/offer/" + offer.getIdAsString())) {
@@ -37,19 +37,18 @@
     </div>
 
     <div class="row">
-        @textfield(span: "4", name:     "date", value:    NLS.toUserString(offer.getDate()),
-        labelKey: "Offer.date")
+        @textfield(span: "4", name: "date", value: NLS.toUserString(offer.getDate()), labelKey: "Offer.date")
 
         @singleSelect(span: "4", name: "person",
         labelKey: "Offer.person") {
-            @for(Person person : company.queryPersons()) {
+            @for(Person person : persons) {
                 <option value="@person.getId()" @if (offer.getPerson().is(person)) { selected="selected" }>@person.toString()</option>
             }
         }
 
         @singleSelect(span: "4", name: "buyer",
-        labelKey: "Offer.buyer", optional:true) {
-            @for(Person person : company.queryPersons()) {
+        labelKey: "Offer.buyer", optional: true) {
+            @for(Person person : persons) {
                 <option value="@person.getId()" @if (offer.getBuyer().is(person)) { selected="selected" }>@person.toString()</option>
             }
         }

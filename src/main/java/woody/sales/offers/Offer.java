@@ -10,7 +10,6 @@ package woody.sales.offers;
 
 import sirius.biz.model.BizEntity;
 import sirius.biz.sequences.Sequences;
-import sirius.biz.tenants.Tenants;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -19,7 +18,6 @@ import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Transient;
-import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.web.security.UserContext;
@@ -42,7 +40,6 @@ public class Offer extends BizEntity {
     private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column COMPANY = Column.named("company");
 
-    @Unique(within = "tenant")
     @Length(20)
     private String number;
     public static final Column NUMBER = Column.named("number");

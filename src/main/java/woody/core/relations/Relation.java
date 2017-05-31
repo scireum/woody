@@ -24,23 +24,46 @@ import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 
 /**
- * Created by aha on 11.01.17.
+ * Represents a relation between two entities.
+ * <p>
+ * The entities itself are represented by their <tt>unique object name</tt> to make it usable for
+ * all kinds of entities.
+ * <p>
+ * The composites {@link Relations} and {@link Relateable} are responsible for deleting relations once an entity is
+ * removed.
  */
 @Index(name = "owner_lookup", columns = {"ownerType", "ownerId", "target"})
 @Index(name = "target_lookup", columns = {"target", "ownerType", "ownerId"})
 public class Relation extends Entity {
 
-    public static final Column OWNER_ID = Column.named("ownerId");
-    private long ownerId;
-
+    /**
+     * Contains the type name of the source of the relation.
+     * <p>
+     * The <tt>unique object name</tt> of the source (owner) is split into two fields to support effective joins within
+     * SQL queries.
+     */
     public static final Column OWNER_TYPE = Column.named("ownerType");
     @Length(100)
     private String ownerType;
 
+    /**
+     * Contains the id of the source of the relation.
+     *
+     * @see #OWNER_TYPE
+     */
+    public static final Column OWNER_ID = Column.named("ownerId");
+    private long ownerId;
+
+    /**
+     * Contains the unique object name of the destination of the relation.
+     */
     public static final Column TARGET = Column.named("target");
     @Length(255)
     private String target;
 
+    /**
+     * Contains the type of the relations.
+     */
     public static final Column TYPE = Column.named("type");
     private final EntityRef<RelationType> type = EntityRef.on(RelationType.class, EntityRef.OnDelete.CASCADE);
 
@@ -49,6 +72,9 @@ public class Relation extends Entity {
 
     @Part
     private static Schema schema;
+
+    @Part
+    private static RelationHelper relations;
 
     @Length(255)
     @NullAllowed
@@ -62,7 +88,7 @@ public class Relation extends Entity {
             JournalData.addJournalEntry(owner,
                                         Strings.apply("The relationship '%s' to '%s' was added",
                                                       getType().getValue().getName(),
-                                                      Relations.getTargetNameAndUri(this).get().getFirst()));
+                                                      relations.getTargetName(this)));
         }
     }
 
@@ -74,7 +100,7 @@ public class Relation extends Entity {
             JournalData.addJournalEntry(owner,
                                         Strings.apply("The relationship '%s' to '%s' was deleted",
                                                       getType().getValue().getName(),
-                                                      Relations.getTargetNameAndUri(this).get().getFirst()));
+                                                      relations.getTargetName(this)));
         }
     }
 

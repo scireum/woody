@@ -26,7 +26,7 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import sirius.web.services.JSONStructuredOutput;
-import woody.core.relations.Relations;
+import woody.core.relations.RelationHelper;
 import woody.core.tags.Tagged;
 
 import java.util.Optional;
@@ -38,6 +38,9 @@ import java.util.Optional;
 public class UnitsController extends BizController {
 
     private static final String PERMISSION_MANAGE_UNITS = "permission-manage-units";
+
+    @Part
+    private RelationHelper relations;
 
     @Routed("/units")
     @LoginRequired
@@ -55,7 +58,7 @@ public class UnitsController extends BizController {
                                     .orderAsc(Unit.NAME);
         search.applyQueries(query, Unit.NAME, Unit.CODE, Unit.TYPE.join(UnitType.NAME));
         Tagged.applyTagSuggestions(Unit.class, search, query);
-        Relations.applySuggestions(Unit.class, search, query);
+        relations.applySuggestions(Unit.class, search, query);
         PageHelper<Unit> ph = PageHelper.withQuery(query).forCurrentTenant();
         ph.withContext(ctx);
         ctx.respondWith().template("view/core/units/units.html", ph.asPage(), search.getSuggestionsString());
@@ -67,7 +70,7 @@ public class UnitsController extends BizController {
     public void unitsSuggest(WebContext ctx, JSONStructuredOutput out) {
         MagicSearch.generateSuggestions(ctx, (q, c) -> {
             Tagged.computeSuggestions(Unit.class, q, c);
-            Relations.computeSuggestions(Unit.class, q, c);
+            relations.computeSuggestions(Unit.class, q, c);
         });
     }
 

@@ -22,6 +22,7 @@ import sirius.kernel.nls.NLS;
 import woody.core.relations.RelationProvider;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -46,10 +47,23 @@ public class UnitRelationProvider implements RelationProvider {
     }
 
     @Override
-    public void computeSuggestions(String subType,
-                                   String query,
-                                   boolean forSearch,
-                                   Consumer<Tuple<String, String>> consumer) {
+    public void computeSearchSuggestions(@Nullable String subType,
+                                         @Nonnull String query,
+                                         @Nonnull Consumer<Tuple<String, String>> consumer) {
+        computeSuggestions(subType, query, true, consumer);
+    }
+
+    @Override
+    public void computeTargetSuggestions(@Nullable String subType,
+                                         @Nonnull String query,
+                                         @Nonnull Consumer<Tuple<String, String>> consumer) {
+        computeSuggestions(subType, query, false, consumer);
+    }
+
+    private void computeSuggestions(String subType,
+                                    String query,
+                                    boolean forSearch,
+                                    Consumer<Tuple<String, String>> consumer) {
         oma.select(Unit.class)
            .fields(Unit.ID, Unit.NAME, Unit.UNIQUE_PATH)
            .eqIgnoreNull(Unit.TYPE, subType == null ? null : Long.parseLong(subType))
@@ -67,10 +81,6 @@ public class UnitRelationProvider implements RelationProvider {
 
     @Override
     public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
-        if (Strings.isEmpty(uniqueObjectName)) {
-            return Optional.empty();
-        }
-
         Tuple<String, String> typeAndId = Strings.split(uniqueObjectName, "-");
         return oma.select(Unit.class)
                   .fields(Unit.ID, Unit.NAME)
@@ -82,7 +92,7 @@ public class UnitRelationProvider implements RelationProvider {
 
     @Override
     public List<Tuple<String, String>> getSourceTypes() {
-        String prefix = Schema.getNameForType(Unit.class) + "-";
+        String prefix = getName() + "-";
         String typeNameSuffix = " (" + NLS.get("Unit.plural") + ")";
         List<Tuple<String, String>> result = Lists.newArrayList();
         result.add(Tuple.create(Schema.getNameForType(Unit.class), NLS.get("Unit.plural")));

@@ -9,10 +9,14 @@
 package woody.core.comments;
 
 /**
- * Created by aha on 15.01.17.
+ * Marks an entity which contains a {@link Commented} composite.
  */
 public interface HasComments {
 
+    /**
+     * Returns the comments facility for this entity.
+     *
+     * @return the comments facility used to manage comments for the entity.
+     */
     Commented getComments();
-
 }

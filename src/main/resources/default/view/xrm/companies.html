@@ -15,9 +15,8 @@
 
 @pageHeader("Company.plural")
 
-@magicsearch(companies, "companies", "companies/suggest", suggestions) {
-    <a class="btn btn-primary" href="@prefix/company/edit/new">@i18n("Model.create")</a>
-}
+@taggedSearch(companies, "/companies", "COMPANY")
+
 
 @table(companies) {
     <thead>
@@ -34,7 +33,7 @@
                 @i18n("Tag.plural")<br>
                 <span class="muted">@i18n("Relation.plural")</span>
             </th>
-            <th />
+            <th/>
         </tr>
     </thead>
     <tbody>

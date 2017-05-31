@@ -4,3 +4,4 @@ target
 .idea/libraries/*
 instance.conf
 .idea/shelf
+.idea/sonarlint

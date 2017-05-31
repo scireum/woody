@@ -6,7 +6,7 @@
 *  http://www.scireum.de - info@scireum.de
 *@
 @import woody.core.employees.Employee
-@args woody.xrm.Company company, woody.offers.Offer offer, String page
+@args woody.xrm.Company company, woody.sales.offers.Offer offer, String page
 @extends(view.wondergem.template.html, title: (offer.toString()))
 
 
@@ -33,7 +33,7 @@
             @navbox() {
                 <li class="nav-header">@i18n("Model.details")</li>
                 <li><b>Angebot: @offer.getNumber()</b></li>
-                <li><b>von: &nbsp; &nbsp;&nbsp;&nbsp; @offer.getEmployeeShortName()</b></li>
+                <li><b>von: &nbsp; &nbsp;&nbsp;&nbsp;</b></li>
                 <li><b>Status: &nbsp; @offer.getState().toString()</b></li>
 
                 <li class="nav-header"></li>

@@ -12,6 +12,7 @@ import sirius.biz.web.BizController;
 import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
+import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
 import sirius.web.controller.Routed;
@@ -19,7 +20,7 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.services.JSONStructuredOutput;
-import woody.core.relations.Relations;
+import woody.core.relations.RelationHelper;
 import woody.core.tags.Tagged;
 
 import java.util.Optional;
@@ -31,6 +32,9 @@ import java.util.Optional;
 public class InventoryItemsController extends BizController {
 
     private static final String PERMISSION_MANAGE_INVENTORY_ITEMS = "permission-manage-inventory-items";
+
+    @Part
+    private RelationHelper relations;
 
     @Routed("/inventory/items")
     @LoginRequired
@@ -46,7 +50,7 @@ public class InventoryItemsController extends BizController {
                                              .orderAsc(InventoryItem.NAME);
         search.applyQueries(query, InventoryItem.NAME, InventoryItem.CODE, InventoryItem.TYPE.join(InventoryType.NAME));
         Tagged.applyTagSuggestions(InventoryItem.class, search, query);
-        Relations.applySuggestions(InventoryItem.class, search, query);
+        relations.applySuggestions(InventoryItem.class, search, query);
         PageHelper<InventoryItem> ph = PageHelper.withQuery(query).forCurrentTenant();
         ph.withContext(ctx);
         ctx.respondWith().template("view/core/inventory/items.html", ph.asPage(), search.getSuggestionsString());
@@ -58,7 +62,7 @@ public class InventoryItemsController extends BizController {
     public void itemsSuggest(WebContext ctx, JSONStructuredOutput out) {
         MagicSearch.generateSuggestions(ctx, (q, c) -> {
             Tagged.computeSuggestions(InventoryItem.class, q, c);
-            Relations.computeSuggestions(InventoryItem.class, q, c);
+            relations.computeSuggestions(InventoryItem.class, q, c);
         });
     }
 
@@ -82,7 +86,7 @@ public class InventoryItemsController extends BizController {
 
         boolean requestHandled = prepareSave(ctx).editAfterCreate()
                                                  .withAfterCreateURI("/inventory/item/${id}")
-                                                 .withAfterCreateURI("/inventory/items")
+                                                 .withAfterSaveURI("/inventory/items")
                                                  .withPreSaveHandler((isNew) -> {
                                                      if (isNew) {
                                                          load(ctx, item, InventoryItem.TYPE);

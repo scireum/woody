@@ -25,13 +25,14 @@ import sirius.kernel.nls.NLS;
 import woody.core.relations.RelationProvider;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * Created by aha on 11.01.17.
+ * Helps to build relations from and to <tt>UserAcconts</tt> our in our case {@link Employee}s.
  */
 @Register
 public class UserAccountRelationProvider implements RelationProvider {
@@ -49,10 +50,7 @@ public class UserAccountRelationProvider implements RelationProvider {
     }
 
     @Override
-    public void computeSuggestions(String subType,
-                                   String query,
-                                   boolean forSearch,
-                                   Consumer<Tuple<String, String>> consumer) {
+    public void computeSearchSuggestions(String subType, String query, Consumer<Tuple<String, String>> consumer) {
         oma.select(UserAccount.class)
            .fields(UserAccount.ID,
                    UserAccount.LOGIN.inner(LoginData.USERNAME),
@@ -70,29 +68,36 @@ public class UserAccountRelationProvider implements RelationProvider {
            .orderAsc(UserAccount.PERSON.inner(PersonData.LASTNAME))
            .orderAsc(UserAccount.PERSON.inner(PersonData.FIRSTNAME))
            .iterateAll(user -> {
-               consumer.accept(Tuple.create(user.getUniqueName(), user.getLogin().getUsername()));
+               consumer.accept(Tuple.create(renderUserAccount(user), user.getLogin().getUsername()));
            });
     }
 
     @Override
-    public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
-        if (Strings.isEmpty(uniqueObjectName)) {
-            return Optional.empty();
-        }
+    public void computeTargetSuggestions(@Nullable String subType,
+                                         @Nonnull String query,
+                                         @Nonnull Consumer<Tuple<String, String>> consumer) {
+        computeSearchSuggestions(subType, query, consumer);
+    }
 
-        Tuple<String, String> typeAndId = Strings.split(uniqueObjectName, "-");
+    @Override
+    public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
+        Tuple<String, Long> typeAndId = Schema.parseUniqueName(uniqueObjectName);
         return oma.select(UserAccount.class)
                   .fields(UserAccount.ID,
                           UserAccount.LOGIN.inner(LoginData.USERNAME),
                           Column.mixin(Employee.class).inner(Employee.SHORT_NAME),
                           UserAccount.PERSON.inner(PersonData.FIRSTNAME),
                           UserAccount.PERSON.inner(PersonData.LASTNAME))
-                  .eq(UserAccount.ID, Long.parseLong(typeAndId.getSecond()))
+                  .eq(UserAccount.ID, typeAndId.getSecond())
                   .first()
-                  .map(user -> ComparableTuple.create(Strings.isFilled(user.as(Employee.class).getShortName()) ?
-                                                      user.as(Employee.class).getShortName() :
-                                                      user.getLogin().getUsername(),
+                  .map(user -> ComparableTuple.create(renderUserAccount(user),
                                                       "/user-account/" + user.getIdAsString()));
+    }
+
+    protected String renderUserAccount(UserAccount user) {
+        return Strings.isFilled(user.as(Employee.class).getShortName()) ?
+               user.as(Employee.class).getShortName() :
+               user.getLogin().getUsername();
     }
 
     @Override

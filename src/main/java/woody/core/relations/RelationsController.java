@@ -22,7 +22,6 @@ import sirius.db.mixing.constraints.Or;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.GlobalContext;
-import sirius.kernel.di.std.Context;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
@@ -52,7 +51,7 @@ public class RelationsController extends BizController {
     @Part
     private Schema schema;
 
-    @Context
+    @Part
     private GlobalContext context;
 
     private Map<String, String> typeMap;
@@ -206,6 +205,9 @@ public class RelationsController extends BizController {
     public void relationsAutocomplete(final WebContext ctx, String type) {
         String baseType = computeBaseType(type);
         AutocompleteHelper.handle(ctx, (query, result) -> {
+            if (Strings.isEmpty(query)) {
+                return;
+            }
             oma.select(RelationType.class)
                .eq(RelationType.TENANT, tenants.getRequiredTenant())
                .where(Or.of(FieldOperator.on(RelationType.SOURCE_TYPE).eq(type),
@@ -215,7 +217,7 @@ public class RelationsController extends BizController {
                .iterateAll(relationType -> {
                    if (relationType.getTargetType() == null) {
                        for (RelationProvider provider : context.getParts(RelationProvider.class)) {
-                           provider.computeSuggestions(null, query, false, suggestion -> {
+                           provider.computeTargetSuggestions(null, query, suggestion -> {
                                result.accept(new AutocompleteHelper.Completion(relationType.getIdAsString()
                                                                                + ":"
                                                                                + suggestion.getFirst(),
@@ -230,7 +232,7 @@ public class RelationsController extends BizController {
                    } else {
                        Tuple<String, String> mainAndSubType = Strings.split(relationType.getTargetType(), "-");
                        RelationProvider provider = context.findPart(mainAndSubType.getFirst(), RelationProvider.class);
-                       provider.computeSuggestions(mainAndSubType.getSecond(), query, false, suggestion -> {
+                       provider.computeTargetSuggestions(mainAndSubType.getSecond(), query, suggestion -> {
                            result.accept(new AutocompleteHelper.Completion(relationType.getIdAsString()
                                                                            + ":"
                                                                            + suggestion.getFirst(),
@@ -256,13 +258,31 @@ public class RelationsController extends BizController {
 
     @Routed("/relations/add/:1")
     public void addRelation(final WebContext ctx, String objectId) {
-        Entity target = oma.resolveOrFail(objectId);
+        Entity owner = oma.resolveOrFail(objectId);
         if (Strings.areEqual(ctx.get("authHash").asString(), computeAuthHash(objectId))) {
-            Relations relations = getRelations(target);
-            if (relations != null) {
-                relations.addFromUniversalId(ctx.get("relationId").asString());
+            String relationDescription = ctx.get("relationId").asString();
+
+            Tuple<String, String> typeAndId = Strings.split(relationDescription, ":");
+            RelationType type = oma.findOrFail(RelationType.class, typeAndId.getFirst());
+            assertTenant(type);
+
+            Relation relation = new Relation();
+            relation.setOwnerId(owner.getId());
+            relation.setOwnerType(owner.getTypeName());
+            relation.getType().setValue(type);
+            relation.setTarget(typeAndId.getSecond());
+            oma.update(relation);
+
+            if (!type.isMultiple()) {
+                oma.select(Relation.class)
+                   .eq(Relation.OWNER_ID, owner.getId())
+                   .eq(Relation.OWNER_TYPE, owner.getTypeName())
+                   .eq(Relation.TYPE, type)
+                   .where(FieldOperator.on(Relation.ID).notEqual(relation.getId()))
+                   .delete();
             }
         }
+
         ctx.respondWith().redirectToGet(ctx.get("redirectUrl").asString("/"));
     }
 

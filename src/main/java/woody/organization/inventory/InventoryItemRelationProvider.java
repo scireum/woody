@@ -46,10 +46,7 @@ public class InventoryItemRelationProvider implements RelationProvider {
     }
 
     @Override
-    public void computeSuggestions(String subType,
-                                   String query,
-                                   boolean forSearch,
-                                   Consumer<Tuple<String, String>> consumer) {
+    public void computeSearchSuggestions(String subType, String query, Consumer<Tuple<String, String>> consumer) {
         oma.select(InventoryItem.class)
            .fields(InventoryItem.ID, InventoryItem.NAME, InventoryItem.TYPE.join(InventoryType.NAME))
            .eqIgnoreNull(InventoryItem.TYPE, subType == null ? null : Long.parseLong(subType))
@@ -63,11 +60,12 @@ public class InventoryItemRelationProvider implements RelationProvider {
     }
 
     @Override
-    public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
-        if (Strings.isEmpty(uniqueObjectName)) {
-            return Optional.empty();
-        }
+    public void computeTargetSuggestions(String subType, String query, Consumer<Tuple<String, String>> consumer) {
+        computeSearchSuggestions(subType, query, consumer);
+    }
 
+    @Override
+    public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
         Tuple<String, String> typeAndId = Strings.split(uniqueObjectName, "-");
         return oma.select(InventoryItem.class)
                   .fields(InventoryItem.ID, InventoryItem.NAME)
