@@ -19,7 +19,8 @@
 <div style=" padding-top: 0.5cm; clear:both">
  #xml($!company.name)<br />
  #xml($!street)<br />
- #xml($!city)
+ #xml($!city)<br />
+ #if($company.isForeignCountry()) #xml($!company.getCountryName()) #end
 </div>
 
 <div style="padding-top: 2.5cm;font-weight: bold; font-size: 14pt">
@@ -30,8 +31,8 @@ $!headlinePrefix Angebot Nr. $!offer.number vom $nls.toUserString($offer.date) $
  <tr><td>Kundennummer:</td><td> $!company.customerNr</td><td></td><td></td> </tr>
  <tr><td>Ihre Kontaktperson:</td><td> #xml($!personName),</td><td>Tel.: $!personPhone,</td><td>E-Mail: #xml($!personMail)  </td> </tr>
  <tr><td>Unsere Kontaktperson:</td><td>$!employeeName</td><td>Tel.: $!employeePhone,</td><td>E-Mail: #xml($!employeeMail)  </td></tr>
- #if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>#xml($!buyerName)</td><td>Tel.: $!buyerPhone,</td><td>E-Mail: #xml($!buyerMail) </td></tr>   #end
- #if($toolkit.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >#xml($offer.reference)</td></tr>    #end
+ #if($item.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>#xml($!buyerName)</td><td>Tel.: $!buyerPhone,</td><td>E-Mail: #xml($!buyerMail) </td></tr>   #end
+ #if($item.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >#xml($offer.reference)</td></tr>    #end
 </table>
 
 <br></br>
@@ -49,7 +50,7 @@ $!salutation
          #if($item.isInfoText())
                 <br></br>
                <tr><th style="width:2cm" valign="top">Pos.</th><th>Information</th><th></th><th></th><th></th><th></th></tr>
-               <tr><td style="width:2cm" valign="top">$item.position</td><td colspan = "4">#xml($item.text)</td></tr>
+               <tr><td style="width:2cm" valign="top">$item.position</td><td colspan = "4">$item.transformToHtml($item.text)</td></tr>
          #else
             #if($item.isSum())
                 <br></br><br></br>
@@ -58,8 +59,8 @@ $!salutation
                 </tr>
                 <tr>
                     <td >$item.position</td>
-                    <td colspan = "3"><b>#xml($item.text)</b></td>
-                    <td align="right"><b>$nls.toUserString($item.price) €</b></td>
+                    <td colspan = "3"><b>#xml($item.transformToHtml($item.text))</b></td>
+                    <td align="right"><b>$nls.toUserString($item.singlePrice) €</b></td>
                     <td align="right"><b>$nls.toUserString($item.cyclicPrice) €</b></td>
                 </tr>
                 <br></br><br></br>
@@ -68,7 +69,7 @@ $!salutation
                 #if($item.isLicense())
                     <tr><th style="width:2cm" valign="top">Pos.</th><th>Menge</th><th></th><th>#if($item.stateIsVisible)Hinweis#end</th>
                         <th align="right">#if($item.isPackageDefinitionSinglePricePresent())einmaliger Preis#end</th>
-                        <th align="right">Preis je $item.quantityUnit</th>
+                        <th align="right">Preis je $item.accountingUnitComplete</th>
                     </tr>
                 #end
                 #if($item.isService())
@@ -80,10 +81,10 @@ $!salutation
                           <td style="width:4cm">$nls.toUserString($item.quantity) Lizenz</td>
                       #end
                       #if($item.isService())
-                        <td style="width:4cm">$nls.toUserString($item.quantity) $item.quantityUnit</td>
+                        <td style="width:4cm">$nls.toUserString($item.quantity) $item.accountingUnitComplete</td>
                       #end
                      #if($item.isService())
-                         <td style="width:4cm">$nls.toUserString($item.singlePrice) € / $item.quantityUnit</td>
+                         <td style="width:4cm">$nls.toUserString($item.singlePrice) € / $item.accountingUnitComplete</td>
                      #end
                      #if($item.isLicense())
                         <td style="width:4cm">$item.getPackageDefinition().getValue().getName()</td>
@@ -91,20 +92,25 @@ $!salutation
 
                      <td style="width:4cm">#if($item.stateIsVisible)$item.state#end</td>
                      #if($item.isService())
-                        <td style="width:4cm" align="right">$nls.toUserString($item.price) € </td>
+                        <td style="width:4cm" align="right">$item.singlePriceComplete € </td>
                      #end
                      #if($item.isLicense())
-                        <td style="width:4cm" align="right">#if($item.isPackageDefinitionSinglePricePresent())$nls.toUserString($item.offerSinglePrice) € #end</td>
-                        <td style="width:4cm" align="right">$nls.toUserString($item.getPrice()) € </td>
+                        <td style="width:4cm" align="right">#if($item.isPackageDefinitionSinglePricePresent())$item.singlePriceComplete € #end</td>
+                        <td style="width:4cm" align="right">$item.cyclicPriceComplete € </td>
                     #end
                 </tr>
                 #if($item.discountPresent)
                     <tr><td></td><td colspan = "4">Beim Preis wurde ein Rabatt von $nls.toUserString($item.discount) % berücksichtigt.</td></tr>
                 #end
-                #if($toolkit.notEmpty($item.keyword))
-                     <tr><td></td> <td colspan = "4"><b>#xml($item.keyword)</b></td></tr>
+                #if($item.isLicense() )
+                  #if($item.isContractStartDatePresent())
+                    <tr><td></td><td colspan = "4">Die Nutzung der Lizenz beginnt ab $nls.toUserString($item.contractStartDate). Bis zu diesem Zeitpunkt gewähren wir Ihnen die Nutzung dieser Lizenz ohne Berechnung.</td></tr>
+                  #end
                 #end
-                <tr><td></td> <td colspan = "4"> ${toolkit.nl2br(${toolkit.escapeXML($item.text)})}</td></tr>
+                #if($item.notEmpty($item.keyword))
+                     <tr><td></td> <td colspan = "4"><b>$item.transformToHtml($item.keyword)</b></td></tr>
+                #end
+                <tr><td></td> <td colspan = "4"> $item.transformToHtml($item.text)</td></tr>
             #end
          #end
 
@@ -116,11 +122,11 @@ $!salutation
 <table>
     <tr>
         <th style="width:13cm"></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:3cm" align= "right">
-           #if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit #else  #end</th>
+           #if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit #end</th>
     </tr>
       <tr><td style="width:13cm">End-Summe netto:</td><td align="right" style="width:4cm" >$priceNettoSum €</td><td style="width:3cm" align="right">
-           #if($isLicenceItemPresent)$cyclicPriceNettoSum € #else  #end</td></tr>
-      #if($company.isVAT())
+           #if($isLicenceItemPresent)$cyclicPriceNettoSum € #end</td></tr>
+      #if(!$company.isForeignCountry())
               <tr><td style="width:13cm">zuzüglich $vatRate MWSt:</td> <td  align="right">$priceVatSum €</td><td  align="right">
                    #if($isLicenceItemPresent)$cyclicPriceVatSum € #else  #end</td></tr>
               <tr><td style="width:13cm">Endbetrag:</td><td  align="right">$priceBruttoSum €</td><td  align="right">
@@ -131,7 +137,7 @@ $!salutation
 <hr></hr>
 <br></br>
 
-#if($company.isVAT()) #else
+#if($company.isForeignCountry())
     Der Auftraggeber ist Schuldner der ggfs. anfallenden Mehrwert - oder Umsatzsteuer.
     <br></br><br></br>
 #end

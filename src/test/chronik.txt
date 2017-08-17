@@ -11,5 +11,32 @@ Anmeldung: gha
 09.01.2017  - Konsistenter Stand mit Company, Person, Contract, Offer, Product, PackageDefinition comitted
 16.01.2017  - Änderungen aus CRM-63,64, 65 und 67 übernommen.
 22.01.2017  - Konsistenter Stand für Opportunity + Änderungen vom 16.1.2017 comitted
+23.01.2017  - SyncAsterisk angepasst 0049 --> +49
 28.01.2017  - Telefon-Schnittstelle zu Starface, exemplarische Anwendung in person-details.html, MD5-Schlüssel und "normalizePhoneNumber vereinheitlicht"
-xx.xx.2017  - main-html als vorläufige Startseite eingeführt.
+30.01.2017  - main-html als vorläufige Startseite eingeführt.
+05.02.2017  - Service-Abrechnung, Rabatte werden auch als Text in der Rechnung ausgewiesen.
+12.02.2017  - StarfaceBean, createPhoneCall neu erstellt
+24.02.2017  - CRM-15 übernommen
+01.03.2017  - Verbesserungen zum Fehler SCI 2351777 übernommen
+08.03.2017  - Verbesserungen bei Fehler in Rabattberechnung übernommen
+17.04.2017  - Lizenzvertrag aus Angebot anlegen von CRM übernommen
+07.07.2017  - CRM-80 übernommen
+08.08.2017  - CRM-83 übernommen
+
+
+
+
+
+
+
+
+
+
+
+offene Punkte:
+
+06.04.2017  - CRM-73, CRM-74: Knöpfle für Angebotspositionen anullieren.
+
+18.07.2017  - CRM-81 Auftragsbestätigung für Vertrag versenden
+
+

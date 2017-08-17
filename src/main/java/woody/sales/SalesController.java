@@ -35,8 +35,8 @@ import java.util.Optional;
  * Created by aha on 11.05.15.
  */
 @Framework("sales")
-@Register(classes = Controller.class)
-public class SalesController extends BizController {
+@Register(name="companyContracts", classes = {Controller.class, SalesControllerService.class})
+public class SalesController extends BizController implements SalesControllerService {
 
     private static final String MANAGE_XRM = "permission-manage-xrm";
 
@@ -219,6 +219,7 @@ public class SalesController extends BizController {
                 if (packageDefinition.isNew()) {
                     // do nothing
                 }
+                Collection<String> list = ctx.getParameterNames();
                 load(ctx, packageDefinition);
                 if (packageDefinition.getProduct().getValue() == null) {
                     packageDefinition.getProduct().setValue(currentProduct);

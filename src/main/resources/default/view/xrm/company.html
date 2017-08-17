@@ -59,10 +59,16 @@
                     </a>
                 </li>
                 <li @if(page == "opportunities") { class="active" }>
-                <a href="@prefix/company/@company.getId()/opportunities" class="link">
-                    <i class="icon-users"></i>@i18n("Opportunity.plural")
-                </a>
+                    <a href="@prefix/company/@company.getId()/opportunities" class="link">
+                        <i class="icon-users"></i>@i18n("Opportunity.plural")
+                    </a>
+                    </li>
+                <li>
+                    <a href="@prefix/company/@company.getId()/customerNr" class="link">
+                        <i class="icon-users"></i>Kundenummer generieren
+                    </a>
                 </li>
+
 
             }
 

@@ -7,6 +7,7 @@
 *  ??? @includeExtensions("view-company-details", company)
 *@
 @import woody.xrm.Company
+@import woody.sales.CompanyAccountingData
 @args Company company
 @extends(view.xrm.company.html, company, "details")
 
@@ -18,7 +19,7 @@
     </div>
 
     <div class="row">
-        @textfield(span: "6", name: "customerNr", value: company.getCustomerNr(), labelKey: "Company.customerNr")
+        @textfield(span: "6", name: "customerNr", value: company.getCustomerNr(), labelKey: "Company.customerNr", readonly: false)
         @textfield(span: "6", name: "matchcode", value:    company.getMatchcode(), labelKey: "Company.matchcode")
     </div>
 
@@ -26,27 +27,27 @@
         @textfield(span: "4", name: "address_street", value: company.getAddress().getStreet(), labelKey: "AddressData.street")
         @textfield(span: "2", name: "address_zip", value: company.getAddress().getZip(), labelKey: "AddressData.zip")
         @textfield(span: "3", name: "address_city", value: company.getAddress().getCity(), labelKey: "AddressData.city")
-        @codelistSelect(span: "2", list: "countries", name: "address_country",
+        @codelistSelect(span: "3", list: Company.COUNTRY_CODELIST, name: "address_country",
           value: company.getAddress().getCountry(), labelKey: "AddressData.country", optional: true)
     </div>
     <div class="row">
         @textfield(span: "4", name: "postboxAddress_street", value: company.getPostboxAddress().getStreet(), labelKey: "PostboxAddressData.street")
         @textfield(span: "2", name: "postboxAddress_zip", value: company.getPostboxAddress().getZip(), labelKey: "AddressData.zip")
         @textfield(span: "3", name: "postboxAddress_city", value: company.getPostboxAddress().getCity(), labelKey: "AddressData.city")
-        @codelistSelect(span: "2", list: "countries", name: "postboxAddress_country",
+        @codelistSelect(span: "3", list: Company.COUNTRY_CODELIST, name: "postboxAddress_country",
           value: company.getPostboxAddress().getCountry(), labelKey: "AddressData.country", optional: true)
     </div>
     <div class="row">
-        @codelistSelect(span: "6", list: "invoicemedium", name: "companyAccountingData_invoiceMedium", value: company.getCompanyAccountingData().getInvoiceMedium(), labelKey: "Company.invoiceMedium")
+        @codelistSelect(span: "6", list: CompanyAccountingData.INVOICEMEDIUM_CODELIST, name: "companyAccountingData_invoiceMedium", value: company.getCompanyAccountingData().getInvoiceMedium(), labelKey: "Company.invoiceMedium")
         @textfield(span: "6", name: "companyAccountingData_invoiceMailAdr", value: company.getCompanyAccountingData().getInvoiceMailAdr(), labelKey: "Company.invoiceMailAdr")
     </div>
     <div class="row">
         @textfield(span: "4", name: "companyAccountingData_invoiceAddress_street", value: company.getCompanyAccountingData().getInvoiceAddress().getStreet(), labelKey: "AddressData.street")
         @textfield(span: "2", name: "companyAccountingData_invoiceAddress_zip", value: company.getCompanyAccountingData().getInvoiceAddress().getZip(), labelKey: "AddressData.zip")
         @textfield(span: "3", name: "companyAccountingData_invoiceAddress_city", value: company.getCompanyAccountingData().getInvoiceAddress().getCity(), labelKey: "AddressData.city")
-        @codelistSelect(span: "2", list: "countries", name: "companyAccountingData_invoiceAddress_country",
+        @codelistSelect(span: "3", list: Company.COUNTRY_CODELIST, name: "companyAccountingData_invoiceAddress_country",
           value: company.getCompanyAccountingData().getInvoiceAddress().getCountry(), labelKey: "AddressData.country", optional: true)
-        @codelistSelect(span: "2", list: "outputLanguage", name: "CompanyAccountingData_outputLanguage",
+        @codelistSelect(span: "2", list: CompanyAccountingData.OUTPUTLANGUAGE_CODELIST, name: "CompanyAccountingData_outputLanguage",
         value: company.getCompanyAccountingData().getOutputLanguage(), labelKey: "CompanyAccountingData.outputLanguage", optional: false)
     </div>
 

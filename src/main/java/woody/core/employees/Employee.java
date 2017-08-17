@@ -100,6 +100,17 @@ public class Employee extends Mixable {
     private String pbxAccessToken;
     public static final Column PBXACCESSTOKEN = Column.named("pbxAccessToken");
 
+    @NullAllowed
+    @Autoloaded
+    @Length(1000)
+    private String signature;
+    public static final Column SIGNATURE = Column.named("signature");
+
+    @NullAllowed
+    @Length(255)
+    private String collmex;
+    public static final Column COLLMEX = Column.named("collmex");
+
 
     private final AddressData homeAddress = new AddressData(AddressData.Requirements.NONE, null);
     public static final Column ADDRESS = Column.named("address");
@@ -220,5 +231,21 @@ public class Employee extends Mixable {
 
     public void setPbxAccessToken(String pbxAccessToken) {
         this.pbxAccessToken = pbxAccessToken;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public String getCollmex() {
+        return collmex;
+    }
+
+    public void setCollmex(String collmex) {
+        this.collmex = collmex;
     }
 }

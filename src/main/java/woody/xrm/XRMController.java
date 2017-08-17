@@ -11,6 +11,7 @@ package woody.xrm;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.PersonData;
+import sirius.biz.sequences.Sequences;
 import sirius.biz.tenants.Tenants;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
@@ -71,12 +72,12 @@ public class XRMController extends BizController {
 
     @LoginRequired
     @Permission(MANAGE_XRM)
-    @Routed("/exportLineitems")
-    public void exportLineitems(WebContext ctx) {
+    @Routed("/exportAllLicenceLineitems")
+    public void exportAllLicenceLineitems(WebContext ctx) {
 
         try {
-            asb.exportLicenceLineitems(300,null);
-            int vvv = 1;
+            asb.exportLineitems(Lineitem.LINEITEMTYPE_LA,300,null);
+            ctx.respondWith().template("view/main/main.html");
 
         } catch (Exception e) {
             Exceptions.handle();
@@ -85,17 +86,46 @@ public class XRMController extends BizController {
 
     @LoginRequired
     @Permission(MANAGE_XRM)
-    @Routed("/exportInvoiceitems")
-    public void exportInvoiceitems(WebContext ctx) {
+    @Routed("/exportAuslandLicenceLineitems")
+    public void exportAuslandLicenceLineitems(WebContext ctx) {
 
         try {
-            sas.exportInvoiceItemsToCollmex();
-            int vvv = 1;
+            asb.exportLineitems(Lineitem.LINEITEMTYPE_LA, 300,"Ausland");
+            ctx.respondWith().template("view/main/main.html");
 
         } catch (Exception e) {
             Exceptions.handle();
         }
     }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/exportAllServiceLineitems")
+    public void exportAllServiceLineitems(WebContext ctx) {
+
+        try {
+            asb.exportLineitems(Lineitem.LINEITEMTYPE_OA,300,null);
+            ctx.respondWith().template("view/main/main.html");
+
+        } catch (Exception e) {
+            Exceptions.handle();
+        }
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/exportAuslandServiceLineitems")
+    public void exportAuslandServiceLineitems(WebContext ctx) {
+
+        try {
+            asb.exportLineitems(Lineitem.LINEITEMTYPE_OA, 300,"Ausland");
+            ctx.respondWith().template("view/main/main.html");
+
+        } catch (Exception e) {
+            Exceptions.handle();
+        }
+    }
+
     private boolean block = false;
 
     @LoginRequired
@@ -104,12 +134,12 @@ public class XRMController extends BizController {
     public void licenceAccounting(WebContext ctx) {
         if(!block) {
             block = true;
-            LocalDate referenceDate = LocalDate.of(2017, 1, 2);
+            LocalDate referenceDate = LocalDate.of(2018, 1, 4);
             boolean dryRun = false;
             boolean foreignCountry = false;
             DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
                                                                    /*TaskMonitor monitor,*/ foreignCountry);
-            int vvv = 1;
+            ctx.respondWith().template("view/main/main.html");
         }
     }
 
@@ -185,6 +215,24 @@ public class XRMController extends BizController {
         }
         ctx.respondWith().template("view/xrm/company-details.html", cl);
     }
+
+    @Part
+    private static Sequences sequences;
+
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/company/:1/customerNr")
+    public void companyCustomerNr(WebContext ctx, String companyId) {
+        Company company = findForTenant(Company.class, companyId);
+        if(company.getCustomerNr() == null) {
+            // if the customerNr == null --> create a number
+            String customerNr = String.valueOf(sequences.generateId("COMPANIES-" + company.getTenant().getId()));
+            company.setCustomerNr(customerNr);
+            oma.update(company);
+        }
+       ctx.respondWith().template("view/xrm/company-details.html", company);
+    }
+
 
     @LoginRequired
     @Permission(MANAGE_XRM)

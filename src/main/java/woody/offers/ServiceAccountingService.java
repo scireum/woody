@@ -50,11 +50,6 @@ public interface ServiceAccountingService {
      */
     public Amount getTestUmsatz();
 
-    /**
-     * @return  AccountingDate
-     */
-    public LocalDate getAccountingDate();
-
 
     /**
      * export the invoicItem to Collmex
@@ -78,9 +73,10 @@ public interface ServiceAccountingService {
     /**
      * checks all offeritems of the given offer
      * @param offer: offer
-     * if NOT all offeritems are "OFFERS" a Exception is thrown
+     * @param copyAllowed: if true: the state 'copy' is allowed
+     * if NOT all offeritems are "OFFERS" ( or COPY) a Exception is thrown
      */
-    public void checkAllOfferItemsAreOffers(Offer offer);
+    public void checkAllOfferItemsAreOffers(Offer offer, boolean copyAllowed);
 
     /**
      * The sales confirmation is only send, if the special sendConfirmationDate is null.
@@ -126,6 +122,19 @@ public interface ServiceAccountingService {
     /**
      * creates a contract from the given offerItem
      */
-    public Contract createContractFromOfferItem(OfferItem offerItem);
+    public String createContractFromOfferItem(OfferItem offerItem);
 
-}
+    /**
+     * checks the given value
+     * @param value
+     * @param notNegative: true --> if the value is negative a exception is thrown
+     * @param notZero: true --> if the value is zero a exception is thrown
+     * @param notPositive: true --> if the value is positive a exception is thrown
+     * @param testLimit: true --> the given limit is tested. if the value is < or > the limit a exception is thrown
+     * @param limit: limit
+     * @param name: name of the value
+     */
+    public void checkValue(Amount value, boolean notNegative, boolean notZero, boolean notPositive, boolean testLimit, Amount limit, String name);
+
+
+    }

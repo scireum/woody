@@ -1,5 +1,23 @@
+/*
+ * Made with all the love in the world
+ * by scireum in Remshalden, Germany
+ *
+ * Copyright by scireum GmbH
+ * http://www.scireum.de - info@scireum.de
+ */
+
 package woody.collmex;
 
+
+import org.apache.commons.codec.binary.Base64;
+import org.xhtmlrenderer.util.Configuration;
+import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.Register;
+import sirius.kernel.health.Exceptions;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -7,35 +25,38 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.xhtmlrenderer.util.Configuration;
-
-import com.scireum.common.BusinessException;
-import com.scireum.common.Tools;
-import com.scireum.common.format.Formatter;
-import com.scireum.ocm.annotations.Register;
-import com.scireum.ocm.web.jsf.beans.ApplicationController;
-
-@Register(classes = { SafeService.class })
+@Register(classes = {SafeService.class })
 public class SafeServiceBean implements SafeService {
 
 	private static final String ALGORITHM = "AES";
 	private static final String UTF8 = "UTF8";
+	private static final String UTF_8 = "UTF-8";
 	private static final int MAXSALTLENGTH = 32;
 	private static final int PREKEY = 1;
 
 	private HashMap<String, String> keyForGroup = new HashMap<String, String>();
 
+	public static byte[] fromBase64(String base64) throws IOException {
+		return Base64.decodeBase64(base64.getBytes(UTF_8));
+	}
+
+	/**
+	 * Converts a given byte-array to a BASE64 representation.
+	 */
+	public static String toBase64(byte[] array) {
+		return Base64.encodeBase64String(array).trim();
+	}
+
+
 	@Override
 	public String decodeByKey(String keyword, String encodedText) {
-		if (Tools.emptyString(encodedText) || Tools.emptyString(keyword)) {
+		if (Strings.isEmpty(encodedText) || Strings.isEmpty(keyword)) {
 			return null;
 		}
 		try {
+
 			// decode the encoded Base64-text.
-			byte[] decodedValue = Tools.fromBase64(encodedText);
+			byte[] decodedValue = fromBase64(encodedText);
 			// get the saltLength
 			int saltLength = decodedValue[0];
 			// get the text to decode
@@ -49,7 +70,7 @@ public class SafeServiceBean implements SafeService {
 			for (int i = 0; i < saltLength; i++) {
 				saltAsBytes[i] = decodedValue[i + PREKEY];
 			}
-			String salt = Tools.toBase64(saltAsBytes);
+			String salt = toBase64(saltAsBytes);
 			// build the secret key
 			SecretKeySpec secretKeySpec = buildSecretKeySpec(ALGORITHM, salt
 					+ keyword);
@@ -61,7 +82,8 @@ public class SafeServiceBean implements SafeService {
 			// transform to a string
 			return new String(decryptedVal);
 		} catch (Exception e) {
-			ApplicationController.handle(e);
+	//		ApplicationController.handle(e);
+			Exceptions.handle(e);
 		}
 		return null;
 	}
@@ -71,10 +93,11 @@ public class SafeServiceBean implements SafeService {
 
 		int minKeyLength = Configuration.valueAsInt("MinSafeKey", 2);
 		if (keyword.length() < minKeyLength) {
-			throw new BusinessException(
-					Formatter
-							.create("Der Schlüssel ist zu kurz, notwendig sind ${minLength} Zeichen.")
-							.set("minLength", minKeyLength).format());
+//			throw new BusinessException(
+//					Formatter
+//							.create("Der Schlüssel ist zu kurz, notwendig sind ${minLength} Zeichen.")
+//							.set("minLength", minKeyLength).format());
+			throw Exceptions.createHandled().handle();
 		}
 		try {
 
@@ -89,7 +112,7 @@ public class SafeServiceBean implements SafeService {
 			// <saltLength (one Byte)><salt><encryptedText>
 			byte[] textAsByte = text.getBytes(UTF8);
 			// build the secret key
-			String seedAsString = Tools.toBase64(seed);
+			String seedAsString = toBase64(seed);
 			SecretKeySpec secretKeySpec = buildSecretKeySpec(ALGORITHM,
 					seedAsString + keyword);
 			// instatiate cipher
@@ -106,10 +129,11 @@ public class SafeServiceBean implements SafeService {
 			for (int i = 0; i < encrypted.length; i++) {
 				toEnCode[i + seed.length + PREKEY] = encrypted[i];
 			}
-			String encoded = Tools.toBase64(toEnCode);
+			String encoded = toBase64(toEnCode);
 			return encoded;
 		} catch (Exception e) {
-			ApplicationController.handle(e);
+//			ApplicationController.handle(e);
+			Exceptions.handle(e);
 		}
 		return null;
 	}
@@ -130,7 +154,7 @@ public class SafeServiceBean implements SafeService {
 
 	@Override
 	public void writeKeyword(String keyword, String group) {
-		if (Tools.emptyString(group)) {
+		if (Strings.isEmpty(group)) {
 			return;
 		}
 		this.keyForGroup.put(group, keyword);
@@ -142,7 +166,7 @@ public class SafeServiceBean implements SafeService {
 		if (keyForGroup.isEmpty()) {
 			return null;
 		}
-		if (Tools.emptyString(group)) {
+		if (Strings.isEmpty(group)) {
 			return null;
 		}
 		if (!keyForGroup.containsKey(group)) {
@@ -157,7 +181,7 @@ public class SafeServiceBean implements SafeService {
 		if (keyForGroup.isEmpty()) {
 			return;
 		}
-		if (Tools.emptyString(group)) {
+		if (Strings.isEmpty(group)) {
 			return;
 		}
 		if (keyForGroup.containsKey(group)) {

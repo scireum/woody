@@ -33,6 +33,10 @@ import woody.xrm.Company;
 
 public class CompanyAccountingData extends Composite {
 
+    public static final String[] INVOICEMEDIUMNAMES = {"PRINT", "MAIL"};
+    public static final String INVOICEMEDIUM_CODELIST = "invoicemedium";
+    public static final String OUTPUTLANGUAGE_CODELIST = "outputLanguage";
+
     @NullAllowed
     @Autoloaded
     private final InternationalAddressData invoiceAddress =

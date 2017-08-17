@@ -8,6 +8,7 @@
 
 package woody.xrm;
 
+import sirius.biz.codelists.CodeLists;
 import sirius.biz.model.InternationalAddressData;
 import sirius.biz.model.PersonData;
 import sirius.biz.tenants.TenantAware;
@@ -19,6 +20,7 @@ import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
@@ -37,6 +39,12 @@ import java.util.List;
  */
 public class Company extends TenantAware {
 
+    public static final int MIN_CUSTOMERNR = 10001;
+    public static final int MAX_CUSTOMERNR = 19999;
+    public static final String COUNTRY_CODELIST = "country";
+    public static final String COMPANYTYPE_CODELIST = "companytype";
+    public static final String BUSINESSTYPE_CODELIST = "businesstype";
+
     @Trim
     @Autoloaded
     @Unique(within = "tenant")
@@ -50,9 +58,7 @@ public class Company extends TenantAware {
     private String name2;
     public static final Column NAME2 = Column.named("name2");
 
-    @Trim
-    @Autoloaded
-    @Unique
+    /* the customerNr is set by the sequence.generateId */
     @NullAllowed
     @Length(50)
     private String customerNr;
@@ -123,6 +129,14 @@ public class Company extends TenantAware {
 
    @BeforeSave
     protected void onSave() {
+       // check te customerNR - if present
+       if(customerNr != null) {
+           Integer nr = Integer.parseInt(customerNr);
+           if(nr < MIN_CUSTOMERNR || nr > MAX_CUSTOMERNR) {
+               throw Exceptions.createHandled().withNLSKey("Company.customerNrOutOfInterval")
+                     .set("customerNr", customerNr).set("min", MIN_CUSTOMERNR).set("max", MAX_CUSTOMERNR).handle();
+           }
+       }
         // check the presence of a customer-number if contracts are existing
         long count = oma.select(Contract.class).eq(Contract.COMPANY, this).count();
         if (count > 0 && Strings.isEmpty(customerNr)) {
@@ -167,6 +181,17 @@ public class Company extends TenantAware {
            throw Exceptions.createHandled()
                            .withNLSKey("Company.invoiceMediumMissing").handle();
        }
+       boolean error = true;
+       for(int i=0; i< CompanyAccountingData.INVOICEMEDIUMNAMES.length; i++) {
+          if(invoiceMedium.equals(CompanyAccountingData.INVOICEMEDIUMNAMES[i])) {
+              error = false;
+              break;
+          }
+       }
+       if(error) {
+           throw Exceptions.createHandled().withNLSKey("Company.invalidInvoiceMedium")
+                           .set("invoiceMedium", invoiceMedium).handle();
+       }
        if(invoiceMedium.equals("MAIL")) {
            String mailAddress = this.getCompanyAccountingData().getInvoiceMailAdr();
            if(Strings.isEmpty(mailAddress)) {
@@ -182,7 +207,13 @@ public class Company extends TenantAware {
 
     }
 
-    // called by JSF
+    // the followig methods are called by JSF
+
+    public boolean isForeignCountry() {
+        String countryCode = this.getAddress().getCountry();
+        return !("DE".equals(countryCode.toUpperCase()));
+    }
+
     public List<Person> queryPersons() {
         List<Person> personList = new ArrayList<Person>();
         personList.addAll(
@@ -191,6 +222,15 @@ public class Company extends TenantAware {
                   .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
                   .queryList());
         return personList;
+    }
+
+    @Part
+    private static CodeLists cls;
+
+    public String getCountryName() {
+        String countryCode = this.getAddress().getCountry();
+        Tuple<String, String>  tuple = cls.getValues(COUNTRY_CODELIST, countryCode);
+        return tuple.getFirst();
     }
 
     public String getName() {

@@ -9,15 +9,20 @@
 package woody.sales;
 
 import sirius.biz.model.BizEntity;
+import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Numeric;
+import sirius.db.mixing.annotations.Transient;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Amount;
+import sirius.kernel.di.std.Part;
 import sirius.kernel.nls.NLS;
+import woody.offers.ServiceAccountingService;
 
 import java.util.List;
 
@@ -36,43 +41,55 @@ public class PackageDefinition extends BizEntity {
     public static final String ACCOUNTINGUNIT_DAY = "DAY";
     public static final String ACCOUNTINGUNIT_MONTH = "MONTH";
 
+    public static final String PAKETTYPE_CODELIST = "pakettype";
+    public static final String ACCOUNTINGUNIT_CODELIST = "accountingUnit";
+    public static final String ACCOUNTINGPROCEDURE_CODELIST = "accountingProcedure";
+
     private final EntityRef<Product> product = EntityRef.on(Product.class, EntityRef.OnDelete.CASCADE);
     public static final Column PRODUCT = Column.named("product");
 
+    @Autoloaded
     @Trim
-    @Unique(within = "tenant")
     @Length(255)
     private String name;
     public static final Column NAME = Column.named("name");
 
+    @Autoloaded
     @Length(20)
     private String accountingProcedure;
     public static final Column ACCOUNTINGPROCEDURE = Column.named("accountingProcedure");
 
+    @Autoloaded
     @Length(20)
     private String paketType;
     public static final Column PAKETTYPE = Column.named("paketType");
 
+    @Autoloaded
     @Length(20)
     private String accountingUnit;
     public static final Column ACCOUNTINGUNIT = Column.named("accountingUnit");
 
+    @Autoloaded
     private int defaultPosition;
     public static final Column DEFAULTPOSITION = Column.named("defaultPosition");
 
+    @Autoloaded
     @Numeric(scale = 3, precision = 15)
     private Amount singlePrice = Amount.NOTHING;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
 
+    @Autoloaded
     @Numeric(scale = 3, precision = 15)
     private Amount unitPrice = Amount.NOTHING;
     public static final Column UNITPRICE = Column.named("unitPrice");
 
+    @Autoloaded
     @Length(1000)
     @NullAllowed
     private String parameter;
     public static final Column PARAMETER = Column.named("parameter");
 
+    @Autoloaded
     @Length(1000)
     @NullAllowed
     private String description;
@@ -85,6 +102,23 @@ public class PackageDefinition extends BizEntity {
         String pdName = productname.concat(" -> ");
         pdName = pdName.concat(getName());
         return pdName;
+    }
+
+    @Part
+    private static AccountingService as;
+
+    @Part
+    private static ServiceAccountingService sas;
+
+
+    @BeforeSave
+    private void beforeSave() {
+        // check the values (interval-test)
+        sas.checkValue(unitPrice, true, false, false, false, null, NLS.get("PackageDefinition.unitPrice"));
+        sas.checkValue(singlePrice, true, false, false, false, null, NLS.get("PackageDefinition.singlePrice"));
+
+        // check te parameter-syntax
+        as.checkParameterSyntax(parameter);
     }
 
     public EntityRef<Product> getProduct() {

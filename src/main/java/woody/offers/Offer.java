@@ -10,8 +10,6 @@ package woody.offers;
 
 import sirius.biz.model.BizEntity;
 import sirius.biz.sequences.Sequences;
-import sirius.biz.tenants.Tenant;
-import sirius.biz.tenants.Tenants;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -23,18 +21,14 @@ import sirius.db.mixing.annotations.Transient;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
-import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 import woody.core.employees.Employee;
-import woody.sales.PackageDefinition;
-import woody.sales.Product;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Created by gerhardhaufler on 11.10.16.
@@ -42,13 +36,12 @@ import java.util.List;
 
 public class Offer extends BizEntity {
 
-
     private static final int MIN_OFFER_NR = 20001;
 
     private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column COMPANY = Column.named("company");
 
-    @Unique   // TODO Unique(within=tenant) funktioniert nicht !!!
+    @Unique
     @Length(20)
     private String number;
     public static final Column NUMBER = Column.named("number");
@@ -94,7 +87,7 @@ public class Offer extends BizEntity {
 
     public String toString() {
         String s = "Angebot ";
-        if(number != null) {
+        if (number != null) {
             s = s.concat(number);
         }
         return s;
@@ -114,17 +107,19 @@ public class Offer extends BizEntity {
 
     @BeforeSave
     protected void onSave() {
-        // check te Role of the user
-        UserInfo userInfo = UserContext.getCurrentUser();
-        userInfo.assertPermission("offers");
-        // Calculate the offer-number if the offer is new (id == 0)
+        // Calculate the offer-number if the offer is new
         if (Strings.isEmpty(number)) {
-            number = String.valueOf(sequences.generateId("OFFER"));
-
+            if(this.getCompany() == null)  {
+                throw Exceptions.createHandled().withNLSKey("Offer.companyMissing").set("offer", this.toString()).handle();
+            }
+            if(this.getCompany().getValue() == null) {
+                throw Exceptions.createHandled().withNLSKey("Offer.companyNameMissing").set("offer", this.toString()).handle();
+            }
+            number = String.valueOf(sequences.generateId("OFFERS-" + getCompany().getValue().getTenant().getId()));
         }
         // get the employee
-        if (employee.getValue() == null) {
-            employee.setId(userInfo.getUserObject(UserAccount.class).getId());
+        if (employee.isEmpty()) {
+            employee.setId(UserContext.getCurrentUser().as(UserAccount.class).getId());
         }
         //set the offer-date
         if (date == null) {

@@ -15,6 +15,7 @@ import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 import sirius.web.http.MimeHelper;
+import sirius.web.mails.Mails;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 
@@ -22,16 +23,16 @@ import woody.core.employees.Employee;
 import woody.sales.AccountingService;
 import woody.xrm.Person;
 
+import javax.activation.DataSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.MessageFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -50,11 +51,13 @@ public class SendOfferView /* extends BasicView*/ {
 
 //    @Part
 //    private DataAreas areas;
-//    @Part
-//    private MailService mail;
 
     @Part
     private OMA oma;
+
+    @Part
+    private Mails mails;
+
 //    @Part
 //    private NamedObjectService nos;
 
@@ -128,18 +131,55 @@ public class SendOfferView /* extends BasicView*/ {
                             .handle();
         }
     }
+// ToDO neue Mailschnittstelle machen
+//    void mailTest() {
+//        mails.createEmail()
+//            .to(eMailAdr, person.getName()).useMailTemplate()
+//    }
+
+    private void sendMailToPerson(String eMailAdr, LocalDate sendDate, String namedObjectName, File file, Person person) {
+        // prepare subject and text for HTML and XML
+        // ToDo subject und text
+        String subject = ""; // Tools.nl2br(Tools.escapeXML(subjectBox.getValue()));
+        String text = ""; // Tools.nl2br(Tools.escapeXML(textArea.getValue()));
+        mails.createEmail()
+                .from("support@scireum.net", "scireum-Support")  // ToDO currentUser
+                .subject(subject)
+                .to(eMailAdr, person.getPerson().getLastname())
+                .textContent(text)
+                .addAttachment(new DataSource() {
+                    @Override
+                    public InputStream getInputStream() throws IOException {
+                        return new ByteArrayInputStream(byteIn);
+                    }
+
+                    @Override
+                    public OutputStream getOutputStream() throws IOException {
+                        return null;
+                    }
+
+                    @Override
+                    public String getContentType() {
+                        return MimeHelper.APPLICATION_PDF;
+                    }
+
+                    @Override
+                    public String getName() {
+                        return attachmentName;
+                    }
+                })
+                .send();
+
+    }
 
     //TODO mailschnittstelle mit PDF file
 //    private void sendMailToPerson(String eMailAdr, LocalDate sendDate, String namedObjectName, VFile file, Person person) {
 //             // prepare subject and text for HTML and XML
-//    String subject =  Tools.nl2br(Tools.escapeXML(subjectBox.getValue()));
-//    String text =  Tools.nl2br(Tools.escapeXML(textArea.getValue()));
-
 //      mail.createEmail()
 //                .from("support@scireum.net", "scireum-Support")
-//                .subject(subject)
+//                .subject(subjectBox.getValue())
 //                .to(eMailAdr, person.getName())
-//                .textContent(text)
+//                .textContent(textArea.getValue())
 //                .addAttachment(new DataSource() {
 //                    @Override
 //                    public InputStream getInputStream() throws IOException {
@@ -164,6 +204,9 @@ public class SendOfferView /* extends BasicView*/ {
 //                .send();
 
 //    // generate a pdf-document from the mail-text
+//    String subject =  Tools.nl2br(Tools.escapeXML(subjectBox.getValue()));
+//    String text =  Tools.nl2br(Tools.escapeXML(textArea.getValue()));
+
 //    Context context = new Context();
 //    context.set("dateString", NLS.toUserString(cal.getTime(), true));
 //    context.set("eMailAdr", eMailAdr);
@@ -305,14 +348,12 @@ public class SendOfferView /* extends BasicView*/ {
             sb.append("Für Erläuterungen und Rückfragen stehen wir gerne zur Verfügung.") ;
             sb.append("\n\n");
             UserInfo userInfo = UserContext.getCurrentUser();
-      //      Employee employee = userInfo.as(Employee.class);
+            Employee employee = userInfo.as(Employee.class);
 
-            //ToDo signatur
-//            sb.append(employee.getSignature()) ;        // neue Lösung gemäß CRM-48
-//            sb.append(offer.getEmployee().getSignature()) ;   // alte Lösung
+            sb.append(employee.getSignature()) ;        // neue Lösung gemäß CRM-48
             sb.append("\n\n\n");
             sb.append("Anlage: Datei: "+ctx.get("filenamePDF")) ;
-
+// ToDo textArea und attachmentArea
 //           textArea.setValue(sb.toString());
 //           attachmentArea.setValue(attachmentName);
 

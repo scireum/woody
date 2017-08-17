@@ -20,7 +20,7 @@
     </div>
     <div class="row">
         @checkbox(span: "2", name: "offline", value: person.isOffline(),labelKey: "Person.offline")
-        @textfield(span: "2", name: "birthday", value: person.getBirthday(), labelKey: "Person.birthday")
+        @textfield(span: "2", name: "birthday", value: NLS.toUserString(person.getBirthday()), labelKey: "Person.birthday")
         @textfield(span: "4", name: "position", value: person.getPosition(), labelKey: "Person.position")
     </div>
 
@@ -49,7 +49,7 @@
         @textfield(span: "4", name: "address_street", value: person.getAddress().getStreet(), labelKey: "AddressData.street")
         @textfield(span: "2", name: "address_zip", value: person.getAddress().getZip(), labelKey: "AddressData.zip")
         @textfield(span: "3", name: "address_city", value: person.getAddress().getCity(), labelKey: "AddressData.city")
-        @codelistSelect(span: "3", list: "countries", name: "address_country", value: person.getAddress().getCountry(), labelKey: "AddressData.country")
+        @codelistSelect(span: "3", list: Company.COUNTRY_CODELIST, name: "address_country", value: person.getAddress().getCountry(), labelKey: "AddressData.country")
     </div>
 }
 

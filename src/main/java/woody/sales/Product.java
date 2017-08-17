@@ -21,6 +21,7 @@ import java.util.List;
 /**
  * Created by gerhardhaufler on 09.02.16.
  */
+// ToDo framework products klären
 //@Framework("products")
 public class Product extends TenantAware {
 
@@ -45,27 +46,12 @@ public class Product extends TenantAware {
     private Boolean collectBugs = false;
     public static final Column COLLECTBUGS = Column.named("collectBugs");
 
-    /*  @FormField(position = 16)
-     @Params({
-             @Param(name = EntityObjectAdapter.PARAM_IMAGE_FIELD, value = "true"),
-             @Param(name = EntityObjectAdapter.PARAM_IMAGE_PATH, value = "/images/Produkte"),
-             @Param(name = ParamsFieldConstants.PARAM_CLEAR_LEFT, value = "true") })
-     @Image
-     @Column(name = IMAGE, nullable = true, length = 255)       */
     @NullAllowed
     @Autoloaded
     @Length(255)
     private String image;
     public static final Column IMAGE = Column.named("image");
 
-    /*   @FormField(position = 19, section = "description")
-       @Params({
-               @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA, value = "true"),
-               @Param(name = ParamsFieldConstants.PARAM_NO_LABEL, value = "true"),
-               @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_MAXIMIZED, value = "false"),
-               @Param(name = ParamsFieldConstants.PARAM_TEXT_AREA_SYNTAX, value = TextArea.MARKDOWN) })
-       @Lob
-       @Column(name = DESCRIPTION, nullable = true)   */
     @NullAllowed
     @Autoloaded
     @Length(1000)

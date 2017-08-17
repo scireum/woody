@@ -24,8 +24,11 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
+import sirius.web.security.UserInfo;
 import sirius.web.templates.Templates;
 import woody.core.tags.Tagged;
+import woody.sales.SalesController;
+import woody.sales.SalesControllerService;
 import woody.xrm.Company;
 import woody.xrm.Person;
 import woody.xrm.XRMController;
@@ -45,6 +48,8 @@ public class OffersController extends BizController {
 
     private static final String MANAGE_XRM = "permission-manage-xrm";
 
+    @Part
+    private static SalesControllerService scs;
 
     @Part
     private static ServiceAccountingService sas;
@@ -98,7 +103,8 @@ public class OffersController extends BizController {
         assertNotNew(company);
         Offer offer = find(Offer.class, offerId);
         setOrVerify(offer, offer.getCompany(), company);
-        companyOffers(ctx, companyId);
+        sas.sendSalesConfirmation(offer);
+        scs.companyContracts(ctx, companyId);
     }
 
     @LoginRequired
@@ -126,7 +132,7 @@ public class OffersController extends BizController {
         setOrVerify(offer, offer.getCompany(), company);
 
         if (ctx.isPOST() && getUser().hasPermission(MANAGE_OFFER)) {
-           try {
+            try {
                 boolean wasNew = offer.isNew();
                 load(ctx, offer);
                 oma.update(offer);

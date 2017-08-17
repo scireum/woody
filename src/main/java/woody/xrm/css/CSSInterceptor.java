@@ -38,10 +38,10 @@ public class CSSInterceptor implements Interceptor {
             return false;
         }
         if (UserInfo.PERMISSION_LOGGED_IN.equals(permission)) {
-            ctx.respondWith().template("view/xrm/css/login.html", ctx.getRequest().getUri());
+            ctx.respondWith().template("view/xrm/css/login.html", ctx.getRequest().uri());
         } else {
             //TODO
-            ctx.respondWith().template("view/xrm/css/permission-error.html", ctx.getRequest().getUri(), permission);
+            ctx.respondWith().template("view/xrm/css/permission-error.html", ctx.getRequest().uri(), permission);
         }
         return true;
     }

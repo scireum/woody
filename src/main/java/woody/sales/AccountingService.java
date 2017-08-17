@@ -21,6 +21,7 @@ import woody.xrm.Company;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Here are stored all service-descriptions for the CRM and the licence-accounting
@@ -54,19 +55,30 @@ public interface AccountingService {
 				//			  TaskMonitor monitor,
 				boolean foreignCountry) ;
 
-	/**
-	 * creates csv-files and exports the lineitems
-	 * @param maxLineitems = max lineitems in one File
-	 * @param filter = only these lineitems are exported
-	 *               nein = no filter
-	 *               Ausland = all countries exclude DE
-	 *               Countrycodes like DE or CH or AT and so on
-	 *
-	 */
-	public void exportLicenceLineitems(int maxLineitems, String filter) ;
+//	/**
+//	 * creates csv-files and exports the lineitems
+//	 * @param maxLineitems = max lineitems in one File
+//	 * @param filter = only these lineitems are exported
+//	 *               nein = no filter
+//	 *               Ausland = all countries exclude DE
+//	 *               Countrycodes like DE or CH or AT and so on
+//	 *
+//	 */
+//	public void exportLicenceLineitems(int maxLineitems, String filter);
 
 	/**
-	 * test wether lieitems with status "new" are present
+	 * creates csv-files and exports the lineitems
+	 * @param type "LA" = licence, "OA" = offeritems
+	 * @param maxLineitems  max lineitems in one File
+	 * @param filter = only these lineitems are exported
+	 *               nein  or "" or null = no filter
+	 *               Ausland = all countries exclude DE
+	 *               Countrycodes like DE or CH or AT and so on
+     */
+	public void exportLineitems(String type, int maxLineitems, String filter);
+
+	/**
+	 * test wether lineitems with status "new" are present
 	 * @return  count of lineitems with status "new"
 	 *
      */
@@ -137,6 +149,17 @@ public interface AccountingService {
 	 * gets the last (the smallest) virtual invoiceNr
 	 */
 	public Long getMinInvoiceNr();
+
+	/**
+	 * checks the syntax of a given parameter, like "aaa=bbb ccc=unendlich"
+	 * @param parameter
+	 */
+	public void checkParameterSyntax(String parameter);
+
+	/**
+	 * returns the errorList.
+     */
+	public List<String> getErrorList();
 
 
 }

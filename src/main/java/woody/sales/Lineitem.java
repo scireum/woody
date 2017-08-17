@@ -22,10 +22,6 @@ import java.time.LocalDateTime;
 /**
  * Created by gerhardhaufler on 18.09.16.
  */
-//@Entity
-//@Table(name = "lineitem")
-//@ListSpec(orderBy = { @OrderSpec(path = "invoiceNr"),
-//                      @OrderSpec(path = "position") })
 
 public class Lineitem extends BizEntity {
 
@@ -43,88 +39,113 @@ public class Lineitem extends BizEntity {
     }
     // private static final int COLLMEX_KOSTENLOSPOSITION = 3; // current not used
 
-    public static final String LINEITEMTYPE_LA = "LA";
-    public static final String LINEITEMTYPE_OA = "OA";
+    public static final String LINEITEMTYPE_LA = "LA"; // Licence-Lineitem
+    public static final String LINEITEMTYPE_OA = "OA"; // Offer-Lineitem
 
-    public static final String LINEITEMSTATUS_NEW = "NEW";        // Neu
+    public static final String LINEITEMSTATUS_NEW = "NEW";             // Neu
     public static final String LINEITEMSTATUS_ACCOUNTED = "ACCOUNTED"; // Abgerechnet (in Collmex)
-    public static final String LINEITEMSTATUS_IS_ZERO = "S_ZERO";    // Wert ist null, keine Abrechnung
+    public static final String LINEITEMSTATUS_IS_ZERO = "IS_ZERO";     // Wert ist null, keine Abrechnung
 
+    /* type of the lineitem, license-lineitem or offer-lineitem */
     @Length(2)
     private String lineitemType = LINEITEMTYPE_LA;
     public static final Column LINEITEMTYPE = Column.named("lineitemType");
 
-    private LocalDate lineitemDate;
-    public static final Column LINEITEMDATE = Column.named("lineitemDate");
+    /* reference-Date of the accounting */
+    private LocalDate referenceDate;
+    public static final Column REFERENCEDATE = Column.named("referenceDate");
 
+    /* all lineitems of the same accounting-job have the same timestamp */
+    private LocalDateTime accountingDate;
+    public static final Column ACCOUNTINGDATE = Column.named("accountingDate");
+
+    /* date when the lineitem is exported to collmex, the state changes from NEW to ACCOUNTED */
+    private LocalDateTime exportDate;
+    public static final Column EXPORTDATE = Column.named("exportDate");
+
+    /* name of the company */
     @Length(255)
     private String companyName;
     public static final Column COMPANYNAME = Column.named("companyName");
 
-
+    /* the customer-number, refers in collmex to the company */
     @Length(20)
     private String customerNr;
     public static final Column CUSTOMERNR = Column.named("customerNr");
 
-
+    /* relative negative invoice-numbers to separate the invoices */
     private Long invoiceNr;
     public static final Column INVOICENR = Column.named("invoiceNr");
 
+    /* quantity of the accounted item */
     @Numeric(scale = 3, precision = 15)
-    private Amount quantity;
+    private Amount quantity = Amount.NOTHING;
     public static final Column QUANTITY = Column.named("quantity");
 
+    /* 100% of the price of 1 item */
     @Numeric(scale = 3, precision = 15)
-    private Amount price;
+    private Amount price = Amount.NOTHING;
     public static final Column PRICE = Column.named("price");
 
+    /* name of the package */
     @Length(255)
     private String packageName;
     public static final Column PACKAGENAME = Column.named("packageName");
 
+    /* status of the lineitem, e.g. NEW or ACCOUNTED or IS_ZERO  */
     @Length(20)
     private String status;
     public static final Column STATUS = Column.named("status");
 
-    private LocalDateTime clearingDate;
-    public static final Column CLEARINGDATE = Column.named("clearingDate");
-
+    /* position-Number */
     private int position = 0;
     public static final Column POSITION = Column.named("position");
 
+    /* measurement for the quantity (quantity-unit) */
     @Length(20)
     private String measurement;
     public static final Column MEASUREMENT = Column.named("measurement");
 
+    /* article-name for analyzes in collmex */
     @Length(20)
     private String article;
     public static final Column ARTICLE = Column.named("article");
 
+    /* flag: this lineitem is a credit (Gutschrift) */
     private boolean credit;
     public static final Column CREDIT = Column.named("credit");
 
+    /* flag: this lineitem is handled at the export to collmex as a credit */
     private boolean collmexCredit;
     public static final Column COLLMEXCREDIT = Column.named("collmexCredit");
 
+    /* the position-discount is a relativ discount in percent for this lineitem */
+    /* collmex calculates: value = price * ((100-positionDiscount) / 100)       */
     @Numeric(scale = 3, precision = 15)
     private Amount positionDiscount = Amount.NOTHING;
     public static final Column POSITION_DISCOUNT = Column.named("positionDiscount");
 
+    /* the finalDiscountAmount is a reduction in money for this lineitem */
+    /* export-price = price - finalDiscountAmount                        */
     @Numeric(scale = 3, precision = 15)
-    private Amount finalDiscountAmount;
+    private Amount finalDiscountAmount = Amount.NOTHING;
     public static final Column FINAL_DISCOUNT_AMOUNT = Column.named("finalDiscountAmount");
 
+    /* not used */
     @Numeric(scale = 3, precision = 15)
-    private Amount finalDiscountSum;
+    private Amount finalDiscountSum = Amount.NOTHING;
     public static final Column FINAL_DISCOUNT_SUM = Column.named("finalDiscountSum");
 
+    /* the positionType of this lineitem in collmex, constants see at the top */
     private int positionType;
     public static final Column POSITIONTYPE = Column.named("positionType");
 
+    /* description of the lineitem */
     @Length(1000)
     private String description;
     public static final Column DESCRIPTION = Column.named("description");
 
+    /* code for the language of the invoice */
     @Length(1)
     private String outputLanguage = "0";
     public static final Column OUTPUTLANGUAGE = Column.named("outputLanguage");
@@ -138,7 +159,7 @@ public class Lineitem extends BizEntity {
     protected void asString(StringBuilder sb) {
         sb.append(lineitemType == null ? LINEITEMTYPE_LA : lineitemType);
         sb.append("/");
-        sb.append(NLS.toUserString(getLineitemDate()));
+        sb.append(NLS.toUserString(getAccountingDate()));
         sb.append(":");
         sb.append(companyName);
     }
@@ -149,14 +170,6 @@ public class Lineitem extends BizEntity {
 
     public void setOutputLanguage(String outputLanguage) {
         this.outputLanguage = outputLanguage;
-    }
-
-    public LocalDate getLineitemDate() {
-        return lineitemDate;
-    }
-
-    public void setLineitemDate(LocalDate lineitemDate) {
-        this.lineitemDate = lineitemDate;
     }
 
     public String getCompanyName() {
@@ -205,14 +218,6 @@ public class Lineitem extends BizEntity {
 
     public void setPackageName(String packageName) {
         this.packageName = packageName;
-    }
-
-    public LocalDateTime getClearingDate() {
-        return clearingDate;
-    }
-
-    public void setClearingDate(LocalDateTime clearingDate) {
-        this.clearingDate = clearingDate;
     }
 
     public void setDescription(String description) {
@@ -311,5 +316,27 @@ public class Lineitem extends BizEntity {
         this.lineitemType = lineitemType;
     }
 
+    public LocalDate getReferenceDate() {
+        return referenceDate;
+    }
 
+    public void setReferenceDate(LocalDate referenceDate) {
+        this.referenceDate = referenceDate;
+    }
+
+    public LocalDateTime getAccountingDate() {
+        return accountingDate;
+    }
+
+    public void setAccountingDate(LocalDateTime accountingDate) {
+        this.accountingDate = accountingDate;
+    }
+
+    public LocalDateTime getExportDate() {
+        return exportDate;
+    }
+
+    public void setExportDate(LocalDateTime exportDate) {
+        this.exportDate = exportDate;
+    }
 }

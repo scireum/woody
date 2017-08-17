@@ -16,9 +16,10 @@
 
 @editForm(("company/" + company.getIdAsString() + "/offer/" + offer.getIdAsString())) {
     <div class="row">
-
+      @*
       @textfield( span: "3", name:     "number", value:    offer.getNumber(),
       labelKey: "Offer.number", readOnly: true )
+      *@
 
       @textfield(span: "4", name:     "keyword",    value:    offer.getKeyword(),
       labelKey: "Offer.keyword",   required:true)

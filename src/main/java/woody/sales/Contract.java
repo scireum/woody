@@ -28,6 +28,7 @@ import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 
+import woody.offers.ServiceAccountingService;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
@@ -194,25 +195,22 @@ public class Contract extends BizEntity {
     @Part
     private static AccountingService asb;
 
+    @Part
+    private static ServiceAccountingService sas;
+
     @BeforeSave
     protected void onSave() {
-        // TODO prüfen, ob das generell gelöst werden kann.
-        // TODO Problem: gibt man " " ein (ein Blank), so ist das Ergebnis == null und kein Amount mit dem Wert null
-//        // check if == null --> set to Amount.NOTHING
-//        discountPercent = checkIfNull(discountPercent);
-//        discountAbsolute = checkIfNull(discountAbsolute);
-//        singlePrice = checkIfNull(singlePrice);
-//        unitPrice = checkIfNull(unitPrice);
-        checkValue(Amount.of(quantity), true, false, false, false, null, NLS.get("Contract.quantity"));
-        checkValue(unitPrice, true, false, false, false, null, NLS.get("Contract.unitPrice"));
-        checkValue(singlePrice, true, false, false, false, null, NLS.get("Contract.singlePrice"));
-        checkValue(discountPercent, true, false, false, true, Amount.of(100), NLS.get("Contract.discountPercent"));
-        checkValue(discountAbsolute, true, false, false, false, null, NLS.get("Contract.discountAbsolute"));
 
-        //completeParameter(this);
-        checkParameterSyntax(this.getParameter());
+        if(Strings.isEmpty((quantity))) {
+            quantity = 1;
+        }
+
+        // check the parameter-syntax
+        asb.checkParameterSyntax(this.getParameter());
+
         // check the customerNr of the company, because the customerNr is needed to account the contract
         checkCustomerNr(getCompany().getValue());
+
         // check the dates of start, end and accountedTo, in every date the day shold be "1"
         if (getStartDate() != null && getStartDate().getDayOfMonth() != 1) {
             throw Exceptions.createHandled().withNLSKey("woody.xrm.Contract.doesNotStartOnFirstOfMonth").handle();
@@ -279,6 +277,13 @@ public class Contract extends BizEntity {
                 throw Exceptions.createHandled().withNLSKey("woody.xrm.Contract.noPackageDefinitionChange").handle();
             }
         }
+
+        // check the values (Interval-test)
+        sas.checkValue(Amount.of(quantity), true, false, false, false, null, NLS.get("Contract.quantity"));
+        sas.checkValue(unitPrice, true, false, false, false, null, NLS.get("Contract.unitPrice"));
+        sas.checkValue(singlePrice, true, false, false, false, null, NLS.get("Contract.singlePrice"));
+        sas.checkValue(discountPercent, true, false, false, true, Amount.of(100), NLS.get("Contract.discountPercent"));
+        sas.checkValue(discountAbsolute, true, false, false, false, null, NLS.get("Contract.discountAbsolute"));
 
         // CRM-7: Wenn ein unitPrice 0 vorgegeben wird und in der Packagedefinition der unitPrice <> 0 ist muss
         // noAccounting auf true stehen.
@@ -350,55 +355,6 @@ public class Contract extends BizEntity {
         checkContractIsSingle(contractList);
     }
 
-    public static void checkValue(Amount value, boolean notNegative, boolean notZero, boolean notPositive, boolean testLimit, Amount limit, String name) {
-        if(notNegative) {
-            if (value.isNegative()) {
-                throw Exceptions.createHandled().withNLSKey("Contract.valueIsNegative").set("name", name).handle();
-            }
-        }
-        if(notZero) {
-            if(!value.isZero()) {
-                throw Exceptions.createHandled().withNLSKey("Contract.valueIsNotZero")
-                                .set("name", name).handle();
-            }
-        }
-        if(notPositive) {
-            if(value.isPositive()) {
-                throw Exceptions.createHandled().withNLSKey("Contract.valueIsPositive")
-                                .set("name", name).handle();
-            }
-        }
-        if(testLimit) {
-            if(limit.isNegative()) {
-              if(value.compareTo(limit) < 0) {
-                  throw Exceptions.createHandled()
-                                  .withNLSKey("Contract.valueIsGreater")
-                                  .set("name", name)
-                                  .set("limit", NLS.toUserString(limit))
-                                  .handle();
-              }
-            } else {
-                if (value.compareTo(limit) > 0) {
-                    throw Exceptions.createHandled()
-                                    .withNLSKey("Contract.valueIsGreater")
-                                    .set("name", name)
-                                    .set("limit", NLS.toUserString(limit))
-                                    .handle();
-                }
-            }
-        }
-
-
-
-    }
-
-    private Amount checkIfNull(Amount amount) {
-        if(amount == null) {
-            return Amount.NOTHING;
-        }
-        return amount;
-    }
-
     /**
      * check the contracts in the given list
      * a contract in the past should have a endDate, the startDate of the following contract should be greater
@@ -410,36 +366,17 @@ public class Contract extends BizEntity {
             Contract c1 = contractList.get(i);
             Contract c0 = contractList.get(i-1);
             if(c0.getEndDate() == null) {
-                throw Exceptions.createHandled().withNLSKey("Contract.endDateMissing").set("contract", c0.toString()).handle();
+                // ToDo auf warning umstellen
+                throw Exceptions.createHandled().withNLSKey("Contract.endDateMissing").set("contract0", c0.toString())
+                                .set("contract1", c1.toString()).handle();
             }
             if(c1.getStartDate().isBefore(c0.getEndDate())) {
+                // ToDo auf warning umstellen
                 throw Exceptions.createHandled().withNLSKey("Contract.startDateMissing")
                                 .set("contract", c1.toString())
                                 .set("oldContract", c0.toString()).handle();
             }
         }
-    }
-
-    /**
-     * checks the syntax of the given parameters
-     */
-    private void checkParameterSyntax(String text) {
-        if (Strings.isFilled(text)) {
-            text = text.replaceAll("\\n", "");
-            if (!text.endsWith(" ")) {
-                text = text + " ";
-            }
-            String regex = "((\\w)*=(\\d)*\\s)*";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(text);
-            if (!matcher.matches()) {
-                throw Exceptions.createHandled()
-                                .withNLSKey("woody.xrm.Contract.ParameterSyntaxError")
-                                .set("text", text)
-                                .handle();
-            }
-        }
-        return;
     }
 
     /**
@@ -487,6 +424,37 @@ public class Contract extends BizEntity {
         } else {
             return this.getContractPartner().getValue().getPerson().toString();
         }
+    }
+
+    public String toContractName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getCompany().getValue().getName());
+        sb.append("_");
+        String LEER = "leer";
+        String name = LEER;
+        if (getPackageDefinition() != null) {
+            if (getPackageDefinition().getValue().getProduct() != null) {
+                name = getPackageDefinition().getValue().getProduct().getValue().getName();
+            }
+        }
+        sb.append(name);
+        sb.append("_");
+        String packageName = LEER;
+        if (getPackageDefinition() != null) {
+            packageName = getPackageDefinition().getValue().getName();
+        }
+        sb.append(packageName);
+        sb.append(" ab ");
+        sb.append(NLS.toUserString(getStartDate()));
+        return sb.toString();
+
+    }
+
+    public boolean isPosLinePresent() {
+        if(Strings.isFilled(getPosLine())) {
+            return true;
+        }
+        return false;
     }
 
 

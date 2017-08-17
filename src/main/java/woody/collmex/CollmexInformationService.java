@@ -8,9 +8,10 @@
 
 package woody.collmex;
 
-import com.scireum.crm.model.Company;
-import com.scireum.crm.model.Employee;
 
+import sirius.biz.tenants.UserAccount;
+import woody.core.employees.Employee;
+import woody.xrm.Company;
 import java.util.HashMap;
 import java.util.List;
 
@@ -36,13 +37,31 @@ public interface CollmexInformationService {
 											boolean newCompany);
 
 	/**
-	 * generates a collmex-string for the given employee
+	 * generates a collmex-access-string for the given employee
 	 */
-	public String generateCollmexStrings(Employee employee);
+	public String generateCollmexAccessStrings(UserAccount uac);
+
 
 	/**
-	 * checks the access to collmex
-	 */
-	public List<String> checkAccess();
+	 * get the access-data to collmex for the given useraccount
+	 * @param uac: userAccount, or null --> the current user
+	 * @return  a list with the access-data.
+     */
+	public List<String> getCollmexAccessData(UserAccount uac);
+
+	/**
+	 * generates a csv-string for Collmex with the datas from the given company
+	 * @param company
+	 * @return
+     */
+
+	public String generateCollmexCmxKnd(Company company);
+
+	/**
+	 * ends the given csv-String to Collmex
+	 * @param csvString
+     */
+	public void sendCmxKnd(List<String> collmexAccessData, String csvString);
+
 
 }

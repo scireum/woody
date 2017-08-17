@@ -18,15 +18,18 @@
         labelKey: "PackageDefinition.name",
         required: true)
 
-        @codelistSelect(list:     "pakettype",
+        @codelistSelect(list:  PackageDefinition.PAKETTYPE_CODELIST,
+        name: "paketType",
         value:    packageDefinition.getPaketType(),
         labelKey: "PackageDefinition.paketType")
 
-        @codelistSelect(list:     "accountingUnit",
+        @codelistSelect(list:  PackageDefinition.ACCOUNTINGUNIT_CODELIST,
+        name: "accountingUnit",
         value:    packageDefinition.getAccountingUnit(),
         labelKey: "PackageDefinition.accountingUnit")
 
-        @codelistSelect(list:     "accountingProcedure",
+        @codelistSelect(list:     PackageDefinition.ACCOUNTINGPROCEDURE_CODELIST,
+        name: "accountingProcedure",
         value:    packageDefinition.getAccountingProcedure(),
         labelKey: "PackageDefinition.accountingProcedure")
 
@@ -44,11 +47,13 @@
 
         @textarea(name:     "description",
         value:    packageDefinition.getDescription(),
-        labelKey: "PackageDefinition.description")
+        labelKey: "PackageDefinition.description",
+        readonly: false)
 
         @textarea(name:     "parameter",
         value:    packageDefinition.getParameter(),
-        labelKey: "PackageDefinition.parameter")
+        labelKey: "PackageDefinition.parameter",
+        readonly: false)
     </div>
 
 
