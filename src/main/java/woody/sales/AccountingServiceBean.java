@@ -8,9 +8,12 @@
 
 package woody.sales;
 
+import sirius.biz.model.PersonData;
+import sirius.biz.tenants.UserAccount;
 import sirius.db.mixing.OMA;
 import sirius.db.mixing.constraints.FieldOperator;
 import sirius.kernel.commons.Amount;
+import sirius.kernel.commons.Context;
 import sirius.kernel.commons.DataCollector;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.ConfigValue;
@@ -19,22 +22,47 @@ import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.Formatter;
 import sirius.kernel.nls.NLS;
+import sirius.web.security.UserContext;
+import sirius.web.security.UserInfo;
+import woody.core.employees.Employee;
+import woody.offers.ServiceAccountingService;
 import woody.sales.ContractToDos.Command;
 import woody.xrm.Company;
+import woody.xrm.Person;
 
+import javax.swing.text.View;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +75,9 @@ public class AccountingServiceBean implements AccountingService {
 
     @Part
     protected OMA oma;
+
+    @Part
+    protected ServiceAccountingService sas;
 
     private Amount prodUmsatz = Amount.NOTHING;
     private Amount testUmsatz = Amount.NOTHING;
@@ -2250,6 +2281,135 @@ public class AccountingServiceBean implements AccountingService {
             }
         }
     }
+
+    @Override
+    public void createYearInformationForCompany(Company company, int year) {
+        HashMap<String, String> hashMap = new HashMap<String, String>();
+        // get all contracts of this company
+        List<Contract> contractList = oma.select( Contract.class).eq(Contract.COMPANY, company)
+                                         .orderAsc(Contract.ACCOUNTINGGROUP).orderAsc(Contract.STARTDATE).queryList();
+        // Look for the accountingGroups and store them in a HashMap
+        for(Contract contract : contractList) {
+            hashMap.put(contract.getAccountingGroup(), contract.getAccountingGroup());
+        }
+        // the keySet of the hashMap are the relevant accountingroups.
+        Set set = hashMap.keySet();
+        for(Object o:set) {
+            String accountingGroup = (String) o;
+            // get all contracts from this company and this accountingGroup
+            List<Contract> contracts = oma.select(Contract.class).eq(Contract.COMPANY, company)
+                                          .eq(Contract.ACCOUNTINGGROUP, accountingGroup).orderAsc(Contract.ACCOUNTINGGROUP)
+// ToDo .join richten                                         .orderAsc(Contract.CONTRACTPARTNER.join(Person.PERSON.join(PersonData.LASTNAME)))
+                                          .orderAsc(Contract.STARTDATE).queryList();
+
+            if(contracts.isEmpty()) {
+                continue;
+            }
+            // prepare context for the contracts of this accountingGroup
+            Context context = prepareContextYearInfo(company, year, contracts);
+            if(context == null) {
+                continue;
+            }
+            // generate the yearInformation as PDF
+            File pdfFile = sas.createPdfFromContext(context, "templates/yearInformation.pdf");
+
+            //  #macro(xml $content)$content#end
+
+//            Path source = Paths.get(pdfFile.getName());
+//            Path destination = Paths.get("x3x4x5.pdf");
+//            try {
+//                Files.copy(source, destination);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+//            // store the pdf-File as attachment of the company
+//            byte[] byteIn = byteOut.toByteArray();
+
+            // ToDo store the pdf-File as attachment of the company
+//            String namedObjectName = company.getUnqiueObjectName();
+//            NamedObject namedObject = nos.getNamedObject(namedObjectName);
+//            DataArea area = areas.getAttachmentsArea(namedObject);
+//            InputStream in = new ByteArrayInputStream(byteIn);
+//            String filename = context.getValue("filenamePDF").asString();
+//            try {
+//                VFile  file = area.addFile(null, filename, in);
+//            } catch (IOException e) {
+//                ApplicationController.handle(e);
+//            }
+        }
+
+    }
+
+    private Context prepareContextYearInfo(Company company, int year, List<Contract> contracts) {
+        Context context = new Context();
+        LocalDate startDate = LocalDate.of(year,1,1);
+        Amount nettoSum = Amount.ZERO;
+        context.set("company", company);
+        UserContext uc = UserContext.get();
+        UserInfo ui = uc.getUser();
+        Employee employee = ui.as(Employee.class);
+        context.set("employee", employee);
+        context.set("yearString", NLS.toUserString(year));
+        context.set("year", year);
+        context.set("dateString", NLS.toUserString(startDate));
+
+        String accountingGroup = null;
+        HashMap<String, Person>  personMap = new HashMap<String, Person>();
+        List<Contract> contractList = new ArrayList<Contract>();
+        for (Contract contract : contracts) {
+            if (contract.getEndDate() != null) {
+                if (contract.getAccountedTo() != null && contract.getEndDate().equals(contract.getAccountedTo())) {
+                    continue;  // contract is finished and accounted
+                }
+                if (contract.getEndDate() != null && contract.getEndDate().isBefore(startDate)) {
+                    continue;  // contract is finished before the startDate
+                }
+            }
+            contractList.add(contract);
+            accountingGroup = contract.getAccountingGroup();
+            context.set("filenamePDF", dateTimeFilename("_", LocalDateTime.of(year,1,1,0,0,0))  + "Jahresinformation" + NLS.toUserString(year) + "_" + company.getCustomerNr() + "_" + accountingGroup);
+            // store the name of the contractPartner in a hashMap
+            Person person = contract.getContractPartner().getValue();
+            String name = person.getPerson().getAddressableName();
+            personMap.put(name, person);
+
+            // build the yearValue and  add to the nettoSum
+            Amount yearValue = contract.getYearValue(year);
+            nettoSum = nettoSum.add(yearValue);
+
+        }
+        if(contractList.isEmpty()) {
+            return null;
+        }
+        // Build a sorted list of all contractpartners
+        Set personSet = personMap.keySet();
+        List<String> list = new ArrayList<String>();
+        for(Object o:personSet){
+            String key = (String)o;
+            list.add(key);
+        }
+        Collections.sort(list);
+        List<Person> personList = new ArrayList<Person>();
+        for(String key : list) {
+            Person person = personMap.get(key);
+            personList.add(person);
+        }
+        context.set("personList", personList);
+
+        context.set("accountingGroup", accountingGroup);
+        context.set("contractList", contractList);
+        Amount vatSum = nettoSum.decreasePercent(Amount.of(100 - 19));
+        Amount bruttoSum = vatSum.add(nettoSum);
+        context.set("nettoSum", nettoSum);
+        context.set("vatSum", vatSum);
+        context.set("bruttoSum", bruttoSum);
+        String offerNumber = NLS.toUserString(year) + "/" + company.getCustomerNr() + "/" + accountingGroup;
+        context.set("offerNumber", offerNumber);
+        return context;
+    }
+
 
     /**
      * check CRM-Data (as master-data) against collmex-data

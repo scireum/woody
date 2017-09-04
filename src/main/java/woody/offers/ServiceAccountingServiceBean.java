@@ -16,14 +16,17 @@ import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.DataCollector;
 import sirius.kernel.commons.NumberFormat;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.ConfigValue;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.commons.Context;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
+import sirius.web.http.MimeHelper;
 import sirius.web.mails.Mails;
 import sirius.web.security.UserContext;
 
+import sirius.web.security.UserInfo;
 import sirius.web.templates.Templates;
 import woody.core.employees.Employee;
 import woody.sales.AccountingIntervalType;
@@ -71,8 +74,9 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
     private static AccountingService as;
 
 
+    @ConfigValue(value="mail.scireumSupportMailAddress", required=true)
+    private String scireumSupportMailAddress = "support@scireum.de";
 
-    // ToDo Rechtsnachfolger für MailService
     @Part
     private Mails mails;
 
@@ -313,6 +317,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         Amount cyclicPriceNettoSumBlock = Amount.ZERO;
         String offerState = "";
         String positions = "";
+        String mailText = "";
 
         switch (function) {
             default:
@@ -413,7 +418,8 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 offer.setLicenceItemPresent(true);
                 licenceItemCyclicUnit = item.getAccountingUnitComplete();
             }
-
+            // speichern, um Neuberechnung der accountingUnitComplete zu erzwingen
+            oma.update(item);
         }
         positions = positions.substring(0, positions.length()-2);
         context.set("positions", positions);
@@ -426,7 +432,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         termsOfPayment = termsOfPayment +" Das monatliche Supportkontingent entspricht 30 Prozent der monatlichen Lizenzgebühr, ein Personentag sind zurzeit 800,00 EUR.";
         termsOfPayment = termsOfPayment + "  Rechnungen sind innerhalb von 30 Tagen ohne Abzug zahlbar.";
         context.set("termsOfPayment", termsOfPayment);
-
+        String subject = "";
 
         switch (function) {
             default:
@@ -434,11 +440,17 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             case OFFER:
                 offerline = "auf der Basis unserer Geschäftsbedingungen bieten wir Ihnen an:";
                 context.set("filenamePDF", "Angebot_"+offer.getNumber()+".pdf");
+                mailText = "in dem beigefügten Dokument erhalten Sie das Angebot Nr. " + offer.getNumber();
+                subject = "Angebot "+offer.getNumber()+ " vom " + NLS.toUserString(offer.getDate())+", " + offer.getKeyword();
                 break;
             case SALES_CONFIRMATION:
                 offerline = "wir danken für die Beauftragung der nachfolgend aufgeführten Positionen, die wir gerne auf der Basis unserer Geschäftsbedingungen bestätigen: ";
                 headlinePrefix = "Auftragsbestätigung zum ";
                 context.set("filenamePDF", "Auftragsbestaetigung_"+offer.getNumber()+"_"+filePostfix+".pdf");
+                mailText =  "in dem beigefügten PDF-Dokument erhalten Sie die Auftragsbestäigung zu Ihrer Bestellung.<br></br><br></br>";
+                mailText = mailText + "Für Erläuterungen und Rückfragen stehen wir gerne zur Verfügung.";
+                subject = "Auftragsbestätigung "+offer.getNumber()+ " Positionen: "+ context.get("positions")
+                           + ", "+offer.getKeyword();
                 break;
         }
 
@@ -448,7 +460,9 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             offerStateString = ", Status: " + offerState + "!";
         }
 
+        context.set("subject", subject);
         String dateString = NLS.toUserString(LocalDate.now());
+        context.set("mailText", mailText);
         context.set("street", company.getAddress().getStreet());
         String city = company.getAddress().getZip() + " " +  company.getAddress().getCity();
         context.set("city", city);
@@ -474,6 +488,8 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         }
 
         Employee employee = offer.getEmployee().getValue().as(Employee.class) ;
+        String signature = employee.getSignature();
+        context.set("employeeSignature", signature);
         UserAccount user = offer.getEmployee().getValue().as(UserAccount.class) ;
         context.set("employeeName", user.toString());
         context.set("employeePhone", employee.getPhoneNr());
@@ -482,7 +498,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         context.set("priceNettoSum", priceNettoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
         context.set("priceVatSum", priceVatSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
         if(vatRate != null) {
-            context.set("vatRate", NLS.toUserString(vatRate.times(Amount.ONE_HUNDRED) + "%"));
+            context.set("vatRateString", NLS.toUserString(vatRate) + "%");
         }
         context.set("cyclicPriceBruttoSum", cyclicPriceBruttoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
         context.set("cyclicPriceNettoSum", cyclicPriceNettoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
@@ -554,15 +570,17 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
     @Override
     public int sendSalesConfirmation(/* View view, */ Offer offer) {
-        List<OfferItem> confirmationList = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer)
-                .eq(OfferItem.STATE, OfferItemState.ORDERED)
-                .eq(OfferItem.SALESCONFIRMATIONDATE, null).orderAsc(OfferItem.POSITION).queryList();
+        int mailCounter = 0;
+        List<OfferItem> confirmationList = getConfirmationOfferItems(offer);
+//        Alte Lösung:
+//        List<OfferItem> confirmationList = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer)
+//                .eq(OfferItem.STATE, OfferItemState.ORDERED)
+//                .eq(OfferItem.SALESCONFIRMATIONDATE, null).orderAsc(OfferItem.POSITION).queryList();
         if(confirmationList == null || confirmationList.size() <= 0) {
           throw Exceptions.createHandled().withNLSKey("ServiceAccountingServiceBean.salesConfirmationNoOrders")
                   .set("number", offer.getNumber()).handle();
         }
-        int mailCounter = 0;
-//      Date confimationDate = new Date();    // ToDo ConfirmationDate erst setzen, wenn Mail gesendet wurde
+
         Person person = offer.getPerson().getValue();
         String mailAdress = person.getContact().getEmail();
         if(Strings.isEmpty(mailAdress)) {
@@ -589,10 +607,46 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             }
         }
 
+        // build the pdf-File and add the File as attachment to the mail
         Context context = prepareContext(offer, ServiceAccountingService.SALES_CONFIRMATION) ;
         File fileAttachment = createPdfFromContext(context, "templates/offer.pdf.vm");
 
-// ToDo send file
+        // build the mail-content
+        String subject = (String)context.get("subject");
+
+
+        // send the mail
+        String template = "mail-template";
+        boolean success = sendMail(mailAdress, subject,  template, context, fileAttachment);
+        if (success) {
+            mailCounter++;
+
+            // set the salesConfirmationDate = now and the state = CONFIRMED
+            LocalDate confirmationDate = LocalDate.now();
+            for (OfferItem oi : confirmationList) {
+                oi.setSalesConfirmationDate(confirmationDate);
+                oi.setState(OfferItemState.CONFIRMED);
+                oma.update(oi);
+            }
+
+            // Ggfs. Verträge aus den Auftragsbestätigungen anlegen
+            List<String> messageList = new ArrayList<String>();
+            for (OfferItem offerItem : confirmationList) {
+                messageList.add(createContractFromOfferItem(offerItem));
+            }
+            // ToDo: messageList anzeigen.
+
+        }
+        return mailCounter;
+    }
+
+
+    private boolean sendMail(String mailAdress, String subject, String template, Context mailContext, final File fileAttachment) {
+
+        // ToDo mail anzeigen und fragen ob diese gesendet werden soll
+
+        // ToDo Bei abbruch false zurück geben
+
         DataSource attachment = new DataSource() {
             @Override
             public InputStream getInputStream() throws IOException {
@@ -606,7 +660,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
             @Override
             public String getContentType() {
-                return null;
+                return MimeHelper.APPLICATION_PDF;
             }
 
             @Override
@@ -614,37 +668,41 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 return fileAttachment.getName();
             }
         };
-        String fromEmail = "support@scireum.de";
-        String subject = "";
-        mails.createEmail().addAttachment(attachment).fromEmail(fromEmail).toEmail(mailAdress).subject(subject)
-                .useMailTemplate("mail", context).simulate(true).send();
 
-        mailCounter++;
-
-        List<String> messageList = new ArrayList<String>();
-        for(OfferItem offerItem : confirmationList) {
-            messageList.add(createContractFromOfferItem(offerItem));
+        String fromEmail = scireumSupportMailAddress;
+        try {
+            mails.createEmail()
+                 .addAttachment(attachment)
+                 .fromEmail(fromEmail)
+                 .toEmail(mailAdress)
+                 .subject(subject)
+                 .useMailTemplate(template, mailContext)
+                 .simulate(false)
+                 .send();
+            // ToDo status der Mail abfragen, ob sie versendet wurde
+            return true;
+        } catch (Exception e) {
+            Exceptions.handle();
         }
-
-        return mailCounter;
+        return false;
     }
-
-
 
     @Override
     public void sendOffer(Offer offer)  {
-//      Date confimationDate = new Date();    // ToDo ConfirmationDate erst setzen, wenn Mail gesendet wurde
         Person person = offer.getPerson().getValue();
         String mailAdress = person.getContact().getEmail();
-        if(Strings.isFilled(mailAdress)) {
-            Context context = prepareContext(offer, ServiceAccountingService.OFFER) ;
-            File file = createPdfFromContext(context, "templates/offer.pdf.vm");
-// ToDo send file
-
-        } else {
+        if(Strings.isEmpty(mailAdress)) {
             throw Exceptions.createHandled().withNLSKey("ServiceAccountingServiceBean.salesConfirmationNoMailAdr")
                             .set("person", person.getPerson().getAddressableName()).handle();
         }
+        Context context = prepareContext(offer, ServiceAccountingService.OFFER) ;
+        File fileAttachment = createPdfFromContext(context, "templates/offer.pdf.vm");
+        // build the mail-content
+        String subject = (String)context.get("subject");
+
+        // send the mail
+        String template = "mail-template";
+        sendMail(mailAdress, subject,  template, context, fileAttachment);
     }
 
     @Override
@@ -770,7 +828,8 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
     }
 
-    private File createPdfFromContext(Context context, String templateName) {
+    @Override
+    public File createPdfFromContext(Context context, String templateName) {
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 
         String filenamePdf = (String) context.get("filenamePDF");
@@ -782,7 +841,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             templates.generator().useTemplate(templateName).applyContext(context).generateTo(baos);
             baos.writeTo(fos);
         } catch(Exception ioe) {
-            // Handle exception here
+            // ToDo Handle exception here
             Exceptions.handle(ioe);
         } finally {
             try {

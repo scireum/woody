@@ -36,6 +36,8 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -461,6 +463,75 @@ public class Contract extends BizEntity {
     public List<Person> getAllPersonsForCompany(Company company) {
         List<Person> personList =  oma.select(Person.class).eq(Person.COMPANY, company).queryList();
         return personList;
+    }
+
+    /**
+     * called by javaScript
+     * @param year
+     * @return the distance of using the contract in this year, e.g.1.1.-31.12.year
+     */
+    public String getDistance(int year) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year+1);
+        cal.set(Calendar.MONTH,0);
+        cal.set(Calendar.DAY_OF_MONTH,1);
+        LocalDate endDateYear = LocalDate.of(year,12,31);
+        String s = "01.01 - ";
+        if(this.endDate != null && this.endDate.isBefore(endDateYear)) {
+            s = s + NLS.toUserString(this.endDate);
+        } else {
+            s = s + "31.12." + NLS.toUserString(year);
+        }
+        return s;
+    }
+
+    /**
+     * called by javaScript
+     * @param year
+     * @return  the number of months of using the contract in this year
+     */
+    public String getMonths(int year) {
+        return NLS.toUserString(getMonthsInt(year));
+    }
+
+    /**
+     * called by javaScript
+     * @param year
+     * @return yearValue = amount * months * ((unitPrice * (100% - discount) - discountAbsolute)
+     */
+    public Amount getYearValue(int year) {
+        int  months = getMonthsInt(year);
+        Amount unitPrice = this.getUnitPrice().fill(Amount.ZERO);
+        Amount quantity = Amount.of(this.getQuantity()).fill(Amount.ONE);
+        Amount discount = this.getDiscountPercent().fill(Amount.ZERO);
+        Amount discountAbsolute = this.getDiscountAbsolute().fill(Amount.ZERO);
+        Amount yearValue = unitPrice.decreasePercent(discount);
+        yearValue = yearValue.subtract(discountAbsolute);
+        yearValue = yearValue.times(quantity);
+        yearValue = yearValue.times(Amount.of(months));
+        return yearValue;
+    }
+
+    /**
+     * @param year
+     * @return the number of month of usage the contract in this year
+     */
+    public int getMonthsInt(int year) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year+1);
+        cal.set(Calendar.MONTH,0);
+        cal.set(Calendar.DAY_OF_MONTH,1);
+        LocalDate endDateYear = LocalDate.of(year+1,1,1);
+        int months = 12;
+        if(this.endDate != null) {
+            if (this.endDate.isBefore(endDateYear)) {
+                months = this.endDate.getMonthValue();
+                if(months > 1) {
+                    months = months - 1;
+                }
+            }
+        }
+        return months;
     }
 
     public EntityRef<Company> getCompany() {

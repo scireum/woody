@@ -15,9 +15,11 @@ package woody.sales;
 
 
 import sirius.kernel.commons.Amount;
+import sirius.kernel.commons.Context;
 import sirius.kernel.commons.DataCollector;
 import woody.xrm.Company;
 
+import javax.swing.text.View;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -155,6 +157,12 @@ public interface AccountingService {
 	 * @param parameter
 	 */
 	public void checkParameterSyntax(String parameter);
+
+	/**
+	 * creates a PDF-Information for the given company
+	 * @param company
+	 */
+	public void createYearInformationForCompany(Company company, int year);
 
 	/**
 	 * returns the errorList.

@@ -233,6 +233,16 @@ public class XRMController extends BizController {
        ctx.respondWith().template("view/xrm/company-details.html", company);
     }
 
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/company/:1/yearInfo")
+    public void companyYearInfo(WebContext ctx, String companyId) {
+        Company company = findForTenant(Company.class, companyId);
+        asb.createYearInformationForCompany(company, 2018);
+        ctx.respondWith().template("view/xrm/company-details.html", company);
+    }
+
+
 
     @LoginRequired
     @Permission(MANAGE_XRM)

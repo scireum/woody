@@ -41,7 +41,7 @@ import java.util.List;
 
 
 
-
+// ToDO prüfen ob SendOfferView überhaupt noch gebraucht wird
 public class SendOfferView /* extends BasicView*/ {
 
     private List<OfferItem> offerItemList = new ArrayList<OfferItem>();

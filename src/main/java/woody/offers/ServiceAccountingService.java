@@ -20,6 +20,7 @@ import woody.sales.Contract;
 import woody.sales.Lineitem;
 import woody.sales.PackageDefinition;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,25 +32,24 @@ public interface ServiceAccountingService {
     public static final String OFFER = "offer";
     public static final String SALES_CONFIRMATION = "sales_confirmation";
 
-
     /**
      * account all service-offers
+     *
      * @param dryRun, true = Test, false = produktiv
      * @param monitor
-     * @return  List of teh generated lineitems
+     * @return List of teh generated lineitems
      */
-    public DataCollector<Lineitem> accountAllServiceOffers(boolean dryRun /*, TaskMonitor monitor*/) ;
+    public DataCollector<Lineitem> accountAllServiceOffers(boolean dryRun /*, TaskMonitor monitor*/);
 
     /**
-     *  @return   ProdUmsatz
+     * @return ProdUmsatz
      */
     public Amount getProdUmsatz();
 
     /**
-     * @return   TestUmsatz
+     * @return TestUmsatz
      */
     public Amount getTestUmsatz();
-
 
     /**
      * export the invoicItem to Collmex
@@ -58,23 +58,25 @@ public interface ServiceAccountingService {
 
     /**
      * copies the given offer, the state of the given offer is "canceldd", the state of the new offer is "copy"
+     *
      * @param offer
      */
-    public void copyOffer(Offer offer, boolean reCreate) ;
-
+    public void copyOffer(Offer offer, boolean reCreate);
 
     /**
      * prepares the context for publishing a PDF-document for the given offer
+     *
      * @param offer: offer which shall published
-     * @return  Context
+     * @return Context
      */
     public Context prepareContext(Offer offer, String function);
 
     /**
      * checks all offeritems of the given offer
-     * @param offer: offer
+     *
+     * @param offer:       offer
      * @param copyAllowed: if true: the state 'copy' is allowed
-     * if NOT all offeritems are "OFFERS" ( or COPY) a Exception is thrown
+     *                     if NOT all offeritems are "OFFERS" ( or COPY) a Exception is thrown
      */
     public void checkAllOfferItemsAreOffers(Offer offer, boolean copyAllowed);
 
@@ -85,6 +87,7 @@ public interface ServiceAccountingService {
 
     /**
      * fetches the "next" OfferItemState of the given offerItem
+     *
      * @param oi
      * @return
      */
@@ -92,6 +95,7 @@ public interface ServiceAccountingService {
 
     /**
      * returns true, if the button should be visible
+     *
      * @param oi
      * @return
      */
@@ -99,20 +103,22 @@ public interface ServiceAccountingService {
 
     /**
      * returns a list of offerItems to which send a salesConfirmation
+     *
      * @param offer
      */
-    public List<OfferItem>  getConfirmationOfferItems(Offer offer);
+    public List<OfferItem> getConfirmationOfferItems(Offer offer);
 
     /**
      * checks all offerItems and update the offerState of the given offer
+     *
      * @param offer
-     * @param save   true --> the offer is saved at this time
+     * @param save  true --> the offer is saved at this time
      */
     public void updateOfferState(Offer offer, boolean save);
 
-
     /**
      * sends the offer per mail to the given person and buyer in the offer
+     *
      * @param offer
      */
     public void sendOffer(Offer offer);
@@ -126,15 +132,28 @@ public interface ServiceAccountingService {
 
     /**
      * checks the given value
+     *
      * @param value
      * @param notNegative: true --> if the value is negative a exception is thrown
-     * @param notZero: true --> if the value is zero a exception is thrown
+     * @param notZero:     true --> if the value is zero a exception is thrown
      * @param notPositive: true --> if the value is positive a exception is thrown
-     * @param testLimit: true --> the given limit is tested. if the value is < or > the limit a exception is thrown
-     * @param limit: limit
-     * @param name: name of the value
+     * @param testLimit:   true --> the given limit is tested. if the value is < or > the limit a exception is thrown
+     * @param limit:       limit
+     * @param name:        name of the value
      */
-    public void checkValue(Amount value, boolean notNegative, boolean notZero, boolean notPositive, boolean testLimit, Amount limit, String name);
+    public void checkValue(Amount value,
+                           boolean notNegative,
+                           boolean notZero,
+                           boolean notPositive,
+                           boolean testLimit,
+                           Amount limit,
+                           String name);
 
-
-    }
+    /**
+     * creates a Pdf-file with the given template and context
+     * @param context         context
+     * @param templateName    template
+     * @return                pdf-file
+     */
+    public File createPdfFromContext(Context context, String templateName);
+}

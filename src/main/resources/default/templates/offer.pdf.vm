@@ -81,10 +81,10 @@ $!salutation
                           <td style="width:4cm">$nls.toUserString($item.quantity) Lizenz</td>
                       #end
                       #if($item.isService())
-                        <td style="width:4cm">$nls.toUserString($item.quantity) $item.accountingUnitComplete</td>
+                        <td style="width:4cm">$nls.toUserString($item.quantity) $!item.accountingUnitComplete</td>
                       #end
                      #if($item.isService())
-                         <td style="width:4cm">$nls.toUserString($item.singlePrice) € / $item.accountingUnitComplete</td>
+                         <td style="width:4cm">$nls.toUserString($item.singlePrice) € / $!item.accountingUnitComplete</td>
                      #end
                      #if($item.isLicense())
                         <td style="width:4cm">$item.getPackageDefinition().getValue().getName()</td>
@@ -127,7 +127,7 @@ $!salutation
       <tr><td style="width:13cm">End-Summe netto:</td><td align="right" style="width:4cm" >$priceNettoSum €</td><td style="width:3cm" align="right">
            #if($isLicenceItemPresent)$cyclicPriceNettoSum € #end</td></tr>
       #if(!$company.isForeignCountry())
-              <tr><td style="width:13cm">zuzüglich $vatRate MWSt:</td> <td  align="right">$priceVatSum €</td><td  align="right">
+              <tr><td style="width:13cm">zuzüglich $nls.toUserString($vatRateString) MWSt:</td> <td  align="right">$priceVatSum €</td><td  align="right">
                    #if($isLicenceItemPresent)$cyclicPriceVatSum € #else  #end</td></tr>
               <tr><td style="width:13cm">Endbetrag:</td><td  align="right">$priceBruttoSum €</td><td  align="right">
                    #if($isLicenceItemPresent)$cyclicPriceBruttoSum € #else  #end</td></tr>
