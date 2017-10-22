@@ -67,9 +67,8 @@ public class UserAccountRelationProvider implements RelationProvider {
            .orderAsc(UserAccount.LOGIN.inner(LoginData.USERNAME))
            .orderAsc(UserAccount.PERSON.inner(PersonData.LASTNAME))
            .orderAsc(UserAccount.PERSON.inner(PersonData.FIRSTNAME))
-           .iterateAll(user -> {
-               consumer.accept(Tuple.create(renderUserAccount(user), user.getLogin().getUsername()));
-           });
+           .iterateAll(user -> consumer.accept(Tuple.create(getName() + "-" + user.getIdAsString(),
+                                                            renderUserAccount(user))));
     }
 
     @Override

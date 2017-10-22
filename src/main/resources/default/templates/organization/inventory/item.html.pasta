@@ -1,0 +1,61 @@
+<i:arg type="woody.organization.inventory.InventoryItem" name="item"/>
+<i:arg type="List" name="types"/>
+
+<w:page titleKey="Model.inventoryItem">
+    <i:block name="breadcrumbs">
+        <li><a href="/inventory/items">@i18n("InventoryItem.plural")</a></li>
+        <li><a href="/inventory/item/@item.getIdAsString()">@i18n("Model.inventoryItem")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.inventoryItem"/>
+
+    <w:editForm url="@apply('/inventory/item/%s', item.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@item.getName()" labelKey="Model.name" required="true"/>
+            <w:textfield name="code" value="@item.getCode()" labelKey="Model.code"/>
+        </div>
+        <div class="row">
+            <w:textfield name="description" value="@item.getDescription()" labelKey="Model.description" span="12"/>
+        </div>
+        <div class="row">
+            <i:if test="item.isNew()">
+                <w:singleSelect name="type" labelKey="Model.type">
+                    <i:for type="woody.organization.inventory.InventoryType" var="type" items="types">
+                        <option value="@type.getId()" @if (item.getType().is(type)) { selected="selected" }>
+                            @type.getName()
+                        </option>
+                    </i:for>
+                </w:singleSelect>
+                <i:else>
+                    <w:textfield name="type"
+                                 value="@item.getType().getValue().as(woody.organization.inventory.InventoryType.class).getName()"
+                                 labelKey="Model.type" readonly="true"/>
+                </i:else>
+            </i:if>
+        </div>
+        <div class="row">
+            <w:autocompleteMultiSelect span="12" name="tags" labelKey="Tag.plural" serviceUri="/tags/INVENTORYTYPE/autocomplete"
+                                       optional="true">
+                <i:for type="woody.core.tags.Tag" var="tag" items="item.getTags().getTags()">
+                    <option value="@tag.getName()" selected>@tag.getName()</option>
+                </i:for>
+            </w:autocompleteMultiSelect>
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/inventory/items"/>
+
+
+    <i:if test="!item.isNew()">
+        <div class="row">
+            <div class="col-md-6">
+                <woody:comments id="@item.getUniqueName()" commented="item.getComments()"/>
+            </div>
+            <div class="col-md-6">
+                <woody:relations id="@item.getUniqueName()"
+                                 type="@apply('INVENTORYITEM-%s', item.getType().getId())"
+                                 relations="item.getRelations()" />
+            </div>
+        </div>
+    </i:if>
+</w:page>

@@ -1,0 +1,41 @@
+<i:arg type="woody.core.relations.RelationType" name="type"/>
+<i:arg type="woody.core.relations.RelationsController" name="controller"/>
+
+<w:page titleKey="Model.relationType">
+    <i:block name="breadcrumbs">
+        <li><a href="/relations/types">@i18n("RelationType.plural")</a></li>
+        <li><a href="/relations/type/@type.getIdAsString()">@i18n("Model.relationType")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.relationType"/>
+
+    <w:editForm url="@apply('/relations/type/%s', type.getIdAsString())">
+        <div class="row">
+            <i:if test="type.isNew()">
+                <w:singleSelect name="sourceType" labelKey="RelationType.sourceType">
+                    <i:for type="String" var="t" items="controller.getSourceTypes()">
+                        <option value="@t" @if (t.equals(type.getSourceType())) { selected="selected" }>@controller.translateType(t)</option>
+                    </i:for>
+                </w:singleSelect>
+                <w:singleSelect name="targetType" labelKey="RelationType.targetType" optional="true">
+                    <i:for type="String" var="t" items="controller.getTargetTypes()">
+                        <option value="@t" @if (t.equals(type.getTargetType())) { selected="selected" }>@controller.translateType(t)</option>
+                    </i:for>
+                </w:singleSelect>
+                <i:else>
+                    <w:textfield name="sourceType" value="@controller.translateType(type.getSourceType())" labelKey="RelationType.sourceType" readonly="true" />
+                    <w:textfield name="targetType" value="@controller.translateType(type.getTargetType())" labelKey="RelationType.targetType" readonly="true" />
+                </i:else>
+            </i:if>
+
+            <w:textfield name="name" value="@type.getName()" labelKey="Model.name" required="true" />
+            <w:textfield name="reverseName" value="@type.getReverseName()" labelKey="RelationType.reverseName" />
+        </div>
+        <div class="row">
+            <w:checkbox name="viewInList" value="type.isViewInList()" labelKey="RelationType.viewInList" />
+            <w:checkbox name="showReverse" value="type.isShowReverse()" labelKey="RelationType.showReverse" />
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/relations/types" />
+</w:page>

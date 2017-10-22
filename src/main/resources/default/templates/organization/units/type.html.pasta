@@ -1,0 +1,18 @@
+<i:arg type="woody.organization.units.UnitType" name="type"/>
+
+<w:page titleKey="Model.unitType">
+    <i:block name="breadcrumbs">
+        <li><a href="/units/types">@i18n("UnitType.plural")</a></li>
+        <li><a href="/units/type/@type.getIdAsString()">@i18n("Model.unitType")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.unitType"/>
+
+    <w:editForm url="@apply('/units/type/%s', type.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@type.getName()" labelKey="Model.name" required="true" />
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/units/types" />
+</w:page>

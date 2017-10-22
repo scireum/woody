@@ -11,7 +11,6 @@ package woody.organization.units;
 import com.google.common.base.Strings;
 import sirius.biz.sequences.Sequences;
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
 import sirius.db.mixing.constraints.Like;
@@ -25,9 +24,7 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
-import sirius.web.services.JSONStructuredOutput;
 import woody.core.relations.RelationHelper;
-import woody.core.tags.Tagged;
 
 import java.util.Optional;
 
@@ -46,7 +43,6 @@ public class UnitsController extends BizController {
     @LoginRequired
     @Permission(PERMISSION_MANAGE_UNITS)
     public void units(WebContext ctx) {
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Unit> query = oma.select(Unit.class)
                                     .fields(Unit.ID,
                                             Unit.NAME,
@@ -56,22 +52,9 @@ public class UnitsController extends BizController {
                                             Unit.PARENT.join(Unit.TYPE).join(UnitType.NAME))
                                     .orderAsc(Unit.CODE)
                                     .orderAsc(Unit.NAME);
-        search.applyQueries(query, Unit.NAME, Unit.CODE, Unit.TYPE.join(UnitType.NAME));
-        Tagged.applyTagSuggestions(Unit.class, search, query);
-        relations.applySuggestions(Unit.class, search, query);
-        PageHelper<Unit> ph = PageHelper.withQuery(query).forCurrentTenant();
+        PageHelper<Unit> ph = PageHelper.withQuery(query).withSearchFields(Unit.NAME, Unit.CODE).enableAdvancedSearch().forCurrentTenant();
         ph.withContext(ctx);
-        ctx.respondWith().template("view/core/units/units.html", ph.asPage(), search.getSuggestionsString());
-    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_UNITS)
-    @Routed(value = "/units/suggest", jsonCall = true)
-    public void unitsSuggest(WebContext ctx, JSONStructuredOutput out) {
-        MagicSearch.generateSuggestions(ctx, (q, c) -> {
-            Tagged.computeSuggestions(Unit.class, q, c);
-            relations.computeSuggestions(Unit.class, q, c);
-        });
+        ctx.respondWith().template("/templates/organization/units/units.html.pasta", ph.asPage());
     }
 
     @LoginRequired
@@ -123,15 +106,15 @@ public class UnitsController extends BizController {
                 unit.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith().redirectTemporarily(WebContext.getContextPrefix() + "/unit/" + unit.getId());
+                    ctx.respondWith().redirectTemporarily("/unit/" + unit.getId());
                     return;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 UserContext.handle(e);
             }
         }
         ctx.respondWith()
-           .template("view/core/units/unit.html",
+           .template("/templates/organization/units/unit.html.pasta",
                      unit,
                      oma.select(UnitType.class)
                         .eq(UnitType.TENANT, currentTenant())

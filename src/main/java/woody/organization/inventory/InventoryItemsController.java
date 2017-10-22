@@ -9,9 +9,7 @@
 package woody.organization.inventory;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
@@ -19,9 +17,7 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
-import sirius.web.services.JSONStructuredOutput;
 import woody.core.relations.RelationHelper;
-import woody.core.tags.Tagged;
 
 import java.util.Optional;
 
@@ -40,30 +36,15 @@ public class InventoryItemsController extends BizController {
     @LoginRequired
     @Permission(PERMISSION_MANAGE_INVENTORY_ITEMS)
     public void items(WebContext ctx) {
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<InventoryItem> query = oma.select(InventoryItem.class)
-                                             .fields(InventoryItem.ID,
-                                                     InventoryItem.NAME,
-                                                     InventoryItem.CODE,
-                                                     InventoryItem.TYPE.join(InventoryType.NAME))
-                                             .orderAsc(InventoryItem.CODE)
-                                             .orderAsc(InventoryItem.NAME);
-        search.applyQueries(query, InventoryItem.NAME, InventoryItem.CODE, InventoryItem.TYPE.join(InventoryType.NAME));
-        Tagged.applyTagSuggestions(InventoryItem.class, search, query);
-        relations.applySuggestions(InventoryItem.class, search, query);
-        PageHelper<InventoryItem> ph = PageHelper.withQuery(query).forCurrentTenant();
-        ph.withContext(ctx);
-        ctx.respondWith().template("view/core/inventory/items.html", ph.asPage(), search.getSuggestionsString());
-    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_INVENTORY_ITEMS)
-    @Routed(value = "/inventory/items/suggest", jsonCall = true)
-    public void itemsSuggest(WebContext ctx, JSONStructuredOutput out) {
-        MagicSearch.generateSuggestions(ctx, (q, c) -> {
-            Tagged.computeSuggestions(InventoryItem.class, q, c);
-            relations.computeSuggestions(InventoryItem.class, q, c);
-        });
+        PageHelper<InventoryItem> ph = PageHelper.withQuery(oma.select(InventoryItem.class)
+                                                               .fields(InventoryItem.ID,
+                                                                       InventoryItem.NAME,
+                                                                       InventoryItem.CODE,
+                                                                       InventoryItem.TYPE.join(InventoryType.NAME))
+                                                               .orderAsc(InventoryItem.CODE)
+                                                               .orderAsc(InventoryItem.NAME)).forCurrentTenant();
+        ph.withContext(ctx).withSearchFields(InventoryItem.NAME, InventoryItem.CODE).enableAdvancedSearch();
+        ctx.respondWith().template("/templates/organization/inventory/items.html.pasta", ph.asPage());
     }
 
     @LoginRequired
@@ -84,23 +65,19 @@ public class InventoryItemsController extends BizController {
     public void editItem(WebContext ctx, String itemId) {
         InventoryItem item = findForTenant(InventoryItem.class, itemId);
 
-        boolean requestHandled = prepareSave(ctx).editAfterCreate()
-                                                 .withAfterCreateURI("/inventory/item/${id}")
-                                                 .withAfterSaveURI("/inventory/items")
-                                                 .withPreSaveHandler((isNew) -> {
-                                                     if (isNew) {
-                                                         load(ctx, item, InventoryItem.TYPE);
-                                                     }
-                                                 })
-                                                 .withPostSaveHandler((isNew) -> {
-                                                     item.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
-                                                 })
-                                                 .saveEntity(item);
+        boolean requestHandled =
+                prepareSave(ctx).withAfterCreateURI("/inventory/item/${id}").withPreSaveHandler((isNew) -> {
+                    if (isNew) {
+                        load(ctx, item, InventoryItem.TYPE);
+                    }
+                }).withPostSaveHandler((isNew) -> {
+                    item.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
+                }).saveEntity(item);
 
         if (!requestHandled) {
             validate(item);
             ctx.respondWith()
-               .template("view/core/inventory/item.html",
+               .template("/templates/organization/inventory/item.html.pasta",
                          item,
                          oma.select(InventoryType.class)
                             .eq(InventoryType.TENANT, currentTenant())

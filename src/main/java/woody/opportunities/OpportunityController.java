@@ -8,11 +8,7 @@
 
 package woody.opportunities;
 
-
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
@@ -21,8 +17,6 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
-import woody.core.tags.Tagged;
-
 import woody.xrm.Company;
 
 import java.time.DayOfWeek;
@@ -40,24 +34,22 @@ public class OpportunityController extends BizController {
 
     private static final String MANAGE_XRM = "permission-manage-xrm";
 
-
     @LoginRequired
     @Permission(MANAGE_XRM)
     @Routed("/company/:1/opportunities")
     public void companyOpportunities(WebContext ctx, String companyId) {
-        Company company = findForTenant(Company.class, companyId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Opportunity> query = oma.select(Opportunity.class)
-                                        .eq(Opportunity.COMPANY, company)
-                                        .orderAsc(Opportunity.SOURCE);
-
-        Tagged.applyTagSuggestions(Opportunity.class, search, query);
-        PageHelper<Opportunity> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/opportunities/company-opportunities.html", company, ph.asPage(), search.getSuggestionsString());
+//        Company company = findForTenant(Company.class, companyId);
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<Opportunity> query = oma.select(Opportunity.class)
+//                                        .eq(Opportunity.COMPANY, company)
+//                                        .orderAsc(Opportunity.SOURCE);
+//
+//        Tagged.applyTagSuggestions(Opportunity.class, search, query);
+//        PageHelper<Opportunity> ph = PageHelper.withQuery(query);
+//        ph.withContext(ctx);
+//        ctx.respondWith()
+//           .template("view/opportunities/company-opportunities.html", company, ph.asPage(), search.getSuggestionsString());
     }
-
 
     @LoginRequired
     @Permission(MANAGE_XRM)
@@ -77,11 +69,7 @@ public class OpportunityController extends BizController {
                 showSavedMessage();
                 if (wasNew) {
                     ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix()
-                                            + "/company/"
-                                            + company.getId()
-                                            + "/opportunity/"
-                                            + opportunity.getId());
+                       .redirectTemporarily("/company/" + company.getId() + "/opportunity/" + opportunity.getId());
                     return;
                 }
             } catch (Throwable e) {
@@ -162,15 +150,15 @@ public class OpportunityController extends BizController {
 
     private Opportunity addTime(Opportunity opportunity, int i, TemporalUnit unit) {
         LocalDate date = opportunity.getNextInteraction();
-        if(date == null) {
+        if (date == null) {
             date = LocalDate.now();
         }
         date = date.plus(i, unit);
         DayOfWeek weekday = date.getDayOfWeek();
-        if(DayOfWeek.SATURDAY.equals(weekday)) {
+        if (DayOfWeek.SATURDAY.equals(weekday)) {
             date = date.plusDays(2);
         }
-        if(DayOfWeek.SUNDAY.equals(weekday)) {
+        if (DayOfWeek.SUNDAY.equals(weekday)) {
             date = date.plusDays(1);
         }
         opportunity.setNextInteraction(date);

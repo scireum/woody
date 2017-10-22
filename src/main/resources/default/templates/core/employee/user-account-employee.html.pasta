@@ -1,0 +1,39 @@
+<i:arg type="sirius.biz.tenants.UserAccount" name="account" />
+
+<i:invoke template="/templates/tenants/user-account.html.pasta" account="account" page="employee">
+    <w:editForm url="@apply('/user-account/%s/employee', account.getIdAsString())">
+        <div class="row">
+            <w:textfield name="Employee_employeeNumber" value="@account.as(woody.core.employees.Employee.class).getEmployeeNumber()" labelKey="Employee.employeeNumber" span="4" />
+            <w:textfield name="Employee_shortName" value="@account.as(woody.core.employees.Employee.class).getShortName()" labelKey="Employee.shortName" span="4" />
+            <w:textfield name="Employee_phoneExtension" value="@account.as(woody.core.employees.Employee.class).getPhoneExtension()" labelKey="Employee.phoneExtension" span="4" />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <w:subHeading labelKey="Employee.personalContact" />
+                <div class="row">
+                    <w:textfield name="personalContact_email" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getEmail()" labelKey="ContactData.email" span="12" />
+                    <w:textfield name="personalContact_phone" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getPhone()" labelKey="ContactData.phone" span="12" />
+                    <w:textfield name="personalContact_mobile" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getMobile()" labelKey="ContactData.mobile" span="12" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <w:subHeading labelKey="Employee.personalAddress" />
+                <div class="row">
+                    <w:textfield name="personalAddress_street" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getStreet()" labelKey="AddressData.street" span="12" />
+                    <w:textfield name="personalAddress_zip" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getZip()" labelKey="AddressData.zip" span="4" />
+                    <w:textfield name="personalAddress_city" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getCity()" labelKey="AddressData.city" span="8" />
+                </div>
+            </div>
+        </div>
+
+        <w:subHeading labelKey="Employee.dates" />
+        <div class="row">
+            <w:datefield name="Employee_birthday" value="@toUserString(account.as(woody.core.employees.Employee.class).getBirthday())" labelKey="Employee.birthday" span="4" />
+            <w:datefield name="Employee_joinDate" value="@toUserString(account.as(woody.core.employees.Employee.class).getJoinDate())" labelKey="Employee.joinDate" span="4" />
+            <w:datefield name="Employee_dischargeDate" value="@toUserString(account.as(woody.core.employees.Employee.class).getDischargeDate())" labelKey="Employee.dischargeDate" span="4" />
+        </div>
+
+        <w:formBar />
+    </w:editForm>
+</i:invoke>

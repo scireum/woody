@@ -11,7 +11,6 @@ package woody.modules.servers;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.tenants.UserAccountController;
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
 import sirius.kernel.di.std.Register;
@@ -24,8 +23,6 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
-import sirius.web.services.JSONStructuredOutput;
-import woody.core.tags.Tagged;
 import woody.xrm.Company;
 
 import java.util.Optional;
@@ -66,7 +63,6 @@ public class ServerController extends BizController {
     @LoginRequired
     @Permission(PERMISSION_MANAGE_SERVERS)
     public void servers(WebContext ctx) {
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Server> query = oma.select(Server.class)
                                       .fields(Server.ID,
                                               Server.STATE,
@@ -75,18 +71,9 @@ public class ServerController extends BizController {
                                               Server.CUSTOMER.join(Company.NAME))
                                       .orderAsc(Server.STATE)
                                       .orderAsc(Server.NAME);
-        search.applyQueries(query, Server.NAME, Server.CUSTOMER.join(Company.NAME), Server.TOKEN, Server.URL);
-        Tagged.applyTagSuggestions(Server.class, search, query);
         PageHelper<Server> ph = PageHelper.withQuery(query).forCurrentTenant();
         ph.withContext(ctx);
-        ctx.respondWith().template("view/servers/servers.html", ph.asPage(), search.getSuggestionsString());
-    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_SERVERS)
-    @Routed(value = "/servers/suggest", jsonCall = true)
-    public void serversSuggest(WebContext ctx, JSONStructuredOutput out) {
-        MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Server.class, q, c));
+        ctx.respondWith().template("view/servers/servers.html", ph.asPage());
     }
 
     @LoginRequired
@@ -117,7 +104,7 @@ public class ServerController extends BizController {
                 server.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith().redirectTemporarily(WebContext.getContextPrefix() + "/server/" + server.getId());
+                    ctx.respondWith().redirectTemporarily("/server/" + server.getId());
                     return;
                 }
             } catch (Throwable e) {

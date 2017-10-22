@@ -1,0 +1,5 @@
+<i:arg type="woody.core.relations.Relations" name="relations" />
+
+<i:for type="sirius.kernel.commons.ComparableTuple" var="relation" items="relations.getListRelations()">
+    <a href="@relation.getSecond()" target="_blank">@relation.getFirst()</a>
+</i:for>

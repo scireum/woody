@@ -71,7 +71,7 @@ public class UnitRelationProvider implements RelationProvider {
            .where(Like.allWordsInAnyField(query, Unit.NAME))
            .orderAsc(Unit.NAME)
            .iterateAll(unit -> {
-               String id = Schema.getNameForType(Unit.class) + "-" + unit.getUniquePath();
+               String id = getName() + "-" + unit.getUniquePath();
                if (forSearch) {
                    id += "*";
                }

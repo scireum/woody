@@ -1,0 +1,52 @@
+<i:arg type="String" name="id"/>
+<i:arg type="woody.core.comments.Commented" name="commented"/>
+
+<w:subHeading labelKey="Comment.plural"/>
+
+<a name="comments"></a>
+
+<textarea id="comment" rows="3">
+
+</textarea>
+<a class="btn btn-primary" id="submitComment">Speichern</a>
+
+<i:for type="woody.core.comments.Comment" var="comment" items="commented.getAllComments()">
+    <div class="comment">
+        @comment.getPersonName()<br>
+        @comment.getDateString()<br>
+        @comment.getTextContent()
+        <i:if test="comment.canBeEditedByCurrentUser()">
+            <br><a onclick="deleteComment('@comment.getIdAsString()')">Löschen</a>
+        </i:if>
+    </div>
+</i:for>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#submitComment').click(function () {
+            $.getJSON('/comments/add/@id', {
+                authHash: '@commented.getAuthHash()',
+                comment: $('#comment').val()
+            }, function (json) {
+                $('#comment').val('');
+                if (json.error) {
+                    addErrorMessage(json.message);
+                } else if (json.refresh) {
+                    window.location.reload();
+                }
+            });
+        });
+    });
+
+    function deleteComment(id) {
+        $.getJSON('/comments/delete/' + id, {
+            authHash: '@commented.getAuthHash()'
+        }, function (json) {
+            if (json.error) {
+                addErrorMessage(json.message);
+            } else if (json.refresh) {
+                window.location.reload();
+            }
+        });
+    }
+</script>

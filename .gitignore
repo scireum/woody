@@ -1,7 +1,3 @@
 target
-.idea/workspace.xml
-.idea/libraries
-.idea/libraries/*
 instance.conf
-.idea/shelf
-.idea/sonarlint
+.idea

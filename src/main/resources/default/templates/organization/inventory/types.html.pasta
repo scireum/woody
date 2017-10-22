@@ -1,0 +1,38 @@
+<i:arg type="Page" name="types"/>
+
+<w:page titleKey="InventoryType.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/inventory/types">@i18n("InventoryType.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="InventoryType.plural"/>
+    <w:tableSearchHeader page="types" baseUrl="inventory/types">
+        <a class="btn btn-primary" href="/inventory/type/new">@i18n("Model.create")</a>
+    </w:tableSearchHeader>
+
+    <w:table data="types">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")
+            </th>
+            <th/>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.organization.inventory.InventoryType" var="type" items="types.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/inventory/type/@type.getId()">@type.getName()</a>
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/inventory/type/%s/delete', type.getId())" page="types"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="types" baseUrl="inventory/types"/>
+
+</w:page>

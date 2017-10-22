@@ -1,0 +1,38 @@
+<i:arg type="Page" name="types"/>
+
+<w:page titleKey="UnitType.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/units/types">@i18n("UnitType.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="UnitType.plural"/>
+    <w:tableSearchHeader page="types" baseUrl="units/types">
+        <a class="btn btn-primary" href="/units/type/new">@i18n("Model.create")</a>
+    </w:tableSearchHeader>
+
+    <w:table data="types">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")
+            </th>
+            <th/>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.organization.units.UnitType" var="type" items="types.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/units/type/@type.getId()">@type.getName()</a>
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/units/type/%s/delete', type.getId())" page="types"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="types" baseUrl="units/types"/>
+
+</w:page>

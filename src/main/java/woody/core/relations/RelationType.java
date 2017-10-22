@@ -53,6 +53,7 @@ public class RelationType extends TenantAware {
     public static final Column REVERSE_NAME = Column.named("reverseName");
     @Autoloaded
     @Length(100)
+    @NullAllowed
     private String reverseName;
 
     public String getEffectiveReverseName() {

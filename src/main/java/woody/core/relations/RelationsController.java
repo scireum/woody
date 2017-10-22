@@ -15,7 +15,6 @@ import com.google.common.hash.Hashing;
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.Entity;
-import sirius.db.mixing.Mixable;
 import sirius.db.mixing.Schema;
 import sirius.db.mixing.constraints.FieldOperator;
 import sirius.db.mixing.constraints.Or;
@@ -24,6 +23,7 @@ import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.GlobalContext;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
+import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 import sirius.web.controller.AutocompleteHelper;
 import sirius.web.controller.Controller;
@@ -34,6 +34,7 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
+import sirius.web.services.JSONStructuredOutput;
 
 import java.util.List;
 import java.util.Map;
@@ -139,7 +140,7 @@ public class RelationsController extends BizController {
         ph.withSearchFields(RelationType.NAME, RelationType.REVERSE_NAME).forCurrentTenant();
         Facet sourceTypeFilter = new Facet(NLS.get("RelationType.sourceType"),
                                            RelationType.SOURCE_TYPE.getName(),
-                                           ctx.get(RelationType.SOURCE_TYPE.getName()).asString(null),
+                                           ctx.get(RelationType.SOURCE_TYPE.getName()).asString(),
                                            null);
         for (String type : getSourceTypes()) {
             sourceTypeFilter.addItem(type, translateType(type), -1);
@@ -147,13 +148,13 @@ public class RelationsController extends BizController {
         ph.addFilterFacet(sourceTypeFilter);
         Facet targetTypeFilter = new Facet(NLS.get("RelationType.targetType"),
                                            RelationType.TARGET_TYPE.getName(),
-                                           ctx.get(RelationType.TARGET_TYPE.getName()).asString(null),
+                                           ctx.get(RelationType.TARGET_TYPE.getName()).asString(),
                                            null);
         for (String type : getTargetTypes()) {
             targetTypeFilter.addItem(type, translateType(type), -1);
         }
         ph.addFilterFacet(targetTypeFilter);
-        ctx.respondWith().template("view/core/relations/types.html", ph.asPage(), this);
+        ctx.respondWith().template("/templates/core/relations/types.html.pasta", ph.asPage(), this);
     }
 
     @LoginRequired
@@ -170,21 +171,21 @@ public class RelationsController extends BizController {
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_RELATION_TYPES)
-    @Routed(value = "/relations/type/:1")
+    @Routed("/relations/type/:1")
     public void relationType(WebContext ctx, String typeId) {
+        //TODO cleanup /refactor to save pattern
         RelationType type = findForTenant(RelationType.class, typeId);
         if (ctx.isPOST()) {
             try {
                 boolean wasNew = type.isNew();
                 if (type.isNew()) {
                     type.getTenant().setValue(tenants.getRequiredTenant());
-                    type.setSourceType(ctx.get(RelationType.SOURCE_TYPE.getName()).asString(null));
-                    type.setTargetType(ctx.get(RelationType.TARGET_TYPE.getName()).asString(null));
+                    type.setSourceType(ctx.get(RelationType.SOURCE_TYPE.getName()).asString());
+                    type.setTargetType(ctx.get(RelationType.TARGET_TYPE.getName()).asString());
                 }
                 type.setName(ctx.get(RelationType.NAME.getName()).asString());
                 type.setReverseName(ctx.get(RelationType.REVERSE_NAME.getName()).asString());
                 type.setShowReverse(ctx.get(RelationType.SHOW_REVERSE.getName()).asBoolean(false));
-                type.setViewInList(ctx.get(RelationType.VIEW_IN_LIST.getName()).asBoolean(false));
                 type.setViewInList(ctx.get(RelationType.VIEW_IN_LIST.getName()).asBoolean(false));
 
                 oma.update(type);
@@ -193,11 +194,11 @@ public class RelationsController extends BizController {
                     ctx.respondWith().redirectToGet("/relations/type/" + type.getId());
                     return;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/core/relations/type.html", type, this);
+        ctx.respondWith().template("/templates/core/relations/type.html.pasta", type, this);
     }
 
     @LoginRequired
@@ -256,57 +257,46 @@ public class RelationsController extends BizController {
         return baseType;
     }
 
-    @Routed("/relations/add/:1")
-    public void addRelation(final WebContext ctx, String objectId) {
+    @Routed(value = "/relations/add/:1", jsonCall = true)
+    public void addRelation(final WebContext ctx, JSONStructuredOutput out, String objectId) {
         Entity owner = oma.resolveOrFail(objectId);
-        if (Strings.areEqual(ctx.get("authHash").asString(), computeAuthHash(objectId))) {
-            String relationDescription = ctx.get("relationId").asString();
-
-            Tuple<String, String> typeAndId = Strings.split(relationDescription, ":");
-            RelationType type = oma.findOrFail(RelationType.class, typeAndId.getFirst());
-            assertTenant(type);
-
-            Relation relation = new Relation();
-            relation.setOwnerId(owner.getId());
-            relation.setOwnerType(owner.getTypeName());
-            relation.getType().setValue(type);
-            relation.setTarget(typeAndId.getSecond());
-            oma.update(relation);
-
-            if (!type.isMultiple()) {
-                oma.select(Relation.class)
-                   .eq(Relation.OWNER_ID, owner.getId())
-                   .eq(Relation.OWNER_TYPE, owner.getTypeName())
-                   .eq(Relation.TYPE, type)
-                   .where(FieldOperator.on(Relation.ID).notEqual(relation.getId()))
-                   .delete();
-            }
+        if (!Strings.areEqual(ctx.get("authHash").asString(), computeAuthHash(objectId))) {
+            throw Exceptions.createHandled().withSystemErrorMessage("Security hash does not match!").handle();
         }
 
-        ctx.respondWith().redirectToGet(ctx.get("redirectUrl").asString("/"));
+        String relationDescription = ctx.get("relationId").asString();
+
+        Tuple<String, String> typeAndId = Strings.split(relationDescription, ":");
+        RelationType type = oma.findOrFail(RelationType.class, typeAndId.getFirst());
+        assertTenant(type);
+
+        Relation relation = new Relation();
+        relation.setOwnerId(owner.getId());
+        relation.setOwnerType(owner.getTypeName());
+        relation.getType().setValue(type);
+        relation.setTarget(typeAndId.getSecond());
+        oma.update(relation);
+
+        if (!type.isMultiple()) {
+            oma.select(Relation.class)
+               .eq(Relation.OWNER_ID, owner.getId())
+               .eq(Relation.OWNER_TYPE, owner.getTypeName())
+               .eq(Relation.TYPE, type)
+               .where(FieldOperator.on(Relation.ID).notEqual(relation.getId()))
+               .delete();
+        }
+
+        out.property("refresh", true);
     }
 
-    private Relations getRelations(Entity entity) {
-        if (entity instanceof HasRelations) {
-            return ((HasRelations) entity).getRelations();
-        }
-
-        for (Class<? extends Mixable> mixin : schema.getDescriptor(entity.getClass()).getMixins()) {
-            if (HasRelations.class.isAssignableFrom(mixin)) {
-                return ((HasRelations) entity.as(mixin)).getRelations();
-            }
-        }
-
-        return null;
-    }
-
-    @Routed("/relations/delete/:1/:2")
-    public void deleteRelation(final WebContext ctx, String relationId, String authHash) {
+    @Routed(value = "/relations/delete/:1", jsonCall = true)
+    public void deleteRelation(final WebContext ctx, JSONStructuredOutput out, String relationId) {
         Relation relation = oma.find(Relation.class, relationId).orElse(null);
 
-        if (Strings.areEqual(authHash, computeAuthHash(relation.getOwnerType() + "-" + relation.getOwnerId()))) {
+        if (Strings.areEqual(ctx.get("authHash").asString(),
+                             computeAuthHash(relation.getOwnerType() + "-" + relation.getOwnerId()))) {
             oma.delete(relation);
+            out.property("refresh", true);
         }
-        ctx.respondWith().redirectToGet(ctx.get("redirectUrl").asString("/"));
     }
 }

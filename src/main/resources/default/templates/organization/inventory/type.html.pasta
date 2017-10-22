@@ -1,0 +1,18 @@
+<i:arg type="woody.organization.inventory.InventoryType" name="type"/>
+
+<w:page titleKey="Model.inventoryType">
+    <i:block name="breadcrumbs">
+        <li><a href="/inventory/types">@i18n("InventoryType.plural")</a></li>
+        <li><a href="/inventory/type/@type.getIdAsString()">@i18n("Model.inventoryType")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.inventoryType"/>
+
+    <w:editForm url="@apply('/inventory/type/%s', type.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@type.getName()" labelKey="Model.name" required="true" />
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/inventory/types" />
+</w:page>

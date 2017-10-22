@@ -1,0 +1,58 @@
+<i:arg type="Page" name="tags"/>
+<i:arg type="woody.core.tags.TagsController" name="controller"/>
+
+<w:page titleKey="Tag.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/tags">@i18n("Tag.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Tag.plural"/>
+
+    <div class="row">
+        <div class="col-md-3">
+            <w:filterbox page="tags" baseUrl="tags"/>
+        </div>
+        <div class="col-md-9">
+            <w:tableSearchHeader page="tags" baseUrl="tags">
+                <a class="btn btn-primary" href="/tag/new">@i18n("Model.create")</a>
+            </w:tableSearchHeader>
+
+            <w:table data="tags">
+                <thead>
+                <tr>
+                    <th>
+                        @i18n("Model.name")
+                    </th>
+                    <th>
+                        @i18n("Tag.targetType")
+                    </th>
+                    <th>
+                        @i18n("Tag.viewInList")
+                    </th>
+                    <th/>
+                </tr>
+                </thead>
+                <tbody>
+                <i:for type="woody.core.tags.Tag" var="tag" items="tags.getItems()">
+                    <tr>
+                        <td>
+                            <a class="link" href="/tag/@tag.getId()">@tag.getName()</a>
+                        </td>
+                        <td>
+                            @controller.translateType(tag.getTargetType())
+                        </td>
+                        <td>
+                            @toUserString(tag.isViewInList())
+                        </td>
+                        <td class="col-md-2 align-center">
+                            <w:deleteLink url="@apply('/tag/%s/delete',tag.getId())" page="tags"/>
+                        </td>
+                    </tr>
+                </i:for>
+                </tbody>
+            </w:table>
+
+            <w:pagination page="tags" baseUrl="tags"/>
+        </div>
+    </div>
+</w:page>

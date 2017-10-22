@@ -35,7 +35,7 @@ public class InventoryTypesController extends BizController {
         ph.withContext(ctx);
         ph.withSearchFields(InventoryType.NAME).forCurrentTenant();
 
-        ctx.respondWith().template("view/core/inventory/types.html", ph.asPage(), this);
+        ctx.respondWith().template("/templates/organization/inventory/types.html.pasta", ph.asPage());
     }
 
     @LoginRequired
@@ -67,10 +67,10 @@ public class InventoryTypesController extends BizController {
                     ctx.respondWith().redirectToGet("/inventory/type/" + type.getId());
                     return;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/core/inventory/type.html", type, this);
+        ctx.respondWith().template("/templates/organization/inventory/type.html.pasta", type, this);
     }
 }

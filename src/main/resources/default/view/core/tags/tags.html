@@ -4,6 +4,7 @@
 @section(breadcrumbs) {
     <li><a href="/tags">@i18n("Tag.plural")</a></li>
 }
+
 @pageHeader("Tag.plural")
 
 <div class="row">
@@ -34,7 +35,7 @@
             @for(woody.core.tags.Tag t : tags.getItems()) {
                 <tr>
                     <td>
-                        <a class="link" href="@prefix/tag/@t.getId()">@t.getName()</a>
+                        <a class="link" href="/tag/@t.getId()">@t.getName()</a>
                     </td>
                     <td>
                         @controller.translateType(t.getTargetType())

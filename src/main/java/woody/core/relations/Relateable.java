@@ -10,10 +10,8 @@ package woody.core.relations;
 
 import sirius.db.mixing.Composite;
 import sirius.db.mixing.Entity;
-import sirius.db.mixing.OMA;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
-import sirius.kernel.di.std.Part;
 
 /**
  * Embedded into an entity to make it eligible for incoming relations.
@@ -31,9 +29,6 @@ public class Relateable extends Composite {
     public Relateable(Entity owner) {
         this.owner = owner;
     }
-
-    @Part
-    private static OMA oma;
 
     @BeforeDelete
     protected void onDelete() {

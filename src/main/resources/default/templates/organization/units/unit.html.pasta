@@ -1,0 +1,70 @@
+<i:arg type="woody.organization.units.Unit" name="unit"/>
+<i:arg type="List" name="types"/>
+
+<w:page titleKey="Model.unit">
+    <i:block name="breadcrumbs">
+        <li><a href="/units">@i18n("Unit.plural")</a></li>
+        <li><a href="/units/@unit.getIdAsString()">@i18n("Model.unit")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.unit"/>
+
+    <w:editForm url="@apply('/unit/%s', unit.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@unit.getName()" labelKey="Model.name" required="true"/>
+            <w:textfield name="code" value="@unit.getCode()" labelKey="Model.code"/>
+        </div>
+        <div class="row">
+            <w:textfield name="description" value="@unit.getDescription()" labelKey="Model.description" span="12"/>
+        </div>
+        <div class="row">
+            <i:if test="unit.isNew()">
+                <w:singleSelect name="type" labelKey="Model.type">
+                    <i:for type="woody.organization.units.UnitType" var="type" items="types">
+                        <option value="@type.getId()" @if (unit.getType().is(type)) { selected="selected" }>
+                            @type.getName()
+                        </option>
+                    </i:for>
+                </w:singleSelect>
+                <w:autocompleteSingleSelect name="parent" labelKey="Unit.parent" serviceUri="/units/autocomplete"
+                                            optional="true"/>
+                <i:else>
+                    <w:textfield name="type"
+                                 value="@unit.getType().getValue().as(woody.organization.units.UnitType.class).getName()"
+                                 labelKey="Model.type" readonly="true"/>
+                    <w:textfield name="parent"
+                                 value="@(unit.getParent().isFilled() ? unit.getParent().getValue().as(woody.organization.units.Unit.class).getName() : '')"
+                                 labelKey="Unit.parent" readonly="true"/>
+                </i:else>
+            </i:if>
+        </div>
+        <div class="row">
+            <w:autocompleteMultiSelect span="12" name="tags" labelKey="Tag.plural" serviceUri="/tags/UNIT/autocomplete"
+                                       optional="true">
+                <i:for type="woody.core.tags.Tag" var="tag" items="unit.getTags().getTags()">
+                    <option value="@tag.getName()" selected>@tag.getName()</option>
+                </i:for>
+            </w:autocompleteMultiSelect>
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/units"/>
+
+
+    <i:if test="!unit.isNew()">
+        <div class="row">
+            <div class="col-md-6">
+                <woody:comments id="@unit.getUniqueName()" commented="unit.getComments()"/>
+            </div>
+            <div class="col-md-6">
+                <woody:relations id="@unit.getUniqueName()"
+                                 type="@apply('UNIT-%s', unit.getType().getId())"
+                                 relations="unit.getRelations()" />
+            </div>
+        </div>
+    </i:if>
+</w:page>
+
+
+
+

@@ -10,11 +10,9 @@ package woody.core.comments;
 
 import sirius.db.mixing.Composite;
 import sirius.db.mixing.Entity;
-import sirius.db.mixing.OMA;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
 import sirius.kernel.commons.Strings;
-import sirius.kernel.di.std.Part;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,9 +34,6 @@ public class Commented extends Composite {
         this.owner = owner;
     }
 
-    @Part
-    private static OMA oma;
-
     @BeforeDelete
     protected void onDelete() {
         if (owner != null && !owner.isNew()) {
@@ -54,6 +49,7 @@ public class Commented extends Composite {
     public List<Comment> getAllComments() {
         return oma.select(Comment.class)
                   .orderDesc(Comment.TOD)
+                  .eq(Comment.DELETED, false)
                   .eq(Comment.TARGET_ENTITY, owner.getUniqueName())
                   .queryList();
     }
@@ -66,6 +62,7 @@ public class Commented extends Composite {
     public List<Comment> getPublicComments() {
         return oma.select(Comment.class)
                   .orderDesc(Comment.TOD)
+                  .eq(Comment.DELETED, false)
                   .eq(Comment.TARGET_ENTITY, owner.getUniqueName())
                   .eq(Comment.PUBLIC_VISIBLE, true)
                   .queryList();

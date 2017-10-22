@@ -1,0 +1,61 @@
+<i:arg type="String" name="id"/>
+<i:arg type="String" name="type"/>
+<i:arg type="woody.core.relations.Relations" name="relations"/>
+
+<w:subHeading labelKey="Relation.plural"/>
+
+<i:for type="woody.core.relations.Relation" var="relation" items="relations.getRelations()">
+    <div class="relation">
+        <div style="float:left"><span class="badge">@relation.getType().getValue().as(woody.core.relations.RelationType.class).getName()</span>
+        </div>
+        <div style="float:right">
+            <i:local name="nameAndUri" value="relations.getTargetNameAndUri(relation).orElse(null).as(Tuple.class)"/>
+            <i:if test="nameAndUri != null">
+                <i:if test="nameAndUri.getSecond() != null">
+                    <a href="@nameAndUri.getSecond()" target="_blank">@nameAndUri.getFirst()</a>
+                    <i:else>
+                        @nameAndUri.getFirst()
+                    </i:else>
+                </i:if>
+            </i:if>
+            <a class="link pointer" onclick="deleteRelation('@relation.getId()')">
+                <i class="fa fa-remove"></i>
+            </a>
+        </div>
+        <div class="clearfix">
+            <i>@relation.getDescription()</i>
+        </div>
+    </div>
+</i:for>
+
+<w:autocompleteSingleSelect id="relationId" span="12" name="relationId" serviceUri="@apply('/relations/autocomplete/%s', type)"/>
+<a class="btn btn-primary" id="addRelation">Hinzufügen</a>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#addRelation').click(function () {
+            $.getJSON('/relations/add/@id', {
+                authHash: '@relations.getAuthHash()',
+                relationId: $('#relationId').val()
+            }, function (json) {
+                if (json.error) {
+                    addErrorMessage(json.message);
+                } else if (json.refresh) {
+                    window.location.reload();
+                }
+            });
+        });
+    });
+
+    function deleteRelation(id) {
+        $.getJSON('/relations/delete/' + id, {
+            authHash: '@relations.getAuthHash()'
+        }, function (json) {
+            if (json.error) {
+                addErrorMessage(json.message);
+            } else if (json.refresh) {
+                window.location.reload();
+            }
+        });
+    }
+</script>

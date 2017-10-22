@@ -15,9 +15,11 @@ import sirius.biz.web.BizController;
 import sirius.db.mixing.Entity;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Register;
+import sirius.kernel.health.Exceptions;
 import sirius.web.controller.Controller;
 import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
+import sirius.web.services.JSONStructuredOutput;
 
 import java.util.concurrent.TimeUnit;
 
@@ -60,19 +62,21 @@ public class CommentsController extends BizController {
      * @param ctx    the REST request
      * @param object the unique object name of the object to comment on
      */
-    @Routed("/comments/add/:1")
-    public void addComment(final WebContext ctx, String object) {
-        if (Strings.areEqual(ctx.get("authHash").asString(), computeAuthHash(object))) {
-            Entity target = oma.resolveOrFail(object);
-            if (target instanceof HasComments) {
-                ((HasComments) target).getComments()
-                                      .addComment(getUser().getUserObject(UserAccount.class).getPerson().toString(),
-                                                  getUser().getUserId(),
-                                                  ctx.get("comment").asString(),
-                                                  ctx.get("publicVisible").asBoolean());
-            }
+    @Routed(value = "/comments/add/:1", jsonCall = true)
+    public void addComment(final WebContext ctx, JSONStructuredOutput out, String object) {
+        if (!Strings.areEqual(ctx.get("authHash").asString(), computeAuthHash(object))) {
+            throw Exceptions.createHandled().withSystemErrorMessage("Security hash does not match!").handle();
         }
-        ctx.respondWith().redirectToGet(ctx.get("redirectUrl").asString("/"));
+
+        Entity target = oma.resolveOrFail(object);
+        if (target instanceof HasComments) {
+            ((HasComments) target).getComments()
+                                  .addComment(getUser().getUserObject(UserAccount.class).getPerson().toString(),
+                                              getUser().getUserId(),
+                                              ctx.get("comment").asString(),
+                                              ctx.get("publicVisible").asBoolean());
+            out.property("refresh", true);
+        }
     }
 
     /**
@@ -81,17 +85,16 @@ public class CommentsController extends BizController {
      * @param ctx       the REST request
      * @param commentId the id of the comment to modify
      */
-    @Routed("/comments/edit/:1")
-    public void editComment(final WebContext ctx, String commentId) {
+    @Routed(value = "/comments/edit/:1", jsonCall = true)
+    public void editComment(final WebContext ctx, JSONStructuredOutput out, String commentId) {
         Comment comment = oma.find(Comment.class, commentId).orElse(null);
         if (comment != null && comment.canBeEditedByCurrentUser()) {
             comment.setTextContent(ctx.get("comment").asString());
             comment.setPublicVisible(ctx.get("publicVisible").asBoolean());
             comment.setEdited(true);
             oma.update(comment);
+            out.property("refresh", true);
         }
-
-        ctx.respondWith().redirectToGet(ctx.get("redirectUrl").asString("/"));
     }
 
     /**
@@ -100,15 +103,14 @@ public class CommentsController extends BizController {
      * @param ctx       the REST request
      * @param commentId the id of the comment to delete (or mark as deleted).
      */
-    @Routed("/comments/delete/:1")
-    public void deleteComment(final WebContext ctx, String commentId) {
+    @Routed(value = "/comments/delete/:1", jsonCall = true)
+    public void deleteComment(final WebContext ctx, JSONStructuredOutput out, String commentId) {
         Comment comment = oma.find(Comment.class, commentId).orElse(null);
         if (comment != null && comment.canBeEditedByCurrentUser()) {
             comment.setTextContent("");
             comment.setDeleted(true);
             oma.update(comment);
+            out.property("refresh", true);
         }
-
-        ctx.respondWith().redirectToGet(ctx.get("redirectUrl").asString("/"));
     }
 }

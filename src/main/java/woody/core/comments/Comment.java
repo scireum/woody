@@ -14,6 +14,7 @@ import sirius.db.mixing.annotations.Index;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Lob;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.nls.NLS;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 
@@ -98,6 +99,10 @@ public class Comment extends Entity {
         UserInfo currentUser = UserContext.getCurrentUser();
         return Strings.areEqual(currentUser.getUserId(), personEntity) || currentUser.hasPermission(
                 PERMISSION_EDIT_COMMENTS);
+    }
+
+    public String getDateString() {
+        return NLS.toSpokenDate(getTod());
     }
 
     public String getTargetEntity() {

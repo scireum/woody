@@ -36,6 +36,6 @@ public class EmployeeController extends BizController {
     public void employee(WebContext ctx, String accountId) {
         UserAccount userAccount = findForTenant(UserAccount.class, accountId);
         prepareSave(ctx).saveEntity(userAccount);
-        ctx.respondWith().template("view/core/employee/user-account-employee.html", userAccount);
+        ctx.respondWith().template("/templates/core/employee/user-account-employee.html.pasta", userAccount);
     }
 }

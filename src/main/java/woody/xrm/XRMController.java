@@ -9,10 +9,8 @@
 package woody.xrm;
 
 import sirius.biz.model.AddressData;
-import sirius.biz.model.ContactData;
 import sirius.biz.model.PersonData;
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
 import sirius.db.mixing.constraints.Like;
@@ -28,9 +26,7 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
-import sirius.web.services.JSONStructuredOutput;
 import woody.core.relations.RelationHelper;
-import woody.core.tags.Tagged;
 import woody.sales.contracts.AccountingService;
 
 import java.util.Optional;
@@ -79,44 +75,36 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/companies")
     public void companies(WebContext ctx) {
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Company> query = oma.select(Company.class).orderAsc(Company.NAME);
-        search.applyQueries(query,
-                            Company.NAME,
-                            Company.ADDRESS.inner(AddressData.CITY),
-                            Company.CUSTOMER_NUMBER,
-                            Company.MATCHCODE);
-
-        Tagged.applyTagSuggestions(Company.class, search, query);
-        relations.applySuggestions(Company.class, search, query);
-        PageHelper<Company> ph = PageHelper.withQuery(query).forCurrentTenant();
-        ph.enableAdvancedSearch();
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<Company> query = oma.select(Company.class).orderAsc(Company.NAME);
+//        search.applyQueries(query,
+//                            Company.NAME,
+//                            Company.ADDRESS.inner(AddressData.CITY),
+//                            Company.CUSTOMER_NUMBER,
+//                            Company.MATCHCODE);
+//        Tagged.applyTagSuggestions(Company.class, search, query);
+//        Relations.applySuggestions(Company.class, search, query);
+        PageHelper<Company> ph =
+                PageHelper.withQuery(oma.select(Company.class).orderAsc(Company.NAME)).forCurrentTenant();
         ph.withSearchFields(Company.NAME,
                             Company.ADDRESS.inner(AddressData.CITY),
                             Company.CUSTOMER_NUMBER,
                             Company.MATCHCODE);
+
         ph.withContext(ctx);
-        ctx.respondWith().template("view/xrm/companies.html", ph.asPage(), search.getSuggestionsString());
+        ph.enableAdvancedSearch();
+        ctx.respondWith().template("view/xrm/companies.html", ph.asPage());
     }
 
 //    @LoginRequired
 //    @Permission(PERMISSION_MANAGE_XRM)
-    @Routed(value = "/companies/suggest", jsonCall = true)
-    public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
-        out.beginArray("results");
-        Tagged.computeSuggestions(Company.class, ctx.get("query").asString(), s -> {
-            out.beginObject("result");
-            out.property("name", s.getName());
-            out.property("value", "::" + s.getType() + ":" + s.getValue() + ":" + s.getName() + "::");
-            out.endObject();
-        });
-        out.endArray();
-
+//    @Routed(value = "/companies/suggest", jsonCall = true)
+//    public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
 //        MagicSearch.generateSuggestions(ctx, (q, c) -> {
 //            Tagged.computeSuggestions(Company.class, q, c);
-//            relations.computeSuggestions(Company.class, q, c);
+//            Relations.computeSuggestions(Company.class, q, c);
 //        });
-    }
+//    }
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
@@ -177,7 +165,7 @@ public class XRMController extends BizController {
                 cl.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith().redirectTemporarily(WebContext.getContextPrefix() + "/company/" + cl.getId());
+                    ctx.respondWith().redirectTemporarily("/company/" + cl.getId());
                     return;
                 }
             } catch (Throwable e) {
@@ -186,35 +174,34 @@ public class XRMController extends BizController {
         }
         ctx.respondWith().template("view/xrm/company-details.html", cl);
     }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
-    @Routed(value = "/persons/suggest", jsonCall = true)
-    public void personsSuggest(WebContext ctx, JSONStructuredOutput out) {
-        MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Person.class, q, c));
-    }
+//
+//    @LoginRequired
+//    @Permission(PERMISSION_MANAGE_XRM)
+//    @Routed(value = "/persons/suggest", jsonCall = true)
+//    public void personsSuggest(WebContext ctx, JSONStructuredOutput out) {
+//        MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Person.class, q, c));
+//    }
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/persons")
     public void companyPersons(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Person> query = oma.select(Person.class)
                                       .eq(Person.COMPANY, company)
                                       .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                                       .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME));
-        search.applyQueries(query,
-                            Person.PERSON.inner(PersonData.LASTNAME),
-                            Person.PERSON.inner(PersonData.FIRSTNAME),
-                            Person.CONTACT.inner(ContactData.PHONE),
-                            Person.CONTACT.inner(ContactData.EMAIL),
-                            Person.CONTACT.inner(ContactData.MOBILE));
-        Tagged.applyTagSuggestions(Person.class, search, query);
+//        search.applyQueries(query,
+//                            Person.PERSON.inner(PersonData.LASTNAME),
+//                            Person.PERSON.inner(PersonData.FIRSTNAME),
+//                            Person.CONTACT.inner(ContactData.PHONE),
+//                            Person.CONTACT.inner(ContactData.EMAIL),
+//                            Person.CONTACT.inner(ContactData.MOBILE));
+//        Tagged.applyTagSuggestions(Person.class, search, query);
         PageHelper<Person> ph = PageHelper.withQuery(query);
         ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/xrm/company-persons.html", company, ph.asPage(), search.getSuggestionsString());
+        ctx.respondWith().template("view/xrm/company-persons.html", company, ph.asPage());
     }
 
     @LoginRequired
@@ -222,8 +209,6 @@ public class XRMController extends BizController {
     @Routed("/persons")
 
     public void persons(WebContext ctx) {
-        // ToDo: Wofür ist dieser Code?
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Person> query = oma.select(Person.class)
                                       .fields(Person.ID,
                                               Person.PERSON.inner(PersonData.SALUTATION),
@@ -236,18 +221,9 @@ public class XRMController extends BizController {
                                       .eq(Person.COMPANY.join(Company.TENANT), currentTenant())
                                       .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                                       .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME));
-        search.applyQueries(query,
-                            Person.PERSON.inner(PersonData.LASTNAME),
-                            Person.PERSON.inner(PersonData.FIRSTNAME),
-                            Person.COMPANY.join(Company.NAME),
-                            Person.CONTACT.inner(ContactData.PHONE),
-                            Person.CONTACT.inner(ContactData.EMAIL),
-                            Person.CONTACT.inner(ContactData.MOBILE));
-
-        Tagged.applyTagSuggestions(Person.class, search, query);
         PageHelper<Person> ph = PageHelper.withQuery(query);
         ph.withContext(ctx);
-        ctx.respondWith().template("view/xrm/persons.html", ph.asPage(), search.getSuggestionsString());
+        ctx.respondWith().template("view/xrm/persons.html", ph.asPage());
     }
 
     @LoginRequired
@@ -292,12 +268,7 @@ public class XRMController extends BizController {
                 person.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix()
-                                            + "/company/"
-                                            + company.getId()
-                                            + "/person/"
-                                            + person.getId());
+                    ctx.respondWith().redirectTemporarily("/company/" + company.getId() + "/person/" + person.getId());
                     return;
                 }
             } catch (Throwable e) {

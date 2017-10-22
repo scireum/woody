@@ -25,7 +25,6 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import sirius.web.templates.Templates;
-import woody.core.tags.Tagged;
 import woody.xrm.Company;
 import woody.xrm.Person;
 import woody.xrm.XRMController;
@@ -102,14 +101,15 @@ public class OffersController extends BizController {
     @Permission(XRMController.PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/offers")
     public void companyOffers(WebContext ctx, String companyId) {
-        Company company = findForTenant(Company.class, companyId);
-        SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
-
+//        Company company = findForTenant(Company.class, companyId);
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
+//
 //        Tagged.applyTagSuggestions(Offer.class, search, query);
-        PageHelper<Offer> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/offers/company-offers.html", company, ph.asPage(),"");
+//        PageHelper<Offer> ph = PageHelper.withQuery(query);
+//        ph.withContext(ctx);
+//        ctx.respondWith()
+//           .template("view/offers/company-offers.html", company, ph.asPage(), search.getSuggestionsString());
     }
 
     @LoginRequired
@@ -129,12 +129,7 @@ public class OffersController extends BizController {
 
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix()
-                                            + "/company/"
-                                            + company.getId()
-                                            + "/offer/"
-                                            + offer.getId());
+                    ctx.respondWith().redirectTemporarily("/company/" + company.getId() + "/offer/" + offer.getId());
                     return;
                 }
             } catch (Throwable e) {
@@ -172,15 +167,14 @@ public class OffersController extends BizController {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
         Offer offer = findForTenant(Offer.class, offerId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<OfferItem> query =
                 oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
 
         //Tagged.applyTagSuggestions(Offer.class, search, query);
         PageHelper<OfferItem> ph = PageHelper.withQuery(query);
         ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
+        ctx.respondWith().template("view/offers/offer-offerItems.html", company, offer, ph.asPage());
     }
 
     @LoginRequired
@@ -197,15 +191,13 @@ public class OffersController extends BizController {
             oma.update(oi);
         }
 
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<OfferItem> query =
                 oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
 
         //Tagged.applyTagSuggestions(Offer.class, search, query);
         PageHelper<OfferItem> ph = PageHelper.withQuery(query);
         ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
+        ctx.respondWith().template("view/offers/offer-offerItems.html", company, offer, ph.asPage());
     }
 
     @LoginRequired
@@ -238,8 +230,7 @@ public class OffersController extends BizController {
                 showSavedMessage();
                 if (wasNew) {
                     ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix()
-                                            + "/company/"
+                       .redirectTemporarily("/company/"
                                             + company.getId()
                                             + "/offer/"
                                             + offer.getId()

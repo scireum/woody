@@ -35,7 +35,7 @@ public class UnitTypesController extends BizController {
         ph.withContext(ctx);
         ph.withSearchFields(UnitType.NAME).forCurrentTenant();
 
-        ctx.respondWith().template("view/core/units/types.html", ph.asPage(), this);
+        ctx.respondWith().template("/templates/organization/units/types.html.pasta", ph.asPage());
     }
 
     @LoginRequired
@@ -67,10 +67,10 @@ public class UnitTypesController extends BizController {
                     ctx.respondWith().redirectToGet("/units/type/" + type.getId());
                     return;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/core/units/type.html", type, this);
+        ctx.respondWith().template("/templates/organization/units/type.html.pasta", type, this);
     }
 }

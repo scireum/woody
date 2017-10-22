@@ -15,8 +15,14 @@
 
 @pageHeader("Company.plural")
 
+<<<<<<< Updated upstream
 @taggedSearch(companies, "/companies", "COMPANY")
 
+=======
+@taggedSearch(companies, "companies", "COMPANY") {
+    <a class="btn btn-primary" href="@prefix/company/edit/new">@i18n("Model.create")</a>
+}
+>>>>>>> Stashed changes
 
 @table(companies) {
     <thead>

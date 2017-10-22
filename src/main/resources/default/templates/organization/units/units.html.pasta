@@ -1,0 +1,64 @@
+<i:arg type="Page" name="units" />
+
+<w:page titleKey="Unit.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/units">@i18n("Unit.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Unit.plural"/>
+
+    <w:taggedSearch page="units" baseUrl="units" suggestionsName="UNIT">
+        <a class="btn btn-primary" href="/unit/new">@i18n("Model.create")</a>
+    </w:taggedSearch>
+
+    <w:table data="units">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name") <span class="muted">(@i18n("Model.code"))</span><br>
+                <span class="muted">@i18n("Model.type")</span>
+            </th>
+            <th>
+                @i18n("Unit.parent")<br>
+                <span class="muted">@i18n("Model.type")</span>
+            </th>
+            <th>
+                @i18n("Tag.plural")<br>
+                <span class="muted">@i18n("Relation.plural")</span>
+            </th>
+            <th />
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.organization.units.Unit" var="unit" items="units.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/unit/@unit.getId()">@unit.getName()</a>
+                    <i:if test="isFilled(unit.getCode())">
+                        <span class="muted">(@unit.getCode())</span>
+                    </i:if>
+                    <br>
+                    <span class="muted"><small>@unit.getType().getValue().as(woody.organization.units.UnitType.class).getName()</small></span>
+                </td>
+                <td>
+                    <i:if test="unit.getParent().isFilled()">
+                        @unit.getParent().getValue().as(woody.organization.units.Unit.class).getName()<br>
+                        <span class="muted">@unit.getParent().getValue().as(woody.organization.units.Unit.class).getType().getValue().as(woody.organization.units.UnitType.class).getName()</span>
+                    </i:if>
+                </td>
+                <td>
+                    <woody:listTags tagged="unit.getTags()" />
+                    <br>
+                    <woody:listRelations relations="unit.getRelations()" />
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/unit/%s/delete', unit.getId())" page="units"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="units" baseUrl="units"/>
+
+</w:page>

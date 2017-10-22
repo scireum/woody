@@ -1,0 +1,10 @@
+<w:permission permission="permission-manage-tags">
+    <li class="divider"></li>
+</w:permission>
+<w:menuItem titleKey="Tag.plural" url="/tags" permission="permission-manage-tags" />
+<w:permission permission="permission-manage-relation-types,permission-manage-unit-types,permission-manage-inventory-types">
+    <li class="divider"></li>
+</w:permission>
+<w:menuItem titleKey="RelationType.plural" url="/relations/types" permission="permission-manage-relation-types" />
+<w:menuItem titleKey="UnitType.plural" url="/units/types" permission="permission-manage-unit-types" />
+<w:menuItem titleKey="InventoryType.plural" url="/inventory/types" permission="permission-manage-inventory-types" />

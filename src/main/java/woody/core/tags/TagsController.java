@@ -11,7 +11,6 @@ package woody.core.tags;
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.EntityDescriptor;
-import sirius.db.mixing.OMA;
 import sirius.db.mixing.Schema;
 import sirius.db.mixing.constraints.Like;
 import sirius.kernel.di.std.Part;
@@ -37,9 +36,6 @@ import java.util.stream.Collectors;
  */
 @Register(classes = Controller.class)
 public class TagsController extends BizController {
-
-    @Part
-    private OMA oma;
 
     private static final String MANAGE_TAGS = "permission-manage-tags";
 
@@ -82,13 +78,13 @@ public class TagsController extends BizController {
         ph.withSearchFields(Tag.NAME).forCurrentTenant();
         Facet typeFilter = new Facet(NLS.get("Tag.targetType"),
                                      Tag.TARGET_TYPE.getName(),
-                                     ctx.get(Tag.TARGET_TYPE.getName()).asString(null),
+                                     ctx.get(Tag.TARGET_TYPE.getName()).asString(),
                                      null);
         for (String type : getTargetTypes()) {
             typeFilter.addItem(type, translateType(type), -1);
         }
         ph.addFilterFacet(typeFilter);
-        ctx.respondWith().template("view/core/tags/tags.html", ph.asPage(), this);
+        ctx.respondWith().template("/templates/core/tags/tags.html.pasta", ph.asPage(), this);
     }
 
     @LoginRequired
@@ -113,7 +109,7 @@ public class TagsController extends BizController {
                 boolean wasNew = tag.isNew();
                 if (tag.isNew()) {
                     tag.getTenant().setValue(tenants.getRequiredTenant());
-                    tag.setTargetType(ctx.get(Tag.TARGET_TYPE.getName()).asString(null));
+                    tag.setTargetType(ctx.get(Tag.TARGET_TYPE.getName()).asString());
                 }
                 tag.setName(ctx.get(Tag.NAME.getName()).asString());
                 tag.setViewInList(ctx.get(Tag.VIEW_IN_LIST.getName()).asBoolean(false));
@@ -123,26 +119,28 @@ public class TagsController extends BizController {
                     ctx.respondWith().redirectToGet("/tag/" + tag.getId());
                     return;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/core/tags/tag.html", tag, this);
+        ctx.respondWith().template("/templates/core/tags/tag.html.pasta", tag, this);
     }
 
     @LoginRequired
     @Routed("/tags/:1/autocomplete")
     public void tagsAutocomplete(final WebContext ctx, String type) {
-        AutocompleteHelper.handle(ctx, (query, result) -> {
-            oma.select(Tag.class)
-               .eq(Tag.TARGET_TYPE, type)
-               .eq(Tag.TENANT, currentTenant())
-               .orderAsc(Tag.NAME)
-               .where(Like.on(Tag.NAME).ignoreCase().ignoreEmpty().contains(query))
-               .iterateAll(t -> {
-                   result.accept(new AutocompleteHelper.Completion(t.getName(), t.getName(), t.getName()));
-               });
-        });
+        AutocompleteHelper.handle(ctx,
+                                  (query, result) -> oma.select(Tag.class)
+                                                        .eq(Tag.TARGET_TYPE, type)
+                                                        .eq(Tag.TENANT, currentTenant())
+                                                        .orderAsc(Tag.NAME)
+                                                        .where(Like.on(Tag.NAME)
+                                                                   .ignoreCase()
+                                                                   .ignoreEmpty()
+                                                                   .contains(query))
+                                                        .iterateAll(t -> result.accept(new AutocompleteHelper.Completion(
+                                                                t.getName(),
+                                                                t.getName(),
+                                                                t.getName()))));
     }
-
 }
