@@ -18,8 +18,9 @@ import sirius.kernel.cache.CacheManager;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
-import sirius.kernel.extensions.Extension;
+
 import sirius.kernel.health.Exceptions;
+import sirius.kernel.settings.Settings;
 import sirius.web.http.WebContext;
 import sirius.web.security.GenericUserManager;
 import sirius.web.security.ScopeInfo;
@@ -36,25 +37,29 @@ import java.util.Set;
 /**
  * Created by aha on 12.05.15.
  */
-public class CSSUserManager extends GenericUserManager {
+public class CSSUserManager {//extends GenericUserManager {
 
-    public CSSUserManager(ScopeInfo scope, Extension config) {
-        super(scope, config);
-    }
+    // ToDO wieder in Betrieb nehmen
+
+//    public CSSUserManager(ScopeInfo scope, Settings config) {
+//        super(scope, config);
+//    }
 
     /**
      * Creates a new user manager for the given scope and configuration.
      */
-    @Register(name = "css")
-    public static class Factory implements UserManagerFactory {
-
-        @Nonnull
-        @Override
-        public UserManager createManager(@Nonnull ScopeInfo scope, @Nonnull Extension config) {
-            return new CSSUserManager(scope, config);
-        }
-    }
-
+//    @Register(name = "css")
+//    public static class Factory implements UserManagerFactory {
+//
+//        @Nonnull
+//        @Override
+//        public UserManager createManager(@Nonnull ScopeInfo scope, @Nonnull Settings config) {
+//            return new CSSUserManager(scope, config);
+//        }
+//
+//
+//    }
+/*
     @Part
     private static OMA oma;
 
@@ -140,9 +145,10 @@ public class CSSUserManager extends GenericUserManager {
 //            roles.addAll(user.getPermissions().getPermissions());
 //            roles.addAll(user.getTenant().getValue().getPermissions().getPermissions());
             roles.add(UserInfo.PERMISSION_LOGGED_IN);
-            roles = transformRoles(roles, false);
+//            roles = transformRoles(roles, false);
         }
         rolesCache.put(userId, roles);
         return roles;
     }
+    */
 }

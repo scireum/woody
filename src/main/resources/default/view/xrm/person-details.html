@@ -57,4 +57,27 @@
     @tracing(person.getTrace())
 }
 
-
+Comments, Beginn:<br>
+@for(woody.core.comments.Comment comment : person.getComments().getAllComments()) {
+<div class="comment">
+    <table>
+      <tr><td>@comment.getPersonName() am @NLS.toUserString(comment.getTod()) Uhr</td></tr>
+      <tr><td>@comment.getTextContent()</td></tr>
+    </table>
+    <br></br>
+</div>
+}
+Comments, Ende
+<br><br>
+Mails, Beginn:<br>
+@for(woody.core.mails.Mail mail : person.getMailed().getAllMails()) {
+<div class="mail">
+    <table>
+        <tr><td>@mail.getSenderName() (@mail.getSender()) an @mail.getReceiverName() (@mail.getReceiver()) am @NLS.toUserString(mail.getTod()) Uhr</td></tr>
+        <tr><td>@mail.getSubject()</td></tr>
+        <tr><td>@mail.getText()</td></tr>
+    </table>
+    <br></br>
+</div>
+}
+Mails, Ende

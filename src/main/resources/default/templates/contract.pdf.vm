@@ -1,0 +1,103 @@
+<html>
+
+ <body style="font-family:sans-serif; font-size:10pt">
+
+ <div style="width: 10cm; float: left">
+    scireum GmbH<br />
+    Eisenbahnstr. 24<br />
+    73630 Remshalden
+ </div>
+ <div style="float:right">
+     <img src="plugins/scireum/crm/login_logo.png" style="width:4cm" />
+ </div>
+
+<div style=" padding-top: 1.5cm; clear:both; float:right">
+ #xml($!dateString)
+</div>
+
+<div style=" padding-top: 0.5cm; clear:both">
+ #xml($!company.name)<br />
+ #xml($!company.street)<br />
+ $!company.zipCode #xml($!company.city)
+</div>
+
+<div style="padding-top: 2.5cm;font-weight: bold; font-size: 14pt">
+Vertrag: #xml($!contract.toContractName())
+</div>
+<br />
+<table style="font-size:9pt">
+ <tr><td>Kundennummer:</td><td> $!company.customerNr</td><td></td><td></td> </tr>
+ <tr><td>Ihre Kontaktperson:</td><td> #xml($!person.name),</td><td>Tel.: $!person.phone,</td><td>E-Mail: #xml($!person.email)  </td> </tr>
+ <tr><td>Unsere Kontaktperson:</td><td>$!employee.salutation #xml($!employee.firstname) #xml($!employee.lastname),</td><td>Tel.: $!employee.phone,</td><td>E-Mail: #xml($!employee.email)  </td></tr>
+</table>
+
+<br></br><br></br>
+$!salutation
+<br></br><br></br>
+wir danken für die Bestellung vom $nls.toUserString($contract.getSigningDate(), false) und dokumentieren den Vertrag wie folgt:
+
+<br></br> <br></br>
+
+
+ <table>
+    <tr><td>Anzahl:</td> <td align="right">$quantity.toString() </td>  </tr>
+    <tr><td>Produkt:</td> <td align="right">#xml($product ) </td>  </tr>
+    <tr><td>Lizenz:</td> <td align="right">#xml( $contract.packageDefinition.toString()) </td>  </tr>
+
+    #if($contract.isSinglePricePresent() )
+      <tr><td>einmaliger Preis: </td> <td align="right">#if($quantity > 1)$quantity.toString() x #end$nls.toUserString($contract.getSinglePrice()) EUR #if($quantity > 1)= $nls.toUserString($totalSinglePrice) EUR#end</td>  </tr>
+    #end
+
+
+    <tr><td>monatlicher Preis: </td> <td align="right">#if($quantity > 1)$quantity.toString() x #end$nls.toUserString($unitPrice) EUR #if($quantity > 1)= $nls.toUserString($totalUnitPrice) EUR#end</td>  </tr>
+    #if($contract.isDiscountPercentPresent())
+        <tr><td>Rabatt: </td> <td align="right"> $nls.toUserString($contract.getDiscountPercent())% </td>  </tr>
+    #end
+    #if($contract.isDiscountAbsolutePresent())
+               <tr><td>Nachlass je Monat: </td> <td align="right"> $nls.toUserString($contract.getDiscountAbsolute()) EUR </td>  </tr>
+    #end
+
+    <tr><td>Vertragsbeginn: </td> <td align="right"> $nls.toUserString($contract.getStartDate()) </td>  </tr>
+    <tr><td>Bestellung am: </td><td align="right">$nls.toUserString($contract.getSigningDate()) </td> </tr>
+    <tr><td>Ihr Ansprechpartner: </td><td align="right"> #xml($!person.name)</td> </tr>
+    #if($contract.isPosLinePresent())<tr><td>Hinweis: </td><td align="right"> #xml($contract.getPosLine())</td> </tr> #end
+    <tr><td>Abrechnungszyklus: </td><td align="right">$contract.getAccountingInterval().toString() </td> </tr>
+
+ </table>
+#if($contract.isParameterPresent())
+<br></br>
+Parameter:
+     <table>
+       <tr><td style="width:15cm">$contract.getParameter()</td></tr>
+     </table>
+<br></br>
+#else
+<br></br><br></br>
+Parameter: keine
+<br></br><br></br>
+#end
+#if($company.isVAT()) Auf die oben genannten Preise fällt noch die gesetzliche Mehrwertsteuer an. #else
+    Der Auftraggeber ist Schuldner der ggfs. anfallenden Mehrwert - oder Umsatzsteuer.
+#end
+
+<br></br><br></br>
+$termsOfPayment
+<br></br> <br></br>
+Für eventuelle Rückfragen und Erläuterungen stehen wir gerne zur Verfügung.
+<br></br> <br></br>
+Freundliche Grüße
+<br></br> <br></br>
+scireum GmbH
+<br></br>
+Remshalden
+<br></br> <br></br>
+<div style="font-size:8pt">
+   Handelsregister: Amtsgericht Stuttgart, HRB 732171, Ust.-IdNr.: DE815140004
+   <br></br>
+   Geschäftsführer: Michael Haufler, Andreas Haufler
+</div>
+</body>
+
+
+</html>
+

@@ -19,6 +19,7 @@ import woody.offers.OfferItemState;
 import woody.sales.Contract;
 import woody.sales.Lineitem;
 import woody.sales.PackageDefinition;
+import woody.xrm.Company;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -156,4 +157,19 @@ public interface ServiceAccountingService {
      * @return                pdf-file
      */
     public File createPdfFromContext(Context context, String templateName);
+
+    /**
+     * generates typicall Infos about all offers of the given company
+     * @param company
+     * @return
+     */
+    public List<OfferInfo> generateOfferInfo(Company company);
+
+    /**
+     * prepares the context for the given contract
+     * @param contract
+     * @return
+     */
+    public Context prepareContractContext(Contract contract);
+
 }

@@ -77,6 +77,16 @@ public class Offer extends BizEntity {
     private String reference;
     public static final Column REFERENCE = Column.named("reference");
 
+    @Autoloaded
+    @NullAllowed
+    private LocalDate offerPeriodStart;
+    public static final Column OFFERPERIODSTART = Column.named("offerPeriodStart");
+
+    @Autoloaded
+    @NullAllowed
+    private LocalDate offerPeriodEnd;
+    public static final Column OFFERPERIODEND = Column.named("offerPeriodEnd");
+
     @Transient
     private boolean serviceItemPresent;
     public static final Column SERVICEITEMPRESENT = Column.named("serviceItemPresent");
@@ -84,6 +94,11 @@ public class Offer extends BizEntity {
     @Transient
     private boolean licenceItemPresent;
     public static final Column LICENCEITEMPRESENT = Column.named("licenceItemPresent");
+
+    @Transient
+    private boolean offerPeriodPresent;
+    public static final Column OFFERPERIODPRESENT = Column.named("offerPeriodPresent");
+
 
     public String toString() {
         String s = "Angebot ";
@@ -128,7 +143,26 @@ public class Offer extends BizEntity {
 
         // update the offerState
         sas.updateOfferState(this, false);
+
+        // check the dates for offerPeriod
+        if((offerPeriodStart == null && offerPeriodEnd != null) || (offerPeriodStart != null && offerPeriodEnd == null))  {
+            throw Exceptions.createHandled().withNLSKey("OfferItem.offerPeriodWrong").handle();
+
+        }
+        if(offerPeriodStart.compareTo(offerPeriodEnd) != -1) {
+            throw Exceptions.createHandled().withNLSKey("offerPeriodChanged").handle();
+        }
+
     }
+
+    public boolean isOfferPeriodPresent() {
+        offerPeriodPresent = false;
+        if(offerPeriodStart != null) {
+            offerPeriodPresent = true;
+        }
+        return offerPeriodPresent;
+    }
+
 
     public EntityRef<Company> getCompany() {
         return company;
@@ -200,5 +234,29 @@ public class Offer extends BizEntity {
 
     public void setLicenceItemPresent(boolean licenceItemPresent) {
         this.licenceItemPresent = licenceItemPresent;
+    }
+
+    public static int getMinOfferNr() {
+        return MIN_OFFER_NR;
+    }
+
+    public LocalDate getOfferPeriodStart() {
+        return offerPeriodStart;
+    }
+
+    public void setOfferPeriodStart(LocalDate offerPeriodStart) {
+        this.offerPeriodStart = offerPeriodStart;
+    }
+
+    public LocalDate getOfferPeriodEnd() {
+        return offerPeriodEnd;
+    }
+
+    public void setOfferPeriodEnd(LocalDate offerPeriodEnd) {
+        this.offerPeriodEnd = offerPeriodEnd;
+    }
+
+    public void setOfferPeriodPresent(boolean offerPeriodPresent) {
+        this.offerPeriodPresent = offerPeriodPresent;
     }
 }

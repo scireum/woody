@@ -71,14 +71,15 @@
 @formBar() {
     @tracing(company.getTrace())
 }
-
+Post-comment
 <form action="/company/@company.getId()/postComment" method="post" id="commentForm">
     <textarea name="comment" rows="3">
 
     </textarea>
     <button type="submit" value="Senden"></button>
 </form>
-
+<br></br>
+Comments, Beginn
 @for(woody.core.comments.Comment comment : company.getComments().getAllComments()) {
     <div class="comment">
         @comment.getPersonName()<br>
@@ -86,4 +87,5 @@
         @comment.getTextContent()
     </div>
 }
+Comments, Ende
 

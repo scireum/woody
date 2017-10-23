@@ -34,5 +34,11 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.sun.mail/gimap   -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>gimap</artifactId>
+            <version>1.6.0</version>
+        </dependency>
     </dependencies>
 </project>

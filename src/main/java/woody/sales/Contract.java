@@ -534,6 +534,12 @@ public class Contract extends BizEntity {
         return months;
     }
 
+
+    public boolean isParameterPresent() {
+        return Strings.isFilled(parameter);
+    }
+
+
     public EntityRef<Company> getCompany() {
         return company;
     }

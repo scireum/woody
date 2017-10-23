@@ -24,6 +24,7 @@ import sirius.db.mixing.annotations.Trim;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.nls.Formatter;
 import woody.core.comments.Commented;
+import woody.core.mails.Mailed;
 import woody.core.tags.Tagged;
 
 import java.time.LocalDate;
@@ -68,6 +69,9 @@ public class Person extends BizEntity {
 
     private boolean offline = false;
     public static final Column OFFLINE = Column.named("offline");
+
+    private final Mailed mailed = new Mailed(this);
+    public static final Column MAILED = Column.named("mailed");
 
     @BeforeSave
     protected void verify() {
@@ -145,5 +149,9 @@ public class Person extends BizEntity {
 
     public void setBirthday(LocalDate birthday) {
         this.birthday = birthday;
+    }
+
+    public Mailed getMailed() {
+        return mailed;
     }
 }

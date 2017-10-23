@@ -26,6 +26,7 @@ import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 import sirius.web.mails.Mails;
 import woody.core.comments.Commented;
+import woody.core.mails.Mailed;
 import woody.core.tags.Tagged;
 import woody.phoneCalls.SyncAsterisk;
 import woody.sales.CompanyAccountingData;
@@ -113,6 +114,9 @@ public class Company extends TenantAware {
 
     private final Commented comments = new Commented(this);
     public static final Column COMMENTS = Column.named("comments");
+
+    private final Mailed mailed = new Mailed(this);
+    public static final Column MAILED = Column.named("mailed");
 
     @Override
     public String toString() {
@@ -316,4 +320,9 @@ public class Company extends TenantAware {
     public CompanyAccountingData getCompanyAccountingData() {
         return companyAccountingData;
     }
+
+    public Mailed getMailed() {
+        return mailed;
+    }
+
 }

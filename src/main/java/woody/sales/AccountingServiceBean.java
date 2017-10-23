@@ -8,8 +8,6 @@
 
 package woody.sales;
 
-import sirius.biz.model.PersonData;
-import sirius.biz.tenants.UserAccount;
 import sirius.db.mixing.OMA;
 import sirius.db.mixing.constraints.FieldOperator;
 import sirius.kernel.commons.Amount;
@@ -30,36 +28,23 @@ import woody.sales.ContractToDos.Command;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
-import javax.swing.text.View;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.nio.charset.Charset;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -2292,15 +2277,18 @@ public class AccountingServiceBean implements AccountingService {
         for(Contract contract : contractList) {
             hashMap.put(contract.getAccountingGroup(), contract.getAccountingGroup());
         }
-        // the keySet of the hashMap are the relevant accountingroups.
+        // the keySet of the hashMap are the relevant accountingGroups.
         Set set = hashMap.keySet();
         for(Object o:set) {
             String accountingGroup = (String) o;
             // get all contracts from this company and this accountingGroup
             List<Contract> contracts = oma.select(Contract.class).eq(Contract.COMPANY, company)
-                                          .eq(Contract.ACCOUNTINGGROUP, accountingGroup).orderAsc(Contract.ACCOUNTINGGROUP)
-// ToDo .join richten                                         .orderAsc(Contract.CONTRACTPARTNER.join(Person.PERSON.join(PersonData.LASTNAME)))
-                                          .orderAsc(Contract.STARTDATE).queryList();
+                                          .eq(Contract.ACCOUNTINGGROUP,accountingGroup)
+                                          //ToDo orderBy bringt Null-PointerException
+//					.orderBy(Contract.CONTRACTPARTNER + "." + Person.LASTNAME + "." + Person.FIRSTNAME, true)
+                                          .orderAsc(Contract.CONTRACTPARTNER)
+                                          .queryList();
+
 
             if(contracts.isEmpty()) {
                 continue;
@@ -2311,18 +2299,18 @@ public class AccountingServiceBean implements AccountingService {
                 continue;
             }
             // generate the yearInformation as PDF
-            File pdfFile = sas.createPdfFromContext(context, "templates/yearInformation.pdf");
+            File pdfFile = sas.createPdfFromContext(context, "templates/yearInformation.pdf.vm");
 
             //  #macro(xml $content)$content#end
 
-//            Path source = Paths.get(pdfFile.getName());
-//            Path destination = Paths.get("x3x4x5.pdf");
-//            try {
-//                Files.copy(source, destination);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
+            Path source = Paths.get(pdfFile.getName());
+            Path destination = Paths.get("x3x4x5.pdf");
+            try {
+                Files.copy(source, destination);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
 //            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 //            // store the pdf-File as attachment of the company
 //            byte[] byteIn = byteOut.toByteArray();

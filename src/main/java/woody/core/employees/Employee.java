@@ -111,6 +111,11 @@ public class Employee extends Mixable {
     private String collmex;
     public static final Column COLLMEX = Column.named("collmex");
 
+    @NullAllowed
+    @Length(50)
+    private String emailPassword;
+    public static final Column EMAIL_PASSWORD = Column.named("emailPassword");
+
 
     private final AddressData homeAddress = new AddressData(AddressData.Requirements.NONE, null);
     public static final Column ADDRESS = Column.named("address");
@@ -247,5 +252,13 @@ public class Employee extends Mixable {
 
     public void setCollmex(String collmex) {
         this.collmex = collmex;
+    }
+
+    public String getEmailPassword() {
+        return emailPassword;
+    }
+
+    public void setEmailPassword(String emailPassword) {
+        this.emailPassword = emailPassword;
     }
 }

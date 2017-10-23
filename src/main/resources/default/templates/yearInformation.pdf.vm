@@ -1,0 +1,105 @@
+ <html>
+
+ <body style="font-family:sans-serif; font-size:10pt">
+
+ <div style="width: 10cm; float: left">
+    scireum GmbH<br />
+    Eisenbahnstr. 24<br />
+    73630 Remshalden
+ </div>
+ <div style="float:right">
+     <img src="plugins/scireum/crm/login_logo.png" style="width:4cm" />
+ </div>
+
+<div style=" padding-top: 1.5cm; clear:both; float:right">
+ #xml($!dateString)
+</div>
+
+<div style=" padding-top: 0.5cm; clear:both">
+ #xml($!company.name)<br />
+ #xml($!company.street)<br />
+ $!company.zipCode #xml($!company.city)
+</div>
+
+<div style="padding-top: 2.5cm;font-weight: bold; font-size: 14pt">
+Jahresangebot Nr. $!offerNumber für die Verträge im Jahr $!yearString in der Abrechungsgruppe $!accountingGroup
+</div>
+<br />
+<table style="font-size:9pt">
+ <tr><td>Kundennummer:</td><td> $!company.customerNr</td><td></td><td></td> </tr>
+ #foreach($person in $personList)
+ <tr><td>Ihre Kontaktperson:</td><td> #xml($!person.name),</td><td>Tel.: $!person.phone,</td><td>E-Mail: #xml($!person.email)  </td> </tr>
+ #end
+ <tr><td>Unsere Kontaktperson:</td><td>$!employee.salutation #xml($!employee.firstname) #xml($!employee.lastname),</td><td>Tel.: $!employee.phone,</td><td>E-Mail: #xml($!employee.email)  </td></tr>
+</table>
+
+<br></br>
+Sehr geehrte Damen und Herren,
+<br></br><br></br>
+mit diesem Jahresangebot wollen wir Sie bei der Freigabe für die im Jahr $!yearString anfallenden Zahlungen für die bestehenden Verträge unterstützen.
+
+<br></br> <br></br>
+Die Zahlungen selbst werden wir per Rechnung anfordern.
+
+<br></br><br></br>
+
+ <table>
+      #foreach ($item in $contractList)
+
+        <tr><th style="width:1cm" valign="top">Menge</th><th style="width:5cm" valign="top">Vertrag</th><th style="width:4cm" valign="top">Zeitraum</th><th style="width:2cm" valign="top">Nutzung</th>
+                        <th  style="width:3cm" valign="top" align="right">je Monat</th><th style="width:3cm" valign="top" align="right">je Jahr</th>
+        </tr>
+
+        <tr> <td style="width:1cm" valign="top">#if($toolkit.notEmpty($item.amount))$item.amount.toString() #else 1#end</td>
+             <td style="width:5cm" valign="top">$item.packageDefinition.name</td>
+             <td style="width:4cm">$item.getDistance($!year)</td>
+             <td style="width:2cm">$item.getMonths($!year) Monate</td>
+             <td style="width:3cm" align="right">$nls.toUserString($item.getUnitPrice()) €</td>
+             <td style="width:3cm" align="right">$nls.toUserString($item.getYearValue($!year)) €</td>
+        </tr>
+        <tr><td></td><td colspan="4">Ihre Kontaktperson: $item.getContractPartner().getName()</td></tr>
+        #if($toolkit.notEmpty($item.discountPercent) || $toolkit.notEmpty($item.discountAbsolute))
+
+          <tr><td></td><td colspan="4"> Beim Jahreswert ist ein
+
+              #if($toolkit.notEmpty($item.discountPercent))Rabatt von $nls.toUserString($item.discountPercent)%
+                    #if($toolkit.notEmpty($item.discountAbsolute)) sowie ein Nachlass von $nls.toUserString($item.discountAbsolute)€ / Monat
+                    #end
+              #else Nachlass von $nls.toUserString($item.discountAbsolute)€ / Monat
+              #end
+
+              berücksichtigt. </td>
+          </tr>
+        #end
+      #end
+ </table>
+
+<hr></hr>
+
+<table>
+    <tr><td style="width:16cm" >Netto-Summe im Jahr $yearString</td> <td  align="right"  style="width:3cm">$nls.toUserString($nettoSum) €</td> </tr>
+    <tr><td style="width:16cm" >zuzüglich 19% MWSt:</td> <td  align="right">$nls.toUserString($vatSum) €</td> </tr>
+    <tr><td style="width:16cm" >Endbetrag (brutto):</td> <td  align="right">$nls.toUserString($bruttoSum) €</td> </tr>
+</table>
+
+<hr></hr>
+<br></br>
+
+
+<br></br> <br></br>
+Für eventuelle Rückfragen und Erläuterungen stehen wir gerne zur Verfügung.
+<br></br> <br></br>
+Freundliche Grüße
+<br></br> <br></br>
+scireum GmbH
+<br></br>
+Remshalden
+<br></br> <br></br>
+<div style="font-size:8pt">
+   Handelsregister: Amtsgericht Stuttgart, HRB 732171, Ust.-IdNr.: DE815140004
+   <br></br>
+   Geschäftsführer: Michael Haufler, Andreas Haufler
+</div>
+</body>
+</html>
+
