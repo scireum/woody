@@ -1,0 +1,51 @@
+<i:arg type="Page" name="items" />
+
+<w:page titleKey="InventoryItem.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/inventory/items">@i18n("InventoryItem.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="InventoryItem.plural"/>
+
+    <w:taggedSearch page="items" baseUrl="/inventory/items" suggestionsName="INVENTORYITEM">
+        <a class="btn btn-primary" href="/inventory/item/new">@i18n("Model.create")</a>
+    </w:taggedSearch>
+
+    <w:table data="items">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name") <span class="muted">(@i18n("Model.code"))</span><br>
+                <span class="muted">@i18n("Model.type")</span>
+            </th>
+            <th>
+                @i18n("Tag.plural")<br>
+                <span class="muted">@i18n("Relation.plural")</span>
+            </th>
+            <th />
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.organization.inventory.InventoryItem" var="item" items="items.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/inventory/item/@item.getId()">@item.getName()</a>
+                    <i:if test="isFilled(item.getCode())"><span class="muted">(@item.getCode())</span></i:if><br>
+                    <span class="muted"><small>@item.getType().getValue().as(woody.organization.inventory.InventoryType.class).getName()</small></span>
+                </td>
+                <td>
+                    <woody:listTags tagged="item.getTags()" />
+                    <br>
+                    <woody:listRelations relations="item.getRelations()" />
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/inventory/item/%s/delete', item.getId())" page="items"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="items" baseUrl="inventory/items"/>
+
+</w:page>

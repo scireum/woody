@@ -55,6 +55,7 @@ public class InventoryTypesController extends BizController {
     @Routed("/inventory/type/:1")
     public void inventoryType(WebContext ctx, String typeId) {
         InventoryType type = findForTenant(InventoryType.class, typeId);
+
         //TODO in findForTenant
         type.getTenant().setValue(currentTenant());
         if (ctx.isPOST()) {

@@ -5,5 +5,4 @@
 <w:menuDropdown titleKey="Menu.organization" permission="permission-manage-units,permission-manage-inventory-items,permission-manage-projects">
     <w:menuItem titleKey="Unit.plural" url="/units" permission="permission-manage-units" />
     <w:menuItem titleKey="InventoryItem.plural" url="/inventory/items" permission="permission-manage-inventory-items" />
-    <w:menuItem titleKey="Project.plural" url="/projects" permission="permission-manage-projects" />
 </w:menuDropdown>

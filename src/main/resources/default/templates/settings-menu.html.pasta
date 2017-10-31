@@ -8,3 +8,4 @@
 <w:menuItem titleKey="RelationType.plural" url="/relations/types" permission="permission-manage-relation-types" />
 <w:menuItem titleKey="UnitType.plural" url="/units/types" permission="permission-manage-unit-types" />
 <w:menuItem titleKey="InventoryType.plural" url="/inventory/types" permission="permission-manage-inventory-types" />
+<w:menuItem titleKey="ProjectType.plural" url="/projects/types" permission="permission-manage-project-types" />
