@@ -9,14 +9,18 @@
 package woody.core.mails;
 
 import com.google.common.collect.Lists;
+import com.sun.mail.gimap.GmailMessage;
 import com.sun.mail.imap.IMAPMessage;
+import sirius.biz.model.ContactData;
 import sirius.biz.tenants.UserAccount;
 import sirius.db.mixing.Constraint;
 import sirius.db.mixing.OMA;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.Named;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 import woody.core.employees.Employee;
+import woody.offers.ServiceAccountingService;
 import woody.xrm.Person;
 
 import javax.mail.Address;
@@ -36,7 +40,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchProviderException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -47,6 +55,9 @@ public class MailImporter {
 
     @sirius.kernel.di.std.Part
     protected OMA oma;
+
+    @sirius.kernel.di.std.Part
+    private static ServiceAccountingService sas;
 
 
 //    @Override
@@ -113,105 +124,116 @@ public class MailImporter {
      * import a mail-message in a Mail
      */
     private boolean importMessageInMail(Message message) {
-//        try {
-//            List<String> labels = Lists.newArrayList(((GmailMessage) message).getLabels());
-//            if (labels.contains("\\Draft") || labels.contains("\\Spam")) {
-//                return false;
-//            }
-//            Mail mail = new Mail();
-//            mail.setMessageId(((IMAPMessage) message).getMessageID());
-//            if (message.getReceivedDate() != null) {
-//                mail.setReceivingDate(message.getReceivedDate());
-//            } else if (message.getSentDate() != null) {
-//                mail.setReceivingDate(message.getSentDate());
-//            }
-//            mail.setSubject(message.getSubject());
-//            StringBuilder sb = new StringBuilder();
-//            StringBuilder adrSb = new StringBuilder();
-//            for (Address addr : message.getFrom()) {
-//                sb.append("von: " + ((InternetAddress) addr).getAddress()
-//                          + "\n ");
-//                resolve(addr, mail);
-//                adrSb.append(((InternetAddress) addr).getAddress()).toString();
-//                adrSb.append(" ");
-//            }
-//            String s = adrSb.toString();
-//            if (Tools.notEmpty(s)) {
-//                mail.setSenderAdress(s.trim());
-//            }
-//            if (message.getRecipients(Message.RecipientType.TO) != null) {
-//                adrSb = new StringBuilder();
-//                for (Address addr : message.getRecipients(Message.RecipientType.TO)) {
-//                    sb.append("an: " + ((InternetAddress) addr).getAddress()
-//                              + "\n ");
-//                    resolve(addr, mail);
-//                    adrSb.append(((InternetAddress) addr).getAddress())
-//                         .toString();
-//                    adrSb.append(" ");
-//                }
-//                s = adrSb.toString();
-//                if (Tools.notEmpty(s)) {
-//                    mail.setReceiverAdress(s.trim());
-//                }
-//            }
-//            if (message.getRecipients(Message.RecipientType.CC) != null) {
-//                adrSb = new StringBuilder();
-//                for (Address addr : message.getRecipients(Message.RecipientType.CC)) {
-//                    sb.append("cc: " + ((InternetAddress) addr).getAddress()
-//                              + "\n ");
-//                    resolve(addr, mail);
-//                    adrSb.append(((InternetAddress) addr).getAddress())
-//                         .toString();
-//                    adrSb.append(" ");
-//                }
-//                s = adrSb.toString();
-//                if (Tools.notEmpty(s)) {
-//                    mail.setCcAdress(adrSb.toString().trim());
-//                }
-//            }
-//            if (message.getRecipients(Message.RecipientType.BCC) != null) {
-//                adrSb = new StringBuilder();
-//                for (Address addr : message.getRecipients(Message.RecipientType.BCC)) {
-//                    sb.append("bcc: " + ((InternetAddress) addr).getAddress()
-//                              + "\n ");
-//                    resolve(addr, mail);
-//                    adrSb.append(((InternetAddress) addr).getAddress())
-//                         .toString();
-//                    adrSb.append(" ");
-//                }
-//                s = adrSb.toString();
-//                if (Tools.notEmpty(s)) {
-//                    mail.setBccAdress(adrSb.toString().trim());
-//                }
-//            }
-//            if (mail.getEmployee() == null || mail.getPerson() == null) {
-//                return false;
-//            }
-//            if (Tools.emptyString(mail.getMessageId())) {
-//                mail.setMessageId(Tools.md5hex(mail.getSubject()
-//                                               + NLS.toMachineString(mail.getReceivingDate())
-//                                               + mail.getPerson().getId()));
-//            }
-//            if (!OMA.select(Realm.SYSTEM, Mail.class)
-//                    .eq(mail.getMessageId(), Mail.MESSAGE_ID).exists()) {
-//                mail.setText(sb.toString() + "\n\n" + readContent(message));
-//                mail = OMA.saveEntity(Realm.SYSTEM, mail);
-//                Syslog.log("MAIL-IMPORT", "Imported: " + mail.getSubject());
-//                addAttachments(message, mail);
-//                return true;
-//            } else {
-//                return false;
-//            }
-//        } catch (Throwable e) {
-//            try {
-//                Incidents.handle(new Exception("Error Importing: "
-//                                               + message.getSubject() + " (from: "
-//                                               + message.getFrom()[0] + ")", e));
-//            } catch (MessagingException e1) {
-//                // IGNORE
-//            }
-//        }
+        try {
+            List<String> labels = Lists.newArrayList(((GmailMessage) message).getLabels());
+            if (labels.contains("\\Draft") || labels.contains("\\Spam")) {
+                return false;
+            }
+            Mail mail = new Mail();
+            mail.setMessageId(((IMAPMessage) message).getMessageID());
+            if (message.getReceivedDate() != null) {
+                Date date = message.getReceivedDate();
+                LocalDateTime localDateTime = transformToLocalDateTime(date);
+                mail.setReceivingDate(localDateTime);
+            } else if (message.getSentDate() != null) {
+                Date date = message.getSentDate();
+                mail.setReceivingDate(transformToLocalDateTime(date));
+            }
+            mail.setSubject(message.getSubject());
+            StringBuilder sb = new StringBuilder();
+            StringBuilder adrSb = new StringBuilder();
+            for (Address addr : message.getFrom()) {
+                sb.append("von: " + ((InternetAddress) addr).getAddress()
+                          + "\n ");
+                resolve(addr, mail);
+                adrSb.append(((InternetAddress) addr).getAddress()).toString();
+                adrSb.append(" ");
+            }
+            String s = adrSb.toString();
+            if (Strings.isFilled(s)) {
+                mail.setSenderAddress(s.trim());
+            }
+            if (message.getRecipients(Message.RecipientType.TO) != null) {
+                adrSb = new StringBuilder();
+                for (Address addr : message.getRecipients(Message.RecipientType.TO)) {
+                    sb.append("an: " + ((InternetAddress) addr).getAddress()
+                              + "\n ");
+                    resolve(addr, mail);
+                    adrSb.append(((InternetAddress) addr).getAddress())
+                         .toString();
+                    adrSb.append(" ");
+                }
+                s = adrSb.toString();
+                if (Strings.isFilled(s)) {
+                    mail.setReceiverAddress(s.trim());
+                }
+            }
+            if (message.getRecipients(Message.RecipientType.CC) != null) {
+                adrSb = new StringBuilder();
+                for (Address addr : message.getRecipients(Message.RecipientType.CC)) {
+                    sb.append("cc: " + ((InternetAddress) addr).getAddress()
+                              + "\n ");
+                    resolve(addr, mail);
+                    adrSb.append(((InternetAddress) addr).getAddress())
+                         .toString();
+                    adrSb.append(" ");
+                }
+                s = adrSb.toString();
+                if (Strings.isFilled(s)) {
+                    mail.setCcAddress(adrSb.toString().trim());
+                }
+            }
+            if (message.getRecipients(Message.RecipientType.BCC) != null) {
+                adrSb = new StringBuilder();
+                for (Address addr : message.getRecipients(Message.RecipientType.BCC)) {
+                    sb.append("bcc: " + ((InternetAddress) addr).getAddress()
+                              + "\n ");
+                    resolve(addr, mail);
+                    adrSb.append(((InternetAddress) addr).getAddress())
+                         .toString();
+                    adrSb.append(" ");
+                }
+                s = adrSb.toString();
+                if (Strings.isFilled(s)) {
+                    mail.setBccAddress(adrSb.toString().trim());
+                }
+            }
+            // ToDo noch migrieren
+            if (mail.getEmployee() == null || mail.getPersonEntity() == null) {
+                return false;
+            }
+            if (Strings.isEmpty(mail.getMessageId())) {
+                mail.setMessageId(sas.buildMd5HexString(mail.getSubject()
+                                               + NLS.toMachineString(mail.getReceivingDate())
+                                               + mail.getPersonEntity().getValue().getId()));
+            }
+            if (!oma.select(Mail.class)
+                    .eq( Mail.MESSAGEID, mail.getMessageId()).exists()) {
+                mail.setText(sb.toString() + "\n\n" + readContent(message));
+                oma.update(mail);
+                // ToDo implementieren
+//               Syslog.log("MAIL-IMPORT", "Imported: " + mail.getSubject());
+
+                addAttachments(message, NamedObject.createNamedObject( mail));
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Throwable e) {
+            try {
+                Exceptions.handle(new Exception("Error Importing: "
+                                               + message.getSubject() + " (from: "
+                                               + message.getFrom()[0] + ")", e));
+            } catch (MessagingException e1) {
+                // IGNORE
+            }
+        }
         return false;
+    }
+
+    private LocalDateTime transformToLocalDateTime(Date date) throws MessagingException {
+        Instant instant = date.toInstant() ;
+        return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     public static String readContent(Message message) {
@@ -254,79 +276,88 @@ public class MailImporter {
                 return mbp.getContent().toString();
             }
         }
+
         return null;
     }
 
-//    private static final LazyPart<DataAreas> areas = LazyPart
-//            .of(DataAreas.class);
-//
-//    public static void addAttachments(Message message, NamedObject no) {
-//        try {
-//            if (message.getContent() == null
-//                || !(message.getContent() instanceof MimeMultipart)) {
-//                return;
-//            }
-//            MimeMultipart mm = (MimeMultipart) message.getContent();
-//            processMultipart(no, mm);
-//        } catch (Throwable e) {
-//            Incidents.handle(e);
-//        }
-//    }
-//
-//    protected static void processMultipart(NamedObject no, MimeMultipart mm)
-//            throws MessagingException, UnsupportedEncodingException,
-//                   IOException {
-//        for (int i = 0; i < mm.getCount(); i++) {
-//            BodyPart mbp = mm.getBodyPart(i);
-//            if (mbp.isMimeType("multipart/ALTERNATIVE")) {
-//                processMultipart(no, (MimeMultipart) mbp.getContent());
-//            } else if (mbp.getFileName() != null
-//                       && mbp.getDisposition() != null
-//                       && mbp.getDisposition().equalsIgnoreCase(Part.ATTACHMENT)
-//                       && !mbp.isMimeType("APPLICATION/MS-TNEF")) {
-//                String filename = MimeUtility.decodeText(mbp.getFileName());
-//                areas.get().getAttachmentsArea(no)
-//                     .addFile(null, filename, mbp.getInputStream());
-//            } else if (mbp.getDisposition() != null
-//                       && mbp.getDisposition().equalsIgnoreCase(Part.INLINE)
-//                       && mbp.isMimeType("image/png")) {
-//                String filename = "inline-" + i + ".png";
-//                areas.get().getAttachmentsArea(no)
-//                     .addFile(null, filename, mbp.getInputStream());
-//            } else if (mbp.getDisposition() != null
-//                       && mbp.getDisposition().equalsIgnoreCase(Part.INLINE)
-//                       && mbp.isMimeType("image/jpeg")) {
-//                String filename = "inline-" + i + ".jpg";
-//                areas.get().getAttachmentsArea(no)
-//                     .addFile(null, filename, mbp.getInputStream());
-//            } else if (mbp.isMimeType("text/html")) {
-//                // save all non text/plain parts as attachments
-//                String filename = "html-" + i + ".html";
-//                areas.get().getAttachmentsArea(no)
-//                     .addFile(null, filename, mbp.getInputStream());
-//            }
-//        }
-//    }
-//
-//    /**
-//     * resolves the given internet-adress of the mail into the Mail-Parameters
-//     */
-//    private void resolve(Address addr, Mail mail) {
-//        InternetAddress iaddr = (InternetAddress) addr;
-//        Employee e = OMA.select(Realm.SYSTEM, Employee.class)
-//                        .eqIgnoreCase(iaddr.getAddress(), Employee.EMAIL).first();
-//        if (e != null) {
-//            if (mail.getEmployee() == null) {
-//                mail.setEmployee(e);
-//            }
-//        } else {
-//            if (mail.getPerson() == null) {
-//                mail.setPerson(OMA.select(Realm.SYSTEM, Person.class)
-//                                  .eqIgnoreCase(iaddr.getAddress(), Person.EMAIL)
-//                                  .eq(true, Person.SCAN_EMAIL).first());
-//            }
-//        }
-//    }
+    @sirius.kernel.di.std.Part
+    private static DataAreas areas;
+
+    public static void addAttachments(Message message, NamedObject no) {
+        try {
+            if (message.getContent() == null
+                || !(message.getContent() instanceof MimeMultipart)) {
+                return;
+            }
+            MimeMultipart mm = (MimeMultipart) message.getContent();
+            processMultipart(no, mm);
+        } catch (Throwable e) {
+            Exceptions.handle(e);
+        }
+    }
+
+    protected static void processMultipart(NamedObject no, MimeMultipart mm)
+            throws MessagingException, UnsupportedEncodingException,
+                   IOException {
+        for (int i = 0; i < mm.getCount(); i++) {
+            BodyPart mbp = mm.getBodyPart(i);
+            if (mbp.isMimeType("multipart/ALTERNATIVE")) {
+                processMultipart(no, (MimeMultipart) mbp.getContent());
+            } else if (mbp.getFileName() != null
+                       && mbp.getDisposition() != null
+                       && mbp.getDisposition().equalsIgnoreCase(Part.ATTACHMENT)
+                       && !mbp.isMimeType("APPLICATION/MS-TNEF")) {
+                String filename = MimeUtility.decodeText(mbp.getFileName());
+                areas.get().getAttachmentsArea(no)
+                     .addFile(null, filename, mbp.getInputStream());
+            } else if (mbp.getDisposition() != null
+                       && mbp.getDisposition().equalsIgnoreCase(Part.INLINE)
+                       && mbp.isMimeType("image/png")) {
+                String filename = "inline-" + i + ".png";
+                areas.get().getAttachmentsArea(no)
+                     .addFile(null, filename, mbp.getInputStream());
+            } else if (mbp.getDisposition() != null
+                       && mbp.getDisposition().equalsIgnoreCase(Part.INLINE)
+                       && mbp.isMimeType("image/jpeg")) {
+                String filename = "inline-" + i + ".jpg";
+                areas.get().getAttachmentsArea(no)
+                     .addFile(null, filename, mbp.getInputStream());
+            } else if (mbp.isMimeType("text/html")) {
+                // save all non text/plain parts as attachments
+                String filename = "html-" + i + ".html";
+                areas.get().getAttachmentsArea(no)
+                     .addFile(null, filename, mbp.getInputStream());
+            }
+        }
+    }
+
+    /**
+     * resolves the given internet-adress of the mail into the Mail-Parameters
+     */
+    private void resolve(Address addr, Mail mail) {
+        InternetAddress iaddr = (InternetAddress) addr;
+        // ToDo statt eq eqIgnoreCase realisieren
+        UserAccount ua = oma.select(UserAccount.class).eq(UserAccount.EMAIL, iaddr.getAddress()).queryFirst();
+
+        if (ua != null) {
+            Employee e = ua.as(Employee.class);
+            if (e != null) {
+                if (mail.getEmployee() == null) {
+                    mail.getEmployee().setValue(ua);
+                }
+            }
+        } else {
+            if (mail.getPersonEntity() == null) {
+                Person person = oma.select(Person.class).eq(Person.CONTACT.inner(ContactData.EMAIL), iaddr.getAddress())
+                                   // ToDo noch reinbauen                                  .eq(true, Person.SCAN_EMAIL)
+                                   .queryFirst();
+                if (person != null) {
+                    mail.getPersonEntity().setValue(person);
+                }
+            }
+        }
+    }
+            // ToDo wieder aktivieren
 //
 //    @Override
 //    public void execute(PrintWriter output, String... params) throws Exception {

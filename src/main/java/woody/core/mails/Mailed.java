@@ -49,7 +49,7 @@ public class Mailed extends Composite {
 
     public List<Mail> getAllMails() {
         return oma.select(Mail.class)
-                  .orderDesc(Mail.TOD)
+                  .orderDesc(Mail.BCCADDRESS)
                   .eq(Mail.TARGET_ENTITY, owner.getUniqueName())
                   .queryList();
     }
@@ -58,7 +58,7 @@ public class Mailed extends Composite {
 
     public List<Mail> getPublicMails() {
         return oma.select(Mail.class)
-                  .orderDesc(Mail.TOD)
+                  .orderDesc(Mail.RECEIVINGDATE)
                   .eq(Mail.TARGET_ENTITY, owner.getUniqueName())
                   .where(Or.of(FieldOperator.on(Mail.PERSON_ENTITY).eq(UserContext.getCurrentUser().getUserId()),
                                FieldOperator.on(Mail.PUBLIC_VISIBLE).eq(true)))

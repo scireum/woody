@@ -9,6 +9,8 @@
 package woody.offers;
 
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import sirius.biz.tenants.UserAccount;
 import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.OMA;
@@ -485,6 +487,11 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             context.set("buyerPhone", buyer.getContact().getPhone());
             context.set("buyerName", buyer.getPerson().toString());
             context.set("buyerMail", buyer.getContact().getEmail());
+        } else {
+            context.set("buyerPhone", null);
+            context.set("buyerName", null);
+            context.set("buyerMail", null);
+
         }
 
         Employee employee = offer.getEmployee().getValue().as(Employee.class) ;
@@ -527,17 +534,18 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             Amount offerPeriodLicenceBrutto =  offerPeriodNetto.add(vatOfferPeriodLicence);
             context.set("offerPeriodLicenceBrutto", offerPeriodLicenceBrutto.toString(NumberFormat.TWO_DECIMAL_PLACES));
 
-            String buyerMessage = "";
-            if(offer.getBuyer() != null) {
-                buyerMessage = offer.getBuyer().getValue().getPerson().getAddressableName() + " erhält diese Mail ebenfalls zur Information." ;
-            }
-            context.set("buyerMessage", buyerMessage);
-            context.set("isOffer", false);
-            if(OFFER.equals(function)) {
-                context.set("isOffer", true);
-            }
 
         }
+        String buyerMessage = "";
+        if(offer.getBuyer() != null) {
+            buyerMessage = offer.getBuyer().getValue().getPerson().getAddressableName() + " erhält diese Mail ebenfalls zur Information." ;
+        }
+        context.set("buyerMessage", buyerMessage);
+        context.set("isOffer", false);
+        if(OFFER.equals(function)) {
+            context.set("isOffer", true);
+        }
+
 
         return context;
 
@@ -713,22 +721,23 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
 
     @Override
-    public void sendOffer(Offer offer)  {
+    public Context askOffer(Offer offer)  {
         Person person = offer.getPerson().getValue();
-        String mailAdress = person.getContact().getEmail();
-        if(Strings.isEmpty(mailAdress)) {
+        String mailAddress = person.getContact().getEmail();
+        if(Strings.isEmpty(mailAddress)) {
             throw Exceptions.createHandled().withNLSKey("ServiceAccountingServiceBean.salesConfirmationNoMailAdr")
                             .set("person", person.getPerson().getAddressableName()).handle();
         }
-        Context context = prepareContext(offer, ServiceAccountingService.OFFER) ;
-        File fileAttachment = createPdfFromContext(context, "templates/offer.pdf.vm");
-        // build the mail-content
-        String subject = (String)context.get("subject");
 
-        // send the mail
-        String template = "mail-template";
-        sendMail(mailAdress, subject,  template, context, fileAttachment);
+        Context context = prepareContext(offer, ServiceAccountingService.OFFER) ;
+        context.set("mailAddress", mailAddress);
+        File fileAttachment = createPdfFromContext(context, "templates/offer.pdf.vm");
+        context.set("fileAttachment", fileAttachment);
+
+        return context;
     }
+
+
 
     @Override
     public List<PackageDefinition> getAllPackageDefinitions(Object object) {
@@ -1351,5 +1360,16 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         return context;
     }
 
-
+    @Override
+    public String buildMd5HexString(String s) {
+        //        String md5 = BaseEncoding.base64().encode(Hashing.md5().hashString(s, Charsets.UTF_8).asBytes());
+        byte[] md5HashBytes = Hashing.md5().hashString(s, Charsets.UTF_8).asBytes();
+        StringBuilder sb = new StringBuilder(md5HashBytes.length * 2);
+        for (int i = 0; i < md5HashBytes.length; i++) {
+            sb.append(Character.forDigit((md5HashBytes[i] & 0xf0) >> 4, 16));
+            sb.append(Character.forDigit(md5HashBytes[i] & 0x0f, 16));
+        }
+        String md5 = sb.toString();
+        return md5;
+    }
 }

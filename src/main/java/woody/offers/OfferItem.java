@@ -453,31 +453,7 @@ public class OfferItem extends BizEntity {
                 s = s + NLS.toUserString(discount.toString());
             }
         }
-        return buildMd5HexString(s);
-    }
-
-    private String buildMd5HexString(String s) {
-        //        String md5 = BaseEncoding.base64().encode(Hashing.md5().hashString(s, Charsets.UTF_8).asBytes());
-        byte[] md5HashBytes = Hashing.md5().hashString(s, Charsets.UTF_8).asBytes();
-        StringBuilder sb = new StringBuilder(md5HashBytes.length * 2);
-        for (int i = 0; i < md5HashBytes.length; i++) {
-            sb.append(Character.forDigit((md5HashBytes[i] & 0xf0) >> 4, 16));
-            sb.append(Character.forDigit(md5HashBytes[i] & 0x0f, 16));
-        }
-        String md5 = sb.toString();
-        return md5;
-    }
-
-    /**
-     * Computes the hex-representation of the given byte array.
-     */
-    private String toHex(byte[] a) {
-        StringBuilder sb = new StringBuilder(a.length * 2);
-        for (int i = 0; i < a.length; i++) {
-            sb.append(Character.forDigit((a[i] & 0xf0) >> 4, 16));
-            sb.append(Character.forDigit(a[i] & 0x0f, 16));
-        }
-        return sb.toString();
+        return sas.buildMd5HexString(s);
     }
 
 

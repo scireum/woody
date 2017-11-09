@@ -1,0 +1,65 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+
+@import woody.xrm.Company
+@import woody.xrm.Person
+@import woody.offers.Offer
+@import woody.core.mails.Mail
+@import sirius.kernel.commons.Context
+
+@args Context context, Company company, Offer offer, List templateList, Mail mail
+
+@extends(view.wondergem.template.html, title: NLS.get("Mail.sendMail"))
+
+@pageHeader("Mail.sendMail")
+
+@editForm(("company/" + company.getIdAsString() + "/offer/" + offer.getIdAsString())) {
+    <div class="row">
+        @singleSelect(span: "4", name: "packageDefinition",
+        labelKey: "OfferItem.packageDefinition",   required:true) {
+            @for(String template : templateList) {
+                <option value="@template.toString()" @if (template.equals(mail.getTemplate() ) ) { selected="selected" }>@template.toString()</option>
+            }
+        }
+
+
+    </div>
+
+    <div class="row">
+
+      @textfield( span: "9", name:     "receiver", value:    context.get("mailAddress"),
+        labelKey: "Mail.receiverAdress", readOnly: false )
+
+
+      @textfield(span: "9", name:     "subject",    value:    context.get("plainSubject"),
+        labelKey: "Mail.subject",   readOnly: false)
+
+      @textarea(rows: "12", span: "12", name: "mailContent", value: context.get("plainText"),
+        labelKey: "Mail.text",   readOnly: false)
+
+      @textfield(span: "9", name:     "attachment", value:    context.get("plainAttachment"),
+        labelKey: "Mail.attachment")
+
+    </div>
+
+
+    <tr>
+        <td> <b>Mail </b></td>
+        <td>
+            <a class="link" href="/company/@company.getId()/offer/@offer.getId()/sendOffer"> senden </a>
+        </td>
+        <td>
+            <a class="link" href="/company/@company.getId()/offer/@offer.getId()/sendNotOffer"> nicht senden </a>
+        </td>
+
+    </tr>
+}
+
+
+
+

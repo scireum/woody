@@ -8,6 +8,7 @@
 
 package woody.core.mails;
 
+import sirius.biz.model.BizEntity;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -17,6 +18,7 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Lob;
 import sirius.db.mixing.annotations.Mixin;
 import sirius.db.mixing.annotations.NullAllowed;
+import sirius.db.mixing.annotations.Transient;
 import woody.core.employees.Employee;
 import woody.xrm.Person;
 
@@ -25,48 +27,64 @@ import java.time.LocalDateTime;
 /**
  * Created by gerhardhaufler on 28.09.17.
  */
-public class Mail extends Entity {
+public class Mail extends BizEntity {
 
+    @NullAllowed
+    @Autoloaded
     @Length(255)
     private String targetEntity;
     public static final Column TARGET_ENTITY = Column.named("targetEntity");
 
+    @Autoloaded
     @Length(255)
     @NullAllowed
     private String senderAddress;
     public static final Column SENDERADDRESS = Column.named("senderAddress");
 
+    @Autoloaded
     @Length(255)
     @NullAllowed
     private String receiverAddress;
     public static final Column RECEIVERADDRESS = Column.named("receiverAddress");
 
+    @Autoloaded
     @Length(255)
     @NullAllowed
     private String ccAddress;
     public static final Column CCADDRESS = Column.named("ccAddress");
 
+    @Autoloaded
     @Length(255)
     @NullAllowed
     private String bccAddress;
     public static final Column BCCADDRESS = Column.named("bccAddress");
 
+    @Autoloaded
     @Length(255)
     @NullAllowed
     private String messageId;
     public static final Column MESSAGEID = Column.named("messageId");
 
+    @NullAllowed
+    @Autoloaded
     @Length(255)
     private String subject;
     public static final Column SUBJECT = Column.named("subject");
 
+    @Autoloaded
     @Lob
     @NullAllowed
     private String text;
     public static final Column TEXT = Column.named("text");
 
-    private LocalDateTime tod;
-    public static final Column TOD = Column.named("tod");
+    @NullAllowed
+    private LocalDateTime receivingDate;
+    public static final Column RECEIVINGDATE = Column.named("receivingDate");
+
+    @NullAllowed
+    private LocalDateTime sendDate;
+    public static final Column SENDDATE = Column.named("sendDate");
+
 
     @Autoloaded
     @NullAllowed
@@ -75,12 +93,25 @@ public class Mail extends Entity {
 
     @Autoloaded
     @NullAllowed
-    private final EntityRef<UserAccount> userEntity = EntityRef.on(UserAccount.class, EntityRef.OnDelete.REJECT);
-    public static final Column USER_ENTITY = Column.named("userAccount");
+    private final EntityRef<UserAccount> employee = EntityRef.on(UserAccount.class, EntityRef.OnDelete.REJECT);
+    public static final Column EMPLOYEE = Column.named("employee");
 
     @Autoloaded
     private final boolean publicVisible = true;
     public static final Column PUBLIC_VISIBLE = Column.named("publicVisible");
+
+    @Autoloaded
+    @Length(255)
+    @NullAllowed
+    private String attachmentName;
+    public static final Column ATTACHMENTNAME = Column.named("attachmentName");
+
+    @Autoloaded
+    @Length(50)
+    @NullAllowed
+    private String template;
+    public static final Column TEMPLATE = Column.named("template");
+
 
     public String getTargetEntity() {
         return targetEntity;
@@ -146,23 +177,47 @@ public class Mail extends Entity {
         this.text = text;
     }
 
-    public LocalDateTime getTod() {
-        return tod;
+    public LocalDateTime getReceivingDate() {
+        return receivingDate;
     }
 
-    public void setTod(LocalDateTime tod) {
-        this.tod = tod;
+    public void setReceivingDate(LocalDateTime receivingDate) {
+        this.receivingDate = receivingDate;
     }
 
     public EntityRef<Person> getPersonEntity() {
         return personEntity;
     }
 
-    public EntityRef<UserAccount> getUserEntity() {
-        return userEntity;
+    public EntityRef<UserAccount> getEmployee() {
+        return employee;
     }
 
     public boolean isPublicVisible() {
         return publicVisible;
+    }
+
+    public String getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(String template) {
+        this.template = template;
+    }
+
+    public LocalDateTime getSendDate() {
+        return sendDate;
+    }
+
+    public void setSendDate(LocalDateTime sendDate) {
+        this.sendDate = sendDate;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
     }
 }

@@ -1,0 +1,86 @@
+@*
+*  Made with all the love in the world
+*  by scireum in Remshalden, Germany
+*
+*  Copyright by scireum GmbH
+*  http://www.scireum.de - info@scireum.de
+*@
+
+@import woody.xrm.Company
+@import woody.xrm.Person
+@import woody.offers.Offer
+@import woody.core.mails.Mail
+
+@args Company company, Offer offer, List templateList, Mail mail, String function
+
+@extends(view.wondergem.template.html)
+
+@pageHeader("Mail.sendMail")
+
+
+@editForm(("mail/" + mail.getIdAsString() + "/offer/" + offer.getIdAsString())) {
+
+        <div class="row">
+            @singleSelect(span: "4", name: "template",
+            labelKey: "Mail.template",   required:true) {
+            @for(String temp : templateList) {
+                <option value="@temp" @if (temp.equals(mail.getTemplate()) ) { selected="selected" }>@temp</option>
+            }
+        }
+        </div>
+
+        <div class="row">
+
+            @textfield( span: "9", name:     "senderAddress", value:    mail.getSenderAddress(),
+            labelKey: "Mail.senderAddress", readOnly: false )
+
+            @textfield( span: "9", name:     "receiverAddress", value:    mail.getReceiverAddress(),
+            labelKey: "Mail.receiverAddress", readOnly: false )
+
+            @textfield(span: "9", name:     "subject",    value: mail.getSubject(),
+            labelKey: "Mail.subject",   readOnly: false)
+
+            @textarea(rows: "12", span: "12", name: "text", value: mail.getText(),
+            labelKey: "Mail.text",   readOnly: false)
+
+            @textfield(span: "9", name:     "attachmentName", value: mail.getAttachmentName(),
+            labelKey: "Mail.attachment")
+
+        </div>
+}
+
+
+
+@if("sendOffer".equals(function)) {
+   <div>
+        <tr>
+            <td> <b>Mail </b></td>
+            <td>
+                <a class="link" href="/company/@company.getId()/offer/@offer.getId()/mail/@mail.getId()/sendOffer"> senden </a>
+            </td>
+            <td> oder </td>
+            <td>
+                <a class="link" href="/company/@company.getId()/offer/@offer.getId()/mail/@mail.getId()/sendNotOffer"> nicht senden </a>
+            </td>
+        </tr>
+    </div>
+}
+@if("confirmOffer".equals(function)) {
+div>
+    <tr>
+        <td> <b>Mail </b></td>
+        <td>
+            <a class="link" href="/company/@company.getId()/offer/@offer.getId()/mail/@mail.getId()/sendOffer"> senden </a>
+        </td>
+        <td> oder </td>
+        <td>
+            <a class="link" href="/company/@company.getId()/offer/@offer.getId()/mail/@mail.getId()/sendNotOffer"> nicht senden </a>
+        </td>
+    </tr>
+</div>
+}
+@formBar() {
+    @tracing(mail.getTrace())
+}
+
+

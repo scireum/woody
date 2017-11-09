@@ -30,6 +30,7 @@ import java.util.List;
  */
 public interface ServiceAccountingService {
 
+    public static final String NORMAL_MAIL = "normalMail";
     public static final String OFFER = "offer";
     public static final String SALES_CONFIRMATION = "sales_confirmation";
 
@@ -37,7 +38,6 @@ public interface ServiceAccountingService {
      * account all service-offers
      *
      * @param dryRun, true = Test, false = produktiv
-     * @param monitor
      * @return List of teh generated lineitems
      */
     public DataCollector<Lineitem> accountAllServiceOffers(boolean dryRun /*, TaskMonitor monitor*/);
@@ -118,11 +118,11 @@ public interface ServiceAccountingService {
     public void updateOfferState(Offer offer, boolean save);
 
     /**
-     * sends the offer per mail to the given person and buyer in the offer
+     * ask for sending the offer per mail to the given person and buyer in the offer
      *
      * @param offer
      */
-    public void sendOffer(Offer offer);
+    public Context askOffer(Offer offer);
 
     public List<PackageDefinition> getAllPackageDefinitions(Object object);
 
@@ -171,5 +171,10 @@ public interface ServiceAccountingService {
      * @return
      */
     public Context prepareContractContext(Contract contract);
+
+    /**
+     * builds a Md5 -Herx-String of the given string
+     */
+    public String buildMd5HexString(String s);
 
 }

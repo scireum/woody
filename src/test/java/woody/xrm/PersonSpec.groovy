@@ -9,7 +9,6 @@
 package woody.xrm
 
 import sirius.biz.tenants.Tenants
-import sirius.biz.tenants.TenantsHelper
 import sirius.db.mixing.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.di.std.Part

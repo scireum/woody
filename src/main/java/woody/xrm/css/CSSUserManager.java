@@ -20,7 +20,7 @@ import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 
 import sirius.kernel.health.Exceptions;
-import sirius.kernel.settings.Settings;
+
 import sirius.web.http.WebContext;
 import sirius.web.security.GenericUserManager;
 import sirius.web.security.ScopeInfo;
@@ -39,7 +39,7 @@ import java.util.Set;
  */
 public class CSSUserManager {//extends GenericUserManager {
 
-    // ToDO wieder in Betrieb nehmen
+    // ToDO CssUserManager wieder in Betrieb nehmen
 
 //    public CSSUserManager(ScopeInfo scope, Settings config) {
 //        super(scope, config);
