@@ -7,18 +7,16 @@
 *@
 
 @import woody.xrm.Company
-@import woody.xrm.Person
-@import woody.offers.Offer
 @import woody.core.mails.Mail
 
-@args Company company, Offer offer, List templateList, Mail mail, String function
+@args List templateList, Mail mail, String function
 
 @extends(view.wondergem.template.html)
 
 @pageHeader("Mail.sendMail")
 
 
-@editForm(("mail/" + mail.getIdAsString() + "/offer/" + offer.getIdAsString())) {
+@editForm(("mail/" + mail.getIdAsString() )) {
 
         <div class="row">
             @singleSelect(span: "4", name: "template",
@@ -51,34 +49,22 @@
 
 
 
-@if("sendOffer".equals(function)) {
+
    <div>
         <tr>
             <td> <b>Mail </b></td>
             <td>
-                <a class="link" href="/company/@company.getId()/offer/@offer.getId()/mail/@mail.getId()/sendOffer"> senden </a>
+                <a class="link" href="/mail/@mail.getId()/sendOffer"> senden </a>
             </td>
             <td> oder </td>
             <td>
-                <a class="link" href="/company/@company.getId()/offer/@offer.getId()/mail/@mail.getId()/sendNotOffer"> nicht senden </a>
+                <a class="link" href="/mail/@mail.getId()/sendNotOffer"> nicht senden </a>
             </td>
         </tr>
     </div>
-}
-@if("confirmOffer".equals(function)) {
-div>
-    <tr>
-        <td> <b>Mail </b></td>
-        <td>
-            <a class="link" href="/company/@company.getId()/offer/@offer.getId()/mail/@mail.getId()/sendOffer"> senden </a>
-        </td>
-        <td> oder </td>
-        <td>
-            <a class="link" href="/company/@company.getId()/offer/@offer.getId()/mail/@mail.getId()/sendNotOffer"> nicht senden </a>
-        </td>
-    </tr>
-</div>
-}
+
+
+
 @formBar() {
     @tracing(mail.getTrace())
 }

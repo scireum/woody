@@ -70,14 +70,18 @@ Comments, Beginn:<br>
 Comments, Ende
 <br><br>
 Mails, Beginn:<br>
+
+
 @for(woody.core.mails.Mail mail : person.getMailed().getAllMails()) {
 <div class="mail">
     <table>
-        <tr><td>@mail.getSenderName() (@mail.getSender()) an @mail.getReceiverName() (@mail.getReceiver()) am @NLS.toUserString(mail.getTod()) Uhr</td></tr>
+        <tr><td>@mail.getEmployeeEntity().getValue().toString() (@mail.getSenderAddress()) an @mail.getPersonEntity().getValue().toString() (@mail.getReceiverAddress()) am @NLS.toUserString(mail.getSendDate()) Uhr</td></tr>
         <tr><td>@mail.getSubject()</td></tr>
         <tr><td>@mail.getText()</td></tr>
     </table>
     <br></br>
 </div>
 }
+
+
 Mails, Ende

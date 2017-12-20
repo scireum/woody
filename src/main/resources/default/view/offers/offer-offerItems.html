@@ -24,6 +24,10 @@
     <a class="btn btn-primary" href="/company/@company.getId()/offer/@offer.getId()/offerItem/new">@i18n("Model.create")</a>
 }
 
+
+@textfield(span: "9", name:     "offerKeyData",    value:    offer.getOfferKeyData(),
+labelKey: "Offer.keyData",   required:false, readOnly: true)
+
 @table(offerItems) {
     <thead>
         <tr>
@@ -77,6 +81,9 @@
                 @NLS.toUserString(offerItem.getAccountingDate())
             </td>
             <td>
+                @if(offerItem.showCreateContract()) {
+                  <a class="link" href="/company/@company.getId()/offer/@offer.getId()/offerItem/@offerItem.getId()/createContract">Vertrag anlegen</a>
+                }
                 @if(offerItem.showNextState()) {
                   <a class="link" href="/company/@company.getId()/offer/@offer.getId()/offerItem/@offerItem.getId()/nextState">next state</a>
                 }

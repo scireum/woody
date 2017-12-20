@@ -11,6 +11,8 @@ package woody.xrm;
 import sirius.biz.tenants.TenantAware;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.annotations.Length;
+import sirius.db.mixing.annotations.NullAllowed;
 
 /**
  * Created by gerhardhaufler on 07.02.16.
@@ -30,10 +32,14 @@ public class CompanyRelation extends TenantAware {
      * </code>
      */
 
+    public static final String COMPANYRELATION_CODELIST = "companyRelation";
+
     private final EntityRef<Company> part = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column PART = Column.named("part");
 
-    private CompanyRelationType companyRelationType;
+    @Length(20)
+    @NullAllowed
+    private String companyRelation;
     public static final Column COMPANYRELATIONTYPE = Column.named("companyRelationType");
 
     private final EntityRef<Company> whole = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
@@ -42,11 +48,11 @@ public class CompanyRelation extends TenantAware {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(part);
+        sb.append(part.toString());
         sb.append(" ist ");
-        sb.append(companyRelationType.toString());
+        sb.append(companyRelation);
         sb.append(" von ");
-        sb.append(whole);
+        sb.append(whole.toString());
         return sb.toString();
     }
 }

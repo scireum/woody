@@ -15,15 +15,19 @@ import sirius.kernel.nls.NLS;
  */
 public enum OfferItemState {
     // NEVER CHANGE THIS ORDER!
-    OFFER,   // Angebot
-    ORDERED, // Position wurde vom Kunden bestellt
-    CONFIRMED, // Auftragsbestätigung für diese Position wurde versendet
-    DEVELOPED,   // Position wurde von scireum entwickelt
-    ACCEPTED, // Position wurde vom Kunden abgenommen
-    ACCOUNTED, // Position wurde abgerechnet
-    CANCELED,  // Position wurde anulliert
-    UNUSED,  // Position ist nicht benutzt
-    COPY;    // Position wurde kopiert
+    // <code>
+    // Status     Service                                                      License
+    // -----------------------------------------------------------------------------------------------
+    OFFER,     // Angebot                                                      Angebot
+    ORDERED,   // Position wurde vom Kunden bestellt                           bestellt
+    CONFIRMED, // Auftragsbestätigung für diese Position wurde versendet       bestätigt
+    DEVELOPED, // Position wurde von scireum entwickelt                        ***
+    ACCEPTED,  // Position wurde vom Kunden abgenommen                         Vertrag ist angelegt
+    ACCOUNTED, // Position wurde abgerechnet                                   abgerechnet
+    CANCELED,  // Position wurde anulliert                                     annulliert
+    UNUSED,    // Position ist nicht benutzt                                   nicht benutzt
+    COPY;      // Position wurde kopiert                                       kopiert
+    //</code>
 
     @Override
     public String toString() {

@@ -36,6 +36,9 @@ public class CompanyAccountingData extends Composite {
     public static final String[] INVOICEMEDIUMNAMES = {"PRINT", "MAIL"};
     public static final String INVOICEMEDIUM_CODELIST = "invoicemedium";
     public static final String OUTPUTLANGUAGE_CODELIST = "outputLanguage";
+    public static final String COMPANYTYPE_CODELIST = "companytype";
+    public static final String BUSINESSTYPE_CODELIST = "businesstype";
+
 
     @NullAllowed
     @Autoloaded
@@ -103,4 +106,5 @@ public class CompanyAccountingData extends Composite {
     public void setOutputLanguage(String outputLanguage) {
         this.outputLanguage = outputLanguage;
     }
+
 }

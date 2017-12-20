@@ -32,7 +32,7 @@ public interface ServiceAccountingService {
 
     public static final String NORMAL_MAIL = "normalMail";
     public static final String OFFER = "offer";
-    public static final String SALES_CONFIRMATION = "sales_confirmation";
+    public static final String SALES_CONFIRMATION = "salesConfirmation";
 
     /**
      * account all service-offers
@@ -117,12 +117,6 @@ public interface ServiceAccountingService {
      */
     public void updateOfferState(Offer offer, boolean save);
 
-    /**
-     * ask for sending the offer per mail to the given person and buyer in the offer
-     *
-     * @param offer
-     */
-    public Context askOffer(Offer offer);
 
     public List<PackageDefinition> getAllPackageDefinitions(Object object);
 

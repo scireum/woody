@@ -19,6 +19,8 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Transient;
 import sirius.db.mixing.annotations.Unique;
+import sirius.kernel.commons.Amount;
+import sirius.kernel.commons.NumberFormat;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
@@ -28,7 +30,9 @@ import woody.core.employees.Employee;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
+import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Created by gerhardhaufler on 11.10.16.
@@ -165,6 +169,46 @@ public class Offer extends BizEntity {
         return offerPeriodPresent;
     }
 
+    public String getOfferKeyData() {
+        List<OfferItem> oiList = oma.select(OfferItem.class).eq(OfferItem.OFFER, this).queryList();
+        Amount sumSingle = Amount.ZERO;
+        Amount sumLicence = Amount.ZERO;
+        for (OfferItem oi : oiList) {
+            if (OfferItemState.CANCELED.equals(oi.getState())) {
+                continue;
+            }
+            if (OfferItemState.UNUSED.equals(oi.getState())) {
+                continue;
+            }
+            if (OfferItemState.COPY.equals(oi.getState())) {
+                continue;
+            }
+            if (OfferItemType.LICENSE.equals(oi.getOfferItemType())) {
+                Amount quantity = oi.getQuantity();
+                if (quantity == null) {
+                    quantity = Amount.ONE;
+                }
+                sumLicence = sumLicence.add(quantity.times(oi.getCyclicPrice()));
+                Amount discount = Amount.ZERO;
+                if (oi.getDiscount() != null) {
+                    discount = oi.getDiscount();
+                }
+                sumLicence = sumLicence.decreasePercent(discount);
+                sumSingle = sumSingle.add(quantity.times((oi.getSinglePrice())));
+                sumSingle = sumSingle.decreasePercent(discount);
+            }
+            if (OfferItemType.SERVICE.equals(oi.getOfferItemType())) {
+                Amount quantity = oi.getQuantity();
+                sumSingle = sumSingle.add(quantity.times(oi.getSinglePrice()));
+            }
+        }
+
+        String sumSingleString = sumSingle.toString(NumberFormat.TWO_DECIMAL_PLACES).toString();
+        String sumLicenseString = sumLicence.toString(NumberFormat.TWO_DECIMAL_PLACES).toString();
+        String text = MessageFormat.format("Einmalige Kosten: {0} EUR, wiederkehrende Kosten: {1} EUR.",
+                                           sumSingle, sumLicence);
+        return text;
+    }
 
     public EntityRef<Company> getCompany() {
         return company;

@@ -164,10 +164,10 @@ public class Contract extends BizEntity {
         sb.append(":");
         String LEER = "leer";
         String name = LEER;
-        if(this.getId() == -1) {
-            sb.append("empty_contract");
-            return sb.toString();
-        }
+//        if(this.getId() == -1) {
+//            sb.append("empty_contract");
+//            return sb.toString();
+//        }
         if (getPackageDefinition() != null) {
             if (getPackageDefinition().getValue().getProduct() != null) {
                 name = getPackageDefinition().getValue().getProduct().getValue().getName();
@@ -370,13 +370,14 @@ public class Contract extends BizEntity {
             if(c0.getEndDate() == null) {
                 // ToDo auf warning umstellen
                 throw Exceptions.createHandled().withNLSKey("Contract.endDateMissing").set("contract0", c0.toString())
-                                .set("contract1", c1.toString()).handle();
+                                .set("contract1", c1.toString()).set("abrGrp", c1.getAccountingGroup()).handle();
             }
+
             if(c1.getStartDate().isBefore(c0.getEndDate())) {
                 // ToDo auf warning umstellen
                 throw Exceptions.createHandled().withNLSKey("Contract.startDateMissing")
                                 .set("contract", c1.toString())
-                                .set("oldContract", c0.toString()).handle();
+                                .set("oldContract", c0.toString()).set("abrGrp", c1.getAccountingGroup()).handle();
             }
         }
     }
@@ -471,10 +472,6 @@ public class Contract extends BizEntity {
      * @return the distance of using the contract in this year, e.g.1.1.-31.12.year
      */
     public String getDistance(int year) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year+1);
-        cal.set(Calendar.MONTH,0);
-        cal.set(Calendar.DAY_OF_MONTH,1);
         LocalDate endDateYear = LocalDate.of(year,12,31);
         String s = "01.01 - ";
         if(this.endDate != null && this.endDate.isBefore(endDateYear)) {
@@ -517,10 +514,6 @@ public class Contract extends BizEntity {
      * @return the number of month of usage the contract in this year
      */
     public int getMonthsInt(int year) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year+1);
-        cal.set(Calendar.MONTH,0);
-        cal.set(Calendar.DAY_OF_MONTH,1);
         LocalDate endDateYear = LocalDate.of(year+1,1,1);
         int months = 12;
         if(this.endDate != null) {

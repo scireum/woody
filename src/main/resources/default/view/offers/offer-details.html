@@ -16,25 +16,13 @@
 
 @editForm(("company/" + company.getIdAsString() + "/offer/" + offer.getIdAsString())) {
     <div class="row">
-      @*
-      @textfield( span: "3", name:     "number", value:    offer.getNumber(),
-      labelKey: "Offer.number", readOnly: true )
-      *@
 
-      @textfield(span: "4", name:     "keyword",    value:    offer.getKeyword(),
-      labelKey: "Offer.keyword",   required:true)
-      @*
-          @textfield(span: "4", name: "state", value: offer.getState().toString(),
-          labelKey: "Offer.state",   required:true)
+        @textfield(span: "9", name:     "offerKeyData",    value:    offer.getOfferKeyData(),
+        labelKey: "Offer.keyData",   required:false, readOnly: true)
 
-        @singleSelect(span: "4", name: "state",
-        labelKey: "Offer.state") {
-            @for(OfferState state : OfferState.values()) {
-                <option value="@state.name()" @if (state == offer.getState()) { selected="selected" }>@state.toString()</option>
-            }
-        }
-        *@
 
+        @textfield(span: "4", name:     "keyword",    value:    offer.getKeyword(),
+        labelKey: "Offer.keyword",   required:true)
     </div>
 
     <div class="row">
@@ -80,6 +68,10 @@
         <td>
             <a class="link" href="/company/@company.getId()/offer/@offer.getId()/confirmOffer"> bestätigen </a>
         </td>
+        <td>
+            <a class="link" href="/company/@company.getId()/offer/@offer.getId()/cancelOffer"> Angebot stornieren </a>
+        </td>
+
     </tr>
 }
 

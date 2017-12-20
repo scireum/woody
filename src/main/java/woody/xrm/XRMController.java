@@ -294,7 +294,7 @@ public class XRMController extends BizController {
     @Permission(MANAGE_XRM)
     @Routed("/persons")
     public void persons(WebContext ctx) {
-        // ToDo: Wofür ist dieser Code?
+
         MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Person> query = oma.select(Person.class)
                                       .fields(Person.ID,

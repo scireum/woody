@@ -9,16 +9,17 @@
 package woody.offers;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
 import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
+import sirius.db.mixing.constraints.Like;
 import sirius.kernel.commons.Context;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
-import sirius.kernel.nls.NLS;
 import sirius.web.controller.Controller;
 import sirius.web.controller.Message;
 import sirius.web.controller.Routed;
@@ -30,21 +31,17 @@ import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 import sirius.web.templates.Templates;
 import woody.core.mails.Mail;
+import woody.core.mails.Mailtemplate;
 import woody.core.mails.SendMailService;
 import woody.core.tags.Tagged;
-import woody.sales.SalesController;
 import woody.sales.SalesControllerService;
 import woody.xrm.Company;
 import woody.xrm.Person;
-import woody.xrm.XRMController;
 
-import javax.activation.DataSource;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -58,8 +55,6 @@ import java.util.Optional;
 @Register(classes = Controller.class)
 public class OffersController extends BizController {
 
-    public static final String SENDOFFER = "sendOffer";
-    public static final String CONFIRMOFFER = "confirmOffer";
 
     public static final String MANAGE_OFFER = "permission-manage-offers";
     public static final String VIEW_OFFER = "permission-view-offers";
@@ -78,144 +73,70 @@ public class OffersController extends BizController {
     @Part
     private static SendMailService sms;
 
-    // Taste 'Mail senden' wurde gedrückt
-    @LoginRequired
-    @Permission(MANAGE_OFFER)
-    @Routed("/company/:1/offer/:2/mail/:3/sendOffer")
-    public void sendOffer(WebContext ctx, String companyId, String offerId, String mailId) {
-        Company company = findForTenant(Company.class, companyId);
-        assertNotNew(company);
-        Offer offer = find(Offer.class, offerId);
-        setOrVerify(offer, offer.getCompany(), company);
-        Mail mail = find(Mail.class, mailId);
-        if(mail == null) {
-            ctx.respondWith().template("view/offers/offer-details.html", company, offer);
-            return;
-        }
-        if(Strings.isEmpty(mail.getSubject())) {
-            ctx.respondWith().template("view/offers/offer-details.html", company, offer);
-            return;
-        }
-        Context context = sas.askOffer(offer);
-        context.set("plainSubject", context.get("subject"));
-        String plainText = templates.generator().useTemplate("templates/mail-template.vm").applyContext(context).generate();
-        context.set("plainText", plainText);
-        String filenamePDF = (String) context.get("filenamePDF");
-        context.set("plainAttachment", filenamePDF);
-        File file = (File) context.get("fileAttachment");
-        DataSource dataSource = new DataSource() {
-
-            @Override
-            public InputStream getInputStream() throws IOException {
-                return new FileInputStream(file);
-            }
-
-            @Override
-            public OutputStream getOutputStream() throws IOException {
-                return null;
-            }
-
-            @Override
-            public String getContentType() {
-                return MimeHelper.APPLICATION_PDF;
-            }
-
-            @Override
-            public String getName() {
-                return filenamePDF;
-            }
-        };
+    private FileInputStream fileInputStream;
 
 
-        sms.prepareMail(context, ServiceAccountingService.OFFER, dataSource);
-        UserContext.message(Message.info("Mail wurde versendet"));
-        ctx.respondWith().template("view/offers/offer-details.html", company, offer);
-
-    }
 
     // Taste 'senden' in Angebotsliste oder Angebots-Details  wurde gedrückt
     @LoginRequired
     @Permission(MANAGE_OFFER)
     @Routed("/company/:1/offer/:2/template")
-    public void askTemplateSendOffer(WebContext ctx, String companyId, String offerId) {
-        askTemplateAndSend(ctx, companyId, offerId, SENDOFFER);
+    public void askTemplateOffer(WebContext ctx, String companyId, String offerId) {
+        askTemplate(ctx, companyId, offerId, ServiceAccountingService.OFFER);
     }
 
-    private void askTemplateAndSend(WebContext ctx, String companyId, String offerId, String function) {
+    /**
+     * asks for the template, generate a mail-object and displays the mail-object
+     */
+    private void askTemplate(WebContext ctx, String companyId, String offerId, String function) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
         Offer offer = find(Offer.class, offerId);
         setOrVerify(offer, offer.getCompany(), company);
-        // Neue Mail initiieren und sender und Empfänger speichern
+        // Init a new mail-Object an store sender and receiver
         Mail mail = new Mail();
-        String receiver = offer.getBuyer().getValue().getContact().getEmail();
+        String offerUniqueName = offer.getUniqueName();
+        mail.setUsageId(offerUniqueName);
+        Person person = offer.getPerson().getValue();
+        String receiver = person.getContact().getEmail();
         String sender = offer.getEmployee().getValue().getEmail();
+        mail.getPersonEntity().setValue(person);
         mail.setReceiverAddress(receiver);
         mail.setSenderAddress(sender);
+        mail.setFunction(function);
+        UserInfo userInfo = UserContext.getCurrentUser();
+        UserAccount uac = userInfo.as(UserAccount.class);
+        mail.getEmployeeEntity().setValue(uac);
         oma.update(mail);
         List<String> templateList =  new ArrayList<String>();
         switch (function) {
-            case SENDOFFER:
+            case ServiceAccountingService.OFFER:
                 // Mail-Template 'Amgebot_senden' vorschlagen
                 templateList.add("Angebot_senden");
                 break;
-            case CONFIRMOFFER:
-
+            case ServiceAccountingService.SALES_CONFIRMATION:
+                List<Mailtemplate> templates = oma.select(Mailtemplate.class)
+                        .where(Like.on(Mailtemplate.NAME).ignoreCase().ignoreEmpty().contains("AB_"))
+                        .orderAsc(Mailtemplate.NAME).queryList();
+                for(Mailtemplate mt : templates) {
+                    templateList.add(mt.getName());
+                }
+                String text = "Auftragsbestätigung für Position(en): {0} senden?";
+                String posText = "";
+                List<OfferItem> confirmationList = sas.getConfirmationOfferItems(offer);
+                for (OfferItem oi : confirmationList) {
+                    if (posText != null && !posText.isEmpty()) {
+                        posText = posText + ", ";
+                    }
+                    posText = posText + oi.getPosition();
+                }
+                String message = MessageFormat.format(text, posText);
+                UserContext.message(Message.info(message));
                 break;
         }
 
-        ctx.respondWith().template("view/mails/mail-details.html", company, offer, templateList, mail, function);
+        ctx.respondWith().template("view/mails/mail-details.html", templateList, mail, function);
     }
-
-    private void askForSalesConfirmation(Offer offer) {
-
-        List<OfferItem> confirmationList = sas.getConfirmationOfferItems(offer);
-        if (confirmationList.size() == 0) {
-// ToDo            throw new BusinessException("Für dieses Angebot gibt es keine aktuelle Auftragsbestätigung zum Senden.");
-        }
-        String text = "Auftragsbestätigung für Position(en): {0} senden?";
-        String posText = "";
-        for (OfferItem oi : confirmationList) {
-            if (!"".equals(posText)) {
-                posText = posText + ", ";
-            }
-            posText = posText + oi.getPosition();
-        }
-
-        String askText = MessageFormat.format(text, posText);
-
-//        ApplicationController.get(DialogsBean.class).ask(MessageFormat.format(text, posText), new ActionListener() {
-//            @Override
-//            public void action() throws Exception {
-//                sas.sendSalesConfirmation(view, offer, confirmationList);
-//                view.refresh();
-//            }
-//        });
-    }
-
-    @LoginRequired
-    @Permission(MANAGE_OFFER)
-    @Routed("/company/:1/offer/:2/mail/:3/sendNotOffer")
-    public void sendNotOffer(WebContext ctx, String companyId, String offerId, String mailId) {
-        List<String>  templateList =  new ArrayList<String>();
-        Company company = findForTenant(Company.class, companyId);
-        assertNotNew(company);
-        Offer offer = find(Offer.class, offerId);
-        setOrVerify(offer, offer.getCompany(), company);
-        Mail mail = find(Mail.class, mailId);
-        Context context = sas.askOffer(offer);
-        context.set("plainSubject", context.get("subject"));
-        String plainText = templates.generator().useTemplate("templates/mail-template.vm").applyContext(context).generate();
-        context.set("plainText", plainText);
-        String filenamePDF = (String) context.get("filenamePDF");
-        context.set("plainAttachment", filenamePDF);
-        if(mail != null && Strings.isFilled(mail.getTemplate())) {
-            templateList.add(mail.getTemplate());
-        }
-        UserContext.message(Message.info("Mail wurde nicht versendet"));
-        ctx.respondWith().template("view/mails/mail-details.html", company, offer, templateList, mail, SENDOFFER);
-    }
-
 
     @LoginRequired
     @Permission(MANAGE_OFFER)
@@ -243,20 +164,82 @@ public class OffersController extends BizController {
 
     @LoginRequired
     @Permission(MANAGE_OFFER)
+    @Routed("/company/:1/offer/:2/copyOffer")
+    public void cancelOffer(WebContext ctx, String companyId, String offerId) {
+        Company company = findForTenant(Company.class, companyId);
+        assertNotNew(company);
+        Offer offer = find(Offer.class, offerId);
+        setOrVerify(offer, offer.getCompany(), company);
+
+        List<OfferItem> oiList = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION)
+                .queryList();
+        boolean error = false;
+        OfferItem oi1 = null;
+        for(OfferItem oi : oiList) {
+           if(oi.isLicense() || oi.isService()) {
+               if(OfferItemState.UNUSED.equals(oi) || OfferItemState.COPY.equals(oi) || OfferItemState.CANCELED.equals(oi)) {
+                   continue;
+               }
+               oi1 = oi;
+               error = true;
+               break;
+           }
+        }
+        if(error) {
+            String text = MessageFormat.format("Die Position {0} hat den Status {1} --> Storno nicht möglich.",
+                                               oi1.getPosition(), oi1.getState().toString());
+            UserContext.message(Message.info(text));
+            ctx.respondWith().template("view/offers/offer-details.html", company, offer);
+            return;
+        }
+        for(OfferItem oi : oiList) {
+            if(OfferItemState.UNUSED.equals(oi) || OfferItemState.COPY.equals(oi) || OfferItemState.CANCELED.equals(oi)) {
+                continue;
+            }
+            oi.setState(OfferItemState.CANCELED);
+            oma.update(oi);
+        }
+        offer.setState(OfferState.CLOSED);
+        String text = MessageFormat.format("Das Angebot Nr.: {0} wurde storniert.",
+                                           offer.getNumber());
+        UserContext.message(Message.info(text));
+        companyOffers(ctx, companyId);
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_OFFER)
     @Routed("/company/:1/offer/:2/confirmOffer")
     public void confirmOffer(WebContext ctx, String companyId, String offerId) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
         Offer offer = find(Offer.class, offerId);
         setOrVerify(offer, offer.getCompany(), company);
+        List<OfferItem> confirmationList = sas.getConfirmationOfferItems(offer);
+        if (confirmationList.size() == 0) {
+            String message = MessageFormat.format(
+                    "Das Angebot {0} enthält keine zu bestätigenden Positionen.",
+                    offer.getNumber());
+            UserContext.message(Message.info(message));
+            MagicSearch search = MagicSearch.parseSuggestions(ctx);
+            SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
 
-        sas.sendSalesConfirmation(offer);
-        scs.companyContracts(ctx, companyId);
+            Tagged.applyTagSuggestions(Offer.class, search, query);
+            PageHelper<Offer> ph = PageHelper.withQuery(query);
+            ph.withContext(ctx);
+            ctx.respondWith()
+               .template("view/offers/company-offers.html", company, ph.asPage(), search.getSuggestionsString());
+            return;
+        }
+
+        askTemplate(ctx, companyId, offerId,
+                    ServiceAccountingService.SALES_CONFIRMATION);
+
     }
 
     @LoginRequired
     @Permission(MANAGE_XRM)
     @Routed("/company/:1/offers")
+    // shows the offers of the given company
     public void companyOffers(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);
         MagicSearch search = MagicSearch.parseSuggestions(ctx);
@@ -272,6 +255,7 @@ public class OffersController extends BizController {
     @LoginRequired
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2")
+    // display and save the given offer
     public void offer(WebContext ctx, String companyId, String offerId) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
@@ -304,6 +288,7 @@ public class OffersController extends BizController {
     @LoginRequired
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2/viewOffer")
+    // Display the given offer
     public void viewOffer(WebContext ctx, String companyId, String offerId) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
@@ -311,12 +296,23 @@ public class OffersController extends BizController {
         setOrVerify(offer, offer.getCompany(), company);
         Context context = sas.prepareContext(offer, ServiceAccountingService.OFFER);
         OutputStream out = ctx.respondWith().outputStream(HttpResponseStatus.OK, MimeHelper.APPLICATION_PDF);
+        // ToDo auf pasta umstellen
         templates.generator().useTemplate("templates/offer.pdf.vm").applyContext(context).generateTo(out);
+//        templates.generator().useTemplate("templates/offer.pdf.pasta").applyContext(context).generateTo(out);
+        File file = new File("test123.pdf");
+        try {
+            out = new FileOutputStream(file);
+            templates.generator().useTemplate("templates/offer.pdf.pasta").applyContext(context).generateTo(out);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        int iii = 1;
     }
 
     @LoginRequired
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2/offerItems")
+    // Displays the offerItems of the given offer
     public void offerOfferItems(WebContext ctx,  String companyId, String offerId) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
@@ -334,6 +330,7 @@ public class OffersController extends BizController {
     @LoginRequired
     @Permission(MANAGE_OFFER)
     @Routed("/company/:1/offer/:2/offerItem/:3/nextState")
+    // calculates the next state for the given offerItem
     public void offerItemNextState(WebContext ctx,  String companyId, String offerId, String offerItemId) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
@@ -357,6 +354,29 @@ public class OffersController extends BizController {
 
     @LoginRequired
     @Permission(MANAGE_OFFER)
+    @Routed("/company/:1/offer/:2/offerItem/:3/createContract")
+    // calculates the next state for the given offerItem
+    public void offerItemCreateContracte(WebContext ctx,  String companyId, String offerId, String offerItemId) {
+        Company company = findForTenant(Company.class, companyId);
+        assertNotNew(company);
+        Offer offer = findForTenant(Offer.class, offerId);
+        OfferItem oi = findForTenant(OfferItem.class, offerItemId);
+        String message = sas.createContractFromOfferItem(oi);
+        oi.setState(OfferItemState.ACCEPTED);
+        oma.update(oi);
+        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+        SmartQuery<OfferItem> query = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
+
+        //Tagged.applyTagSuggestions(Offer.class, search, query);
+        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
+        ph.withContext(ctx);
+        UserContext.message(Message.info(message));
+        ctx.respondWith()
+           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_OFFER)
     @Routed("/company/:1/offer/:2/delete")
     public void deleteOffer(WebContext ctx, String companyId, String offerId) {
         Optional<Offer> offer = tryFind(Offer.class, offerId);
@@ -371,6 +391,7 @@ public class OffersController extends BizController {
     @LoginRequired
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2/offerItem/:3")
+    // Displays and save te given offerItem
     public void offerItem(WebContext ctx,  String companyId, String offerId, String offerItemId) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);

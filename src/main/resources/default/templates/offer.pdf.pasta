@@ -1,0 +1,184 @@
+<html>
+
+ <body style="font-family:sans-serif; font-size:10pt">
+
+ <div style="width: 10cm; float: left">
+    scireum GmbH<br />
+    Eisenbahnstr. 24<br />
+    73630 Remshalden
+ </div>
+ <div style="float:right">
+     <img src="plugins/scireum/crm/login_logo.png" style="width:4cm" />
+ </div>
+
+<div style=" padding-top: 1.5cm; clear:both; float:right">
+  $!dateString
+</div>
+
+<div style=" padding-top: 0.5cm; clear:both">
+ $!company.name<br />
+ $!company.street<br />
+ $!company.zipCode $!company.city
+</div>
+
+<div style="padding-top: 2.5cm;font-weight: bold; font-size: 14pt">
+$!headlinePrefix Angebot Nr. $!offer.number vom $nls.toUserString($offer.date) $!offerState
+</div>
+<br />
+<table style="font-size:9pt">
+ <tr><td>Kundennummer:</td><td> $!company.customerNr</td><td></td><td></td> </tr>
+ <tr><td>Ihre Kontaktperson:</td><td> $!person.name,</td><td>Tel.: $!person.phone,</td><td>E-Mail: $!person.email  </td> </tr>
+ <tr><td>Unsere Kontaktperson:</td><td>$!employee.salutation $!employee.firstname $!employee.lastname,</td><td>Tel.: $!employee.phone,</td><td>E-Mail: $!employee.email  </td></tr>
+ @if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>$!buyer</td><td>Tel.: $!buyer.phone,</td><td>E-Mail: $!buyer.email </td></tr>   @end
+ @if($toolkit.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >$offer.reference</td></tr>    @end
+</table>
+
+<br></br>
+$!salutation
+<br></br><br></br>
+$!offerline
+
+<br></br> <br></br><br></br>
+<div style="font-weight: bold; font-size: 14pt;" >
+   $offer.keyword
+</div>
+<br></br>
+
+ <table>
+      @foreach ($item in $offerItemList)
+         @if($item.isInfoText())
+                <br></br>
+               <tr><th style="width:2cm" valign="top">Pos.</th><th>Information</th><th></th><th></th><th></th><th></th></tr>
+               <tr><td style="width:2cm" valign="top">$item.position</td><td colspan = "4">$item.text</td></tr>
+         @else
+            @if($item.isSum())
+                <br></br><br></br>
+                <tr>
+                    <th>Pos.</th><th>Information</th><th></th><th ></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:4cm" align= "right">Preis je $licenceItemCyclicUnit</th>
+                </tr>
+                <tr>
+                    <td >$item.position</td>
+                    <td colspan = "3"><b>$item.text</b></td>
+                    <td align="right"><b>$nls.toUserString($item.price) €</b></td>
+                    <td align="right"><b>$nls.toUserString($item.cyclicPrice) €</b></td>
+                </tr>
+                <br></br><br></br>
+            @else
+                <br></br>
+                @if($item.isLicense())
+                    <tr><th style="width:2cm" valign="top">Pos.</th><th>Menge</th><th></th><th>if($item.stateIsVisible)Hinweis@end</th>
+                        <th align="right">if($item.isPackageDefinitionSinglePricePresent())einmaliger Preis@end</th>
+                        <th align="right">Preis je $item.quantityUnit</th>
+                    </tr>
+                @end
+                if($item.isService())
+                    <tr><th>Pos.</th><th style="width:4cm">Menge</th><th style="width:4cm">Einzelpreis</th><th style="width:4cm">if($item.stateIsVisible)Hinweis@end</th>
+                    <th  style="width:4cm" align="right">einmaliger Preis</th><th style="width:4cm"></th></tr>
+                @end
+                <tr><td style="width:2cm" valign="top">$item.position</td>
+                      @if($item.isLicense())
+                          <td style="width:4cm">$nls.toUserString($item.quantity) Lizenz</td>
+                      @end
+                      @if($item.isService())
+                        <td style="width:4cm">$nls.toUserString($item.quantity) $item.quantityUnit</td>
+                      @end
+                      @if($item.isService())
+                         <td style="width:4cm">$nls.toUserString($item.singlePrice) € / $item.quantityUnit</td>
+                     @end
+                     @if($item.isLicense())
+                        <td style="width:4cm">$item.getPackageDefinition().getName()</td>
+                     @end
+
+                     <td style="width:4cm">if($item.stateIsVisible)$item.state@end</td>
+                     @if($item.isService())
+                        <td style="width:4cm" align="right">$nls.toUserString($item.price) € </td>
+                     @end
+                     @if($item.isLicense())
+                        <td style="width:4cm" align="right">if($item.isPackageDefinitionSinglePricePresent())$nls.toUserString($item.offerSinglePrice) € @end</td>
+                        <td style="width:4cm" align="right">$nls.toUserString($item.offerCyclicPrice) € </td>
+                     @end
+                </tr>
+
+                @if($item.discountPresent)
+                    <tr><td></td><td colspan = "4">Beim Preis wurde ein Rabatt von $nls.toUserString($item.discount) % berücksichtigt.</td></tr>
+                @end
+                @if($toolkit.notEmpty($item.keyword))
+                     <tr><td></td> <td colspan = "4"><b>$item.keyword</b></td></tr>
+                @end
+                <tr><td></td> <td colspan = "4">$item.text</td></tr>
+            @end
+         @end
+
+      @end
+ </table>
+
+<hr></hr>
+
+<table>
+    <tr>
+        <th style="width:13cm"></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:3cm" align= "right">
+           @if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit @else  @end</th>
+    </tr>
+      <tr><td style="width:13cm">End-Summe netto:</td><td align="right" style="width:4cm" >$priceNettoSum €</td><td style="width:3cm" align="right">
+           @if($isLicenceItemPresent)$cyclicPriceNettoSum € @else  @end</td></tr>
+           @if($company.isVAT())
+              <tr><td style="width:13cm">zuzüglich $vatRate MWSt:</td> <td  align="right">$priceVatSum €</td><td  align="right">
+                   @if($isLicenceItemPresent)$cyclicPriceVatSum € @else  @end</td></tr>
+              <tr><td style="width:13cm">Endbetrag:</td><td  align="right">$priceBruttoSum €</td><td  align="right">
+                   @if($isLicenceItemPresent)$cyclicPriceBruttoSum € @else  @end</td></tr>
+           @end
+</table>
+
+<hr></hr>
+<br></br>
+
+
+@if($company.isVAT()) @else
+    Der Auftraggeber ist Schuldner der ggfs. anfallenden Mehrwert - oder Umsatzsteuer.
+    <br></br><br></br>
+@end
+
+$termsOfPayment
+$validityPeriod
+
+<br></br> <br></br>
+@if($isOfferPeriodPresent)
+@if($isOffer)
+<br></br>
+  Beispielrechnung zu Ihrer Information:<br></br>
+  im Leistungszeitraum vom $offerPeriodStart bis zum $offerPeriodEnd = $offerPeriodMonths Monate würden folgende Kosten fällig:
+  <table>
+    <tr>
+        <th style="width:13cm"></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:3cm" align= "right">wiederkehrende Kosten</th>
+    </tr>
+      <tr><td style="width:13cm">Endbeträge netto im Leistungszeitraum:</td><td align="right" style="width:4cm" >$priceNettoSum €</td><td style="width:3cm" align="right">
+           @if($isLicenceItemPresent)$offerPeriodNetto € @else  @end</td></tr>
+           @if($company.isVAT())
+              <tr><td style="width:13cm">zuzüglich $vatRate MWSt:</td> <td  align="right">$priceVatSum €</td><td  align="right">
+                   @if($isLicenceItemPresent)$vatOfferPeriodLicence € @else  @end</td></tr>
+              <tr><td style="width:13cm">Endbeträge brutto im Leistungszeitraum:</td><td  align="right">$priceBruttoSum €</td><td  align="right">
+                   @if($isLicenceItemPresent)$offerPeriodLicenceBrutto € @else  @end</td></tr>
+           @end
+  </table>
+
+  <br></br><br></br>
+@end
+@end
+Für eventuelle Rückfragen und Erläuterungen stehen wir gerne zur Verfügung.
+<br></br> <br></br>
+Freundliche Grüße
+<br></br> <br></br>
+scireum GmbH
+<br></br>
+Remshalden
+<br></br> <br></br>
+<div style="font-size:8pt">
+   Handelsregister: Amtsgericht Stuttgart, HRB 732171, Ust.-IdNr.: DE815140004
+   <br></br>
+   Geschäftsführer: Michael Haufler, Andreas Haufler
+</div>
+</body>
+
+
+</html>
+

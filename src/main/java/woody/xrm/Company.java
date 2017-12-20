@@ -43,8 +43,6 @@ public class Company extends TenantAware {
     public static final int MIN_CUSTOMERNR = 10001;
     public static final int MAX_CUSTOMERNR = 19999;
     public static final String COUNTRY_CODELIST = "country";
-    public static final String COMPANYTYPE_CODELIST = "companytype";
-    public static final String BUSINESSTYPE_CODELIST = "businesstype";
 
     @Trim
     @Autoloaded

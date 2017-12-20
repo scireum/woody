@@ -13,16 +13,13 @@ import com.sun.mail.gimap.GmailMessage;
 import com.sun.mail.imap.IMAPMessage;
 import sirius.biz.model.ContactData;
 import sirius.biz.tenants.UserAccount;
-import sirius.db.mixing.Constraint;
 import sirius.db.mixing.OMA;
 import sirius.kernel.commons.Strings;
-import sirius.kernel.di.std.Named;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 import woody.core.employees.Employee;
 import woody.offers.ServiceAccountingService;
 import woody.xrm.Person;
-
 import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Folder;
@@ -37,13 +34,12 @@ import javax.mail.internet.MimeUtility;
 import javax.mail.search.DateTerm;
 import javax.mail.search.ReceivedDateTerm;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchProviderException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -59,20 +55,24 @@ public class MailImporter {
     @sirius.kernel.di.std.Part
     private static ServiceAccountingService sas;
 
-
+// ToDo wieder reinmachen
 //    @Override
 //    public void runTimer() throws Exception {
 //        if (Model.isDebugEnvironment()) {
 //            CRM.LOG.INFO("Not fetching any mails in the debug system!");
 //            return;
 //        }
-//        Calendar limit = Calendar.getInstance();
-//        limit.add(Calendar.DAY_OF_MONTH, -1);
+
+//        LocalDate limit = LocalDate.now();
+//        limit.minusDays(1);
 //        fetchMails(limit);
+//
 //    }
 
-    protected int fetchMails(Calendar limit) throws NoSuchProviderException, MessagingException {
+    protected int fetchMails(LocalDate limit) throws NoSuchProviderException, MessagingException {
         int numFetched = 0;
+
+
         Properties props = System.getProperties();
         props.setProperty("mail.store.protocol", "gimap");
         props.setProperty("mail.gimap.socketFactory.class",
@@ -98,9 +98,9 @@ public class MailImporter {
                     Folder inbox = store.getFolder("[Gmail]").getFolder(
                             "Alle Nachrichten");
                     inbox.open(Folder.READ_ONLY);
-
+                    Date limitDate = Date.from(limit.atStartOfDay(ZoneId.systemDefault()).toInstant());
                     Message messages[] = inbox.search(new ReceivedDateTerm(
-                            DateTerm.GT, limit.getTime()));
+                            DateTerm.GT, limitDate));
                     for (Message message : messages) {
                         if (importMessageInMail(message)) {
                             numFetched++;
@@ -199,7 +199,7 @@ public class MailImporter {
                 }
             }
             // ToDo noch migrieren
-            if (mail.getEmployee() == null || mail.getPersonEntity() == null) {
+            if (mail.getEmployeeEntity() == null || mail.getPersonEntity() == null) {
                 return false;
             }
             if (Strings.isEmpty(mail.getMessageId())) {
@@ -342,8 +342,8 @@ public class MailImporter {
         if (ua != null) {
             Employee e = ua.as(Employee.class);
             if (e != null) {
-                if (mail.getEmployee() == null) {
-                    mail.getEmployee().setValue(ua);
+                if (mail.getEmployeeEntity() == null) {
+                    mail.getEmployeeEntity().setValue(ua);
                 }
             }
         } else {
@@ -361,7 +361,8 @@ public class MailImporter {
 //
 //    @Override
 //    public void execute(PrintWriter output, String... params) throws Exception {
-//        Calendar limit = Calendar.getInstance();
+// // ToDo auf LocalDate umstellen
+// Calendar limit = Calendar.getInstance();
 //        limit.add(Calendar.DAY_OF_MONTH, -3);
 //
 //        if (params.length > 0) {

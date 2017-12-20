@@ -364,9 +364,27 @@ public class OfferItem extends BizEntity {
                     if (orderDate == null) {
                         orderDate = LocalDate.now();
                     }
+
+                    // check the contractStartDate for licenses.
+                    // If the date == null create the contractStartDate as the first day of the next month as default
+
+                    if(this.isLicense()) {
+                        if(this.getContractStartDate() == null) {
+
+                            int year = orderDate.getYear();
+                            int month = orderDate.getMonthValue() + 1;
+                            if(month > 12) {
+                                month = 1;
+                                year = year + 1;
+                            }
+                            LocalDate contractStartDate = LocalDate.of(year, month, 1);
+                            this.setContractStartDate(contractStartDate);
+                        }
+                    }
                 }
 
                 // the salesConfirmationDate is set, when the mail with the salesConfirmation is send to the receiver
+
                 if (OfferItemState.DEVELOPED.equals(state)) {
                     if (completionDate == null) {
                         completionDate = LocalDate.now();
@@ -443,7 +461,7 @@ public class OfferItem extends BizEntity {
 
     // builds a md5-String for the parameters of a offerItem
     private String buildMD5(OfferItem o) {
-        String s=o.getPosition().toString()+o.getText();
+        String s=o.getPosition().toString()+o.getText()+o.getState().toString();
         if(o.isInfoText() || o.isSum()) {
             // do nothing
         } else {
@@ -525,6 +543,15 @@ public class OfferItem extends BizEntity {
         if(OfferItemState.CANCELED.equals(this.getState())) {return false;}
         if(OfferItemState.COPY.equals(this.getState())) {return false;}
         return true;
+    }
+
+    public boolean showCreateContract() {
+        if(this.isLicense()) {
+           if(OfferItemState.CONFIRMED.equals(this.getState())) {
+               return true;
+           }
+        }
+        return false;
     }
 
     /**

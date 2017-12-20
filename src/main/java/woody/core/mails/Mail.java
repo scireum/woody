@@ -93,8 +93,8 @@ public class Mail extends BizEntity {
 
     @Autoloaded
     @NullAllowed
-    private final EntityRef<UserAccount> employee = EntityRef.on(UserAccount.class, EntityRef.OnDelete.REJECT);
-    public static final Column EMPLOYEE = Column.named("employee");
+    private final EntityRef<UserAccount> employeeEntity = EntityRef.on(UserAccount.class, EntityRef.OnDelete.REJECT);
+    public static final Column EMPLOYEE_ENTITY = Column.named("employeeEntity");
 
     @Autoloaded
     private final boolean publicVisible = true;
@@ -112,6 +112,34 @@ public class Mail extends BizEntity {
     private String template;
     public static final Column TEMPLATE = Column.named("template");
 
+    // the usageId contents the uniqueName of the business action, e.g. a offer or a invoice or ...
+    // is no business action present then te usageId = null.
+    @Autoloaded
+    @Length(50)
+    @NullAllowed
+    private String usageId;
+    public static final Column USAGEID = Column.named("usageId");
+
+    @Length(50)
+    @NullAllowed
+    private String function;
+    public static final Column FUNCTION = Column.named("function");
+
+    public String getUsageId() {
+        return usageId;
+    }
+
+    public void setUsageId(String usageId) {
+        this.usageId = usageId;
+    }
+
+    public String getFunction() {
+        return function;
+    }
+
+    public void setFunction(String function) {
+        this.function = function;
+    }
 
     public String getTargetEntity() {
         return targetEntity;
@@ -189,8 +217,8 @@ public class Mail extends BizEntity {
         return personEntity;
     }
 
-    public EntityRef<UserAccount> getEmployee() {
-        return employee;
+    public EntityRef<UserAccount> getEmployeeEntity() {
+        return employeeEntity;
     }
 
     public boolean isPublicVisible() {

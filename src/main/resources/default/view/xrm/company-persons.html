@@ -55,7 +55,7 @@
                 @person.getContact().getPhone()
             </td>
             <td>
-                @person.getContact().getEmail()
+                <a class="link" href="/company/@company.getId()/person/@person.getId()/sendMailToPerson">@person.getContact().getEmail()</a>
             </td>
             <td>
                 @person.getContact().getMobile()
