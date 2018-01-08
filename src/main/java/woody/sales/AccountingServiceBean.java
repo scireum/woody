@@ -431,7 +431,6 @@ public class AccountingServiceBean implements AccountingService {
         // check the singlePriceState of this contract
         checkContractSinglePriceState(contract);
         // is accTo present? --> the contract was accounted in the past
-        // Ziel ist diesen Code zu ersetzen
         if (contract.getAccountedTo() != null) {
             // check the value 'from': from is in a Invoice never .before(accountedTo)
             if ((from.isBefore(contract.getAccountedTo()) && (paymentDirection == AccountingService.INVOICE))) {
@@ -455,27 +454,41 @@ public class AccountingServiceBean implements AccountingService {
                                 .set("contract", contract.toString())
                                 .handle();
             }
-            // check if there is to account a single price
-            Amount singlePrice = getSolidSinglePrice(contract);
-            if (ContractSinglePriceType.ACCOUNT_NOW.equals(contract.getSinglePriceState())) {
-                accountSinglePrice(itemCollector, contract, referenceDate, invoiceNr, singlePrice, clearingDate);
-                flagAccountSinglePriceDone = true;
-            }
         }
+
+        // check if there is to account a single price
+        if (ContractSinglePriceType.ACCOUNT_NOW.equals(contract.getSinglePriceState())) {
+            Amount singlePrice = getSolidSinglePrice(contract);
+            accountSinglePrice(itemCollector, contract, referenceDate, invoiceNr, singlePrice, clearingDate);
+            flagAccountSinglePriceDone = true;
+        }
+
         // account the contract
         int months = calculateMonths(from, to);
-        // check if the months to account = zero or negative
-        if (months <= 0) {
-            throw Exceptions.createHandled()
-                            .withNLSKey("AccountingServiceBean.fromGreaterTo")
-                            .set("contract", contract.toString())
-                            .set("from", NLS.toUserString(from))
-                            .set("to", NLS.toUserString(to))
-                            .handle();
+        // check if the months to account == zero
+        if(months == 0) {
+            int diff = from.compareTo(to);
+            if(diff != 0) {
+                String text =  MessageFormat.format(
+                        "Beim Vertrag {0} ist die Anzahl der abzurechnenden Monate == 0,  --> plausibel? Der Vertrag wird nicht abgerechnet.",
+                        contract.toString());
+                errorList.add(text);
+                return contract;
+            }
         }
+
+        // check if the months to account == negative
+        if (months < 0) {
+            String text =  MessageFormat.format(
+                           "Beim Vertrag {0} ist die Anzahl der abzurechnenden Monate = {1} < 0 --> plausibel? Der Vertrag wird nicht abgerechnet.",
+                           contract.toString(), NLS.toUserString(months), NLS.toUserString(maxMonths));
+            errorList.add(text);
+            return contract;
+        }
+
         if(months > maxMonths) {
             String text =  MessageFormat.format(
-                    "Beim Vertrag {0} ist die Anzahl der abzurechnenden Monate = {1} > {2} --> plausibel?",
+                    "Beim Vertrag {0} ist die Anzahl der abzurechnenden Monate = {1} > {2} --> plausibel? Der Vertrag wird trotzdem abgerechnet.",
                     contract.toString(), NLS.toUserString(months), NLS.toUserString(maxMonths));
             errorList.add(text);
         }
@@ -602,22 +615,20 @@ public class AccountingServiceBean implements AccountingService {
                             .set("contract", contract.toString())
                             .handle();
         }
+
         // account the single price for a rival contract
-        writeLineitem(itemCollector,
-                      contract,
-                      referenceDate,
-                      1,
-                      singlePrice,
-                      MessageFormat.format("einmalige Einrichtungskosten für {0}",
-                                           contract.getPackageDefinition().getValue().toString()),
-                      "PCE",
-                      contract.getPackageDefinition().toString(),
-                      false,
-                      Amount.ZERO,
-                      Amount.ZERO,
-                      invoiceNr,
-                      clearingDate);
+        accountSinglePriceBasic(itemCollector, contract, referenceDate, invoiceNr, singlePrice, clearingDate);  }
+
+    private String buildDiscountText(Amount positionDiscount) {
+        String discountText = "";
+        if(positionDiscount != null && positionDiscount.isPositive()) {
+            discountText = MessageFormat.format(" Es ist ein Rabatt von {0}% berücksichtigt.",
+                                                NLS.toUserString(positionDiscount));
+        }
+        return discountText;
     }
+
+
 
     /**
      * accounts the singlePrice for volume contracts or add-on-contracts
@@ -629,27 +640,42 @@ public class AccountingServiceBean implements AccountingService {
                                           Amount singlePrice,
                                           LocalDateTime clearingDate) {
         // account the single price for a volume or add-on contract
-        Integer amount = contract.getQuantity();
-        if (amount == null) {
-            amount = 1;
+        accountSinglePriceBasic(itemCollector, contract, referenceDate, invoiceNr, singlePrice, clearingDate);
+    }
+
+    /**
+     * Basic-method to account a singleprice
+     */
+    private void accountSinglePriceBasic(DataCollector<Lineitem> itemCollector,
+                                         Contract contract,
+                                         LocalDate referenceDate,
+                                         Long invoiceNr,
+                                         Amount singlePrice,
+                                         LocalDateTime clearingDate) {
+        Integer quantity = contract.getQuantity();
+        if (quantity == null) {
+            quantity = 1;
         }
         String piece = "Paket";
-        if (amount > 1) {
+        if (quantity > 1) {
             piece = piece + "e";
         }
+        Amount positionDiscount = contract.getDiscountPercent().fill(Amount.ZERO);
+        String discountText = buildDiscountText(positionDiscount);
         writeLineitem(itemCollector,
                       contract,
                       referenceDate,
-                      amount,
+                      quantity,
                       singlePrice,
-                      MessageFormat.format("einmalige Kosten für {0} {1} {2}",
-                                           amount,
+                      MessageFormat.format("einmalige Einrichtungskosten für {0} {1} {2}.{3}",
+                                           quantity,
                                            piece,
-                                           contract.getPackageDefinition().getValue().toString()),
+                                           contract.getPackageDefinition().getValue().toString(),
+                                           discountText),
                       "PCE",
                       contract.getPackageDefinition().getValue().toString(),
                       false,
-                      Amount.ZERO,
+                      positionDiscount,
                       Amount.ZERO,
                       invoiceNr,
                       clearingDate);
@@ -680,8 +706,8 @@ public class AccountingServiceBean implements AccountingService {
         // check the absolute discount and calculate the accountingPrice
         // listen: collmex can calculate a percent-discount but never a absolute discount,
         // so we do it here - yes we can!
-        if (discountAbsolut.getAmount().doubleValue() > 0D && price.getAmount().doubleValue() > 0D) {
-            lineitem.setPrice(Amount.of(price.getAmount().subtract(discountAbsolut.getAmount())));
+        if (discountAbsolut.isPositive() && price.isPositive()) {
+            lineitem.setPrice(price.subtract(discountAbsolut));
         } else {
             lineitem.setPrice(price);
         }
@@ -689,7 +715,7 @@ public class AccountingServiceBean implements AccountingService {
         lineitem.setFinalDiscountSum(Amount.ZERO); // finalDiscountSum is not used
         lineitem.setInvoiceNr(invoiceNr);
         lineitem.setStatus(Lineitem.LINEITEMSTATUS_NEW);
-        if (price.getAmount().doubleValue() == 0D) {
+        if (price.isZero()) {
             lineitem.setPositionType(lineitem.getLineitemCollmexTextposition());
         } else {
             lineitem.setPositionType(lineitem.getLineitemCollmexNormalposition());
@@ -1208,7 +1234,7 @@ public class AccountingServiceBean implements AccountingService {
                                          .queryList();
 
         if (lineitemList.size() <= 0) {
-            // ToDO Meldung machen   ss.forBackendStream(
+
 //                ss.forBackendStream(
 //                        DisplayMarkdownFactory.FACTORY_NAME,
 //                        "Lizenz-Abrechnung",MessageFormat.format(
@@ -1365,7 +1391,7 @@ public class AccountingServiceBean implements AccountingService {
                     filter);
             System.err.println(message);
         }
-        // ToDo meldung machen    ss.forBackendStream(
+
 //            ss.forBackendStream(
 //                    DisplayMarkdownFactory.FACTORY_NAME,
 //                    "Lizenz-Abrechnung",message)
@@ -1507,7 +1533,7 @@ public class AccountingServiceBean implements AccountingService {
                     // finish the outputList --> write the lineitems in the outputList to a new file
                     k = k - 1;
                     fileNr++;
-                    file = createCsvFilename("lineitems", fileNr);
+                    file = createCsvFilename("lineitems", fileNr, exportDate);
                     filenames.add(file);
                     writeToFile(outputList, file, exportDate, type);
                     outputList.clear();
@@ -1524,7 +1550,7 @@ public class AccountingServiceBean implements AccountingService {
         // look for the last lineitems in the outputList
         if (outputList.size() > 0) {
             fileNr++;
-            file = createCsvFilename("lineitems", fileNr);
+            file = createCsvFilename("lineitems", fileNr, exportDate);
             filenames.add(file);
             writeToFile(outputList, file, exportDate, type);
         }
@@ -1698,8 +1724,8 @@ public class AccountingServiceBean implements AccountingService {
      * creates a filename like YYYYMMDD_hhmmss_<nr>_name
      */
     @Override
-    public File createCsvFilename(String name, int nr) {
-        String s = dateTimeFilename("_", null);
+    public File createCsvFilename(String name, int nr, LocalDateTime timestamp) {
+        String s = dateTimeFilename("_", timestamp);
         if (nr >= 0) {
             s = s + NLS.toUserString(nr) + "_";
         }
@@ -1959,10 +1985,19 @@ public class AccountingServiceBean implements AccountingService {
             case NO_ACCOUNTING:
                 break;
             case NO_SINGLEPRICE:
+                if(singlePrice.isPositive()) {
+                    throw Exceptions.createHandled()
+                                    .withNLSKey("AccountingServiceBean.singlePricepresentNoSinglePrice")
+                                    .set("contract", givenContract.toString())
+                                    .set("state", givenContract.getSinglePriceState().toString())
+                                    .set("singlePrice", singlePrice)
+                                    .handle();
+                }
                 break;
             case OPEN:
                 break;
             case ACCOUNT_NOW:
+                // is the contract new and not accounted?
                 if (givenContract.getAccountedTo() != null) {
                     throw Exceptions.createHandled()
                                     .withNLSKey("AccountingServiceBean.singlePriceIsAccounted")
@@ -1971,7 +2006,7 @@ public class AccountingServiceBean implements AccountingService {
                                     .set("accTo", NLS.toUserString(givenContract.getAccountedTo()))
                                     .handle();
                 }
-                //             if (singlePrice == null || singlePrice.getAmount().doubleValue() < 1D) {
+                // is the singlePrice positive
                 if (!singlePrice.isPositive()) {
                     throw Exceptions.createHandled()
                                     .withNLSKey("AccountingServiceBean.singlePricenoValidPrice")
@@ -1982,6 +2017,7 @@ public class AccountingServiceBean implements AccountingService {
 
                 break;
             case THIS_ACCOUNT:
+                // wa a accounting done in the past?
                 if (givenContract.getAccountedTo() == null) {
                     throw Exceptions.createHandled()
                                     .withNLSKey("AccountingServiceBean.singlePricenNoAccountingDone")
@@ -2012,6 +2048,14 @@ public class AccountingServiceBean implements AccountingService {
             case NO_ACCOUNTING:
                 break;
             case NO_SINGLEPRICE:
+                if(singlePrice.isPositive()) {
+                    throw Exceptions.createHandled()
+                                .withNLSKey("AccountingServiceBean.singlePricepresentNoSinglePrice")
+                                .set("contract", givenContract.toString())
+                                .set("state", givenContract.getSinglePriceState().toString())
+                                .set("singlePrice", singlePrice)
+                                .handle();
+                }
                 break;
             case OPEN:
                 break;
@@ -2036,6 +2080,7 @@ public class AccountingServiceBean implements AccountingService {
                 // ContractSinglePriceType.OLD_ACCOUNT, 0);
 
                 // check: this contract should be not accounted
+
                 if (givenContract.getAccountedTo() != null) {
                     throw Exceptions.createHandled()
                                     .withNLSKey("AccountingServiceBean.singlePriceIsAccounted")
@@ -2068,6 +2113,7 @@ public class AccountingServiceBean implements AccountingService {
                                        ContractSinglePriceType.ACCOUNT_NOW,
                                        0);
                 // check: was there accounting before? if not --> error
+
                 if (givenContract.getAccountedTo() == null) {
                     Exceptions.createHandled()
                               .withNLSKey("AccountingServiceBean.singlePricenNoAccountingDone")
@@ -2195,7 +2241,7 @@ public class AccountingServiceBean implements AccountingService {
             return;
         }
         // export them to the file
-        File file = createCsvFilename("kunden", -1);
+        File file = createCsvFilename("kunden", -1, null);
         try {
             FileOutputStream output = new FileOutputStream(file);
             Writer fw = new OutputStreamWriter(output, "ISO-8859-1");
@@ -2398,416 +2444,4 @@ public class AccountingServiceBean implements AccountingService {
         return context;
     }
 
-
-    /**
-     * check CRM-Data (as master-data) against collmex-data
-     *
-     * @param filenameCollmex
-     *            = filename of the collmex-data
-     * @param pw
-     *            = PrintWriter for output-file
-     * @throws Exception
-     */
-
-	/*
-	private void crmVersusCollmex(String filenameCollmex, PrintWriter pw)
-			throws Exception {
-		message(" ", "", "", false, 0, pw, false, false, null);
-		message("Start Vergleich CRM mit  CollmexAdressen", "", "", false, 0,
-				pw, false, false, null);
-		BufferedReader in = null;
-		boolean printDone = false;
-		try { // get a buffered reader to the collmex-file
-			in = new BufferedReader(new InputStreamReader(new FileInputStream(
-					filenameCollmex), Tools.ISO_8859_1));
-			// get a HashMap to store the collmex-data, key is the customer-Nr
-			HashMap<String, String> map = new HashMap<String, String>();
-			// read the collmex-data and store them in the HashMap
-			String line;
-			while ((line = in.readLine()) != null) {
-				String[] par = line.split(";");
-				map.put(par[1], line);
-			}
-			in.close();
-			// get the crm-data
-			List<Company> companyList = OMA
-					.select(Realm.BACKEND, Company.class)
-					.orderByAsc(Company.NAME).list();
-			if (companyList.isEmpty()) {
-				print("?????? there are no crm-data !!!!", pw);
-				return;
-			}
-			// check the crm-data against the collmex-data
-			for (Company company : companyList) {
-				String customerNr = company.getCustomerNr();
-				// if a customer-Nr is present ...
-				if (!Tools.emptyString(customerNr)) {
-					// get the collmex-data from the HashMap, key = customerNr
-					line = map.get(customerNr);
-					printDone = false;
-					if (Tools.emptyString(line)) {
-						line = "Firma: " + NLS.toUserString(company);
-						printDone = message("###### Für die CRM-Kundennumer "
-								+ customerNr
-								+ " gibt es keinen Collmex-Datensatz", "", "",
-								false, 0, pw, printDone, true, line);
-					} else {
-						// check the data against the crm-data
-
-						String[] par = line.split(";");
-						String name = par[7];
-						String street = par[9];
-						String zipCode = par[10];
-						String city = par[11];
-						String country = par[14];
-						printDone = check("", customerNr,
-								company.getCustomerNr(),
-								"customerNr ist falsch", true, pw, printDone,
-								line);
-						printDone = check("", name, company.getName(),
-								"name ist falsch", true, pw, printDone, line);
-						printDone = check("", street, company.getStreet(),
-								"street ist falsch", true, pw, printDone, line);
-						if ("DE".equals(country)) {
-							if (zipCode.length() == 4) {
-								zipCode = "0" + zipCode;
-							}
-						}
-						printDone = check("", zipCode, company.getZipCode(),
-								"PLZ ist falsch", false, pw, printDone, line);
-
-						printDone = check("", city, company.getCity(),
-								"city ist falsch", true, pw, printDone, line);
-					}
-				} else {
-
-					line = "Firma: " + NLS.toUserString(company);
-				}
-				Company companyFill = OMA.fill(company, Company.CONTRACTS);
-				List<Contract> contractList = companyFill.getContracts();
-				if (contractList.size() > 0) {
-					if (Tools.emptyString(customerNr)) {
-						printDone = message(
-								MessageFormat
-										.format("###### Bei der Firma {0} fehlt die Kundennummer, aber es gibt {1} Verträge mit der Firma.",
-												company.getName(),
-												contractList.size()),
-								"", "", false, 0, pw, printDone, true, line);
-					}
-					if (!CompanyType.CUSTOMER.equals(company.getCompanyType())) {
-						printDone = message(
-								MessageFormat.format(
-										"###### Bei der Firma {0} gibt es {1} Verträge, aber der CompanyType ist: {2}.",
-										company.getName(), contractList.size(),
-										company.getCompanyType()), "", "",
-								false, 0, pw, printDone, true, line);
-					}
-				}
-			}
-			message("Ende Vergleich CRM mit CollmexAdressen", "", "", false, 0,
-					pw, false, false, null);
-		} catch (Exception e) {
-			print(e.getMessage(), pw);
-			throw e;
-		}
-	}
-
-	private void print(String s, PrintWriter pw) {
-		if (pw != null) {
-			// System.err.println(s);
-			pw.println(s);
-		}
-	}
-*/
-    /**
-     * checks the collmex-data (as master-data) against the crm-data
-     *
-     * @param filenameCollmex
-     *            = name of the collmex-file
-     * @param pw
-     *            = printwriter for the outputfile
-     */
-	/*
-	private void collmexVersusCrm(String filenameCollmex, PrintWriter pw) {
-		message("Start Vergleich CollmexAdressen mit CRM", "", "", false, 0,
-				pw, false, false, null);
-		BufferedReader in = null;
-		try {
-
-			in = new BufferedReader(new InputStreamReader(new FileInputStream(
-					filenameCollmex), Tools.ISO_8859_1));
-
-			String line;
-
-			while ((line = in.readLine()) != null) {
-				boolean printDone = false;
-				checkAdressCollmexVersusCRM(line, pw, printDone);
-			}
-			in.close();
-			message("Ende Vergleich CollmexAdressen mit CRM", "", "", false, 0,
-					pw, false, false, null);
-		} catch (Exception e) {
-			print(e.getMessage(), pw);
-		}
-	}
-	*/
-
-    /**
-     * checks all Adress-Parameters between collmex-data and crm-data
-     */
-	/*
-	private void checkAdressCollmexVersusCRM(String line, PrintWriter pw,
-			boolean printDone) {
-		if (!line.startsWith("CMXKND;"))
-			return;
-		String[] par = line.split(";");
-		String customerNr = par[1];
-		if ("9999".equals(customerNr))
-			return;
-		if ("10000".equals(customerNr))
-			return;
-		String name = par[7];
-		String street = par[9];
-		String zipCode = par[10];
-		String city = par[11];
-		String country = par[14];
-		Company company = OMA.select(Realm.BACKEND, Company.class)
-				.eq(customerNr, Company.CUSTOMERNR).first();
-		String adressString = buildAdressString(customerNr, name, street,
-				zipCode, city);
-
-		if (company == null) {
-			printDone = message(adressString, customerNr,
-					"Diese customerNr gibts in company nicht", true, -1, pw,
-					printDone, true, line);
-			return;
-		}
-		printDone = check(adressString, customerNr, company.getCustomerNr(),
-				"customerNr ist falsch", true, pw, printDone, line);
-		printDone = check(adressString, name, company.getName(),
-				"name ist falsch", true, pw, printDone, line);
-		printDone = check(adressString, street, company.getStreet(),
-				"street ist falsch", true, pw, printDone, line);
-		if ("DE".equals(country)) {
-			if (zipCode.length() == 4) {
-				zipCode = "0" + zipCode;
-			}
-		}
-
-		printDone = check(adressString, zipCode, company.getZipCode(),
-				"PLZ ist falsch", true, pw, printDone, line);
-		printDone = check(adressString, city, company.getCity(),
-				"city ist falsch", true, pw, printDone, line);
-	}
-*/
-    /**
-     * <p>
-     * Find the Levenshtein distance between two Strings.
-     * </p>
-     *
-     * <p>
-     * This is the number of changes needed to change one String into another,
-     * where each change is a single character modification (deletion, insertion
-     * or substitution).
-     * </p>
-     *
-     * <p>
-     * The previous implementation of the Levenshtein distance algorithm was
-     * from <a
-     * href="http://www.merriampark.com/ld.htm">http://www.merriampark.com
-     * /ld.htm</a>
-     * </p>
-     *
-     * <p>
-     * Chas Emerick has written an implementation in Java, which avoids an
-     * OutOfMemoryError which can occur when my Java implementation is used with
-     * very large strings.<br>
-     * This implementation of the Levenshtein distance algorithm is from <a
-     * href="http://www.merriampark.com/ldjava.htm">http://www.merriampark.com/
-     * ldjava.htm</a>
-     * </p>
-     *
-     * <pre>
-     * StringUtils.getLevenshteinDistance(null, *)             = IllegalArgumentException
-     * StringUtils.getLevenshteinDistance(*, null)             = IllegalArgumentException
-     * StringUtils.getLevenshteinDistance("","")               = 0
-     * StringUtils.getLevenshteinDistance("","a")              = 1
-     * StringUtils.getLevenshteinDistance("aaapppp", "")       = 7
-     * StringUtils.getLevenshteinDistance("frog", "fog")       = 1
-     * StringUtils.getLevenshteinDistance("fly", "ant")        = 3
-     * StringUtils.getLevenshteinDistance("elephant", "hippo") = 7
-     * StringUtils.getLevenshteinDistance("hippo", "elephant") = 7
-     * StringUtils.getLevenshteinDistance("hippo", "zzzzzzzz") = 8
-     * StringUtils.getLevenshteinDistance("hello", "hallo")    = 1
-     * </pre>
-     *
-     * @param s
-     *            the first String, must not be null
-     * @param t
-     *            the second String, must not be null
-     * @return result distance
-     * @throws IllegalArgumentException
-     *             if either String input <code>null</code>
-     */
-	/*
-	public static int getLevenshteinDistance(String s, String t) {
-		if (s == null || t == null) {
-			throw new IllegalArgumentException("Strings must not be null");
-		}
-*/
-		/*
-		 * The difference between this impl. and the previous is that, rather
-		 * than creating and retaining a matrix of size s.length()+1 by
-		 * t.length()+1, we maintain two single-dimensional arrays of length
-		 * s.length()+1. The first, d, is the 'current working' distance array
-		 * that maintains the newest distance cost counts as we iterate through
-		 * the characters of String s. Each time we increment the index of
-		 * String t we are comparing, d is copied to p, the second int[]. Doing
-		 * so allows us to retain the previous cost counts as required by the
-		 * algorithm (taking the minimum of the cost count to the left, up one,
-		 * and diagonally up and to the left of the current cost count being
-		 * calculated). (Note that the arrays aren't really copied anymore, just
-		 * switched...this is clearly much better than cloning an array or doing
-		 * a System.arraycopy() each time through the outer loop.)
-		 *
-		 * Effectively, the difference between the two implementations is this
-		 * one does not cause an out of memory condition when calculating the LD
-		 * over two very large strings.
-		 */
-/*
-		int n = s.length(); // length of s
-		int m = t.length(); // length of t
-
-		if (n == 0) {
-			return m;
-		} else if (m == 0) {
-			return n;
-		}
-
-		if (n > m) {
-			// swap the input strings to consume less memory
-			String tmp = s;
-			s = t;
-			t = tmp;
-			n = m;
-			m = t.length();
-		}
-
-		int p[] = new int[n + 1]; // 'previous' cost array, horizontally
-		int d[] = new int[n + 1]; // cost array, horizontally
-		int _d[]; // placeholder to assist in swapping p and d
-
-		// indexes into strings s and t
-		int i; // iterates through s
-		int j; // iterates through t
-
-		char t_j; // jth character of t
-
-		int cost; // cost
-
-		for (i = 0; i <= n; i++) {
-			p[i] = i;
-		}
-
-		for (j = 1; j <= m; j++) {
-			t_j = t.charAt(j - 1);
-			d[0] = j;
-
-			for (i = 1; i <= n; i++) {
-				cost = s.charAt(i - 1) == t_j ? 0 : 1;
-				// minimum of cell to the left+1, to the top+1, diagonally left
-				// and up +cost
-				d[i] = Math.min(Math.min(d[i - 1] + 1, p[i] + 1), p[i - 1]
-						+ cost);
-			}
-
-			// copy current distance counts to 'previous row' distance counts
-			_d = p;
-			p = d;
-			d = _d;
-		}
-
-		// our last action in the above loop was to switch d and p, so p now
-		// actually has the most recent cost counts
-		return p[n];
-	}
-
-	*/
-
-    /**
-     * compare two values
-     *
-     * @param adressString
-     *            = adress of the company
-     * @param first
-     *            = first value (master)
-     * @param second
-     *            = second value
-     * @param message
-     *            = message if the values are not equal
-     * @param errorMessage
-     *            = flag to write the message
-     * @param pw
-     *            = PrintWrite for the outputfile
-     * @return levenshtein-distance between first and second value
-     */
-
-	/*
-	private boolean check(String adressString, String first, String second,
-			String message, boolean errorMessage, PrintWriter pw,
-			boolean printDone, String line) {
-		first = checkIfEmpty(first);
-		second = checkIfEmpty(second);
-		if (first.equals(second)) {
-			return printDone;
-		}
-		int dist = getLevenshteinDistance(first, second);
-		if (dist > 0) {
-			if (errorMessage) {
-				printDone = message("Collmex: " + first, "CRM: " + second,
-						message, true, dist, pw, printDone, true, line);
-			}
-		}
-		return printDone;
-	}
-
-	private String checkIfEmpty(String string) {
-		if (string == null) {
-			string = "";
-		} else {
-			string = string.trim();
-		}
-		return string;
-	}
-
-	private boolean message(String first, String second, String message,
-			boolean error, int levDist, PrintWriter pw, boolean printDone,
-			boolean printLine, String line) {
-		if (!Tools.emptyString(line) && printLine && !printDone) {
-			print(" ", pw);
-			print(line, pw);
-			printDone = true;
-		}
-		String string = first;
-		if (!Tools.emptyString(second)) {
-			string = string + ", " + second;
-		}
-		if (!Tools.emptyString(message)) {
-			string = string + ", " + message;
-		}
-		if (error && levDist > 0) {
-			print(">>>>>> " + string + ", Levenshtein-Distanz: " + levDist, pw);
-		} else {
-			print(string, pw);
-		}
-		return printDone;
-	}
-
-	private String buildAdressString(String customerNr, String name,
-			String street, String zipCode, String city) {
-		return customerNr + ": " + name + ", " + street + ", " + zipCode + " "
-				+ city + ": ";
-
-	}
-*/
 }

@@ -75,8 +75,8 @@ public class SendOfferView /* extends BasicView*/ {
             checkMailReceiver(person);
 
             // is a Buyer with a valid Mail-Adress available?
-            if(offer.getBuyer() != null) {
-                checkMailReceiver(offer.getBuyer().getValue());
+            if(offer.getBuyer().isFilled()) {
+                    checkMailReceiver(offer.getBuyer().getValue());
             }
 
             // get the date and the time of sending the mail
@@ -94,7 +94,7 @@ public class SendOfferView /* extends BasicView*/ {
             // send the mail to the person ("Ansprechpartner")
 //            sendMailToPerson(person.getContact().getEmail(), sendDate, namedObjectName, file, person);
             // send the mail to the buyer ("kfm. Ansprechpartner")
-            if(Strings.isFilled(offer.getBuyer())) {
+            if(offer.getBuyer().isFilled()) {
 //                sendMailToPerson(offer.getBuyer().getValue().getContact().getEmail(), sendDate, namedObjectName, file, offer.getBuyer().getValue());
             }
 

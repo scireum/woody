@@ -164,10 +164,10 @@ public class Contract extends BizEntity {
         sb.append(":");
         String LEER = "leer";
         String name = LEER;
-//        if(this.getId() == -1) {
-//            sb.append("empty_contract");
-//            return sb.toString();
-//        }
+        if(this.getId() == -1) {
+            sb.append("empty_contract");
+            return sb.toString();
+        }
         if (getPackageDefinition() != null) {
             if (getPackageDefinition().getValue().getProduct() != null) {
                 name = getPackageDefinition().getValue().getProduct().getValue().getName();
@@ -202,6 +202,14 @@ public class Contract extends BizEntity {
 
     @BeforeSave
     protected void onSave() {
+        // Korrektur aus CRM-89
+        if(!this.getCompany().isFilled()) {
+            if(this.getContractPartner().getValue() != null)  {
+                if(this.getContractPartner().getValue().getCompany().getValue() != null) {
+                    this.getCompany().setValue(this.getContractPartner().getValue().getCompany().getValue());
+                }
+            }
+        }
 
         if(Strings.isEmpty((quantity))) {
             quantity = 1;
@@ -229,7 +237,7 @@ public class Contract extends BizEntity {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
                       .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
             if (packageDefinition != null) {
-                if (packageDefinition.getUnitPrice().isFilled()) {
+                if (packageDefinition.getUnitPrice().isPositive()) {
                     this.setUnitPrice(packageDefinition.getUnitPrice());
                 }
             }
@@ -240,8 +248,14 @@ public class Contract extends BizEntity {
             PackageDefinition packageDefinition = oma.select(PackageDefinition.class)
                        .eq(PackageDefinition.ID, this.getPackageDefinition().getValue().getId()).queryFirst();
             if (packageDefinition != null) {
-                if (packageDefinition.getSinglePrice().isFilled() )  {
+                if (packageDefinition.getSinglePrice().isPositive() )  {
                     this.setSinglePrice(packageDefinition.getSinglePrice());
+                    if(packageDefinition.getSinglePrice().isPositive()) {
+                        this.setSinglePriceState(ContractSinglePriceType.ACCOUNT_NOW);
+                    } else {
+                        this.setSinglePriceState(ContractSinglePriceType.NO_SINGLEPRICE);
+                        this.setSinglePrice(Amount.NOTHING);
+                    }
                 }
             }
         }

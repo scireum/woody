@@ -25,12 +25,12 @@ import sirius.kernel.nls.NLS;
      * ACCOUNT_NOW:    no contracts with state ACCOUNT_NOW is present,
      *                 no contracts with state THIS_ACCOUNT is present,
      *                 no contract with state OLD_ACCOUNT is present
-     *                 singlePrice is present, accountedTo = null
+     *                 singlePrice is present
      *                 --> the singlePrice is accounted with this job,
      *                     after accounting the status is set to 'THIS_ACCOUNT'
      * THIS_ACCOUNT:   no contracts with state ACCOUNT_NOW present,
      *                 no contracts with state THIS_ACCOUNT present,
-     *                 accountedTo != null.
+     *
      *                 --> the singelePrice was accounted in the past at this contract.
      * OLD_ACCOUNT:    there have to be other contracts and
      *                 only one of these have the state

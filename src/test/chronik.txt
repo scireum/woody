@@ -22,7 +22,14 @@ Anmeldung: gha
 17.04.2017  - Lizenzvertrag aus Angebot anlegen von CRM übernommen
 07.07.2017  - CRM-80 übernommen
 08.08.2017  - CRM-83 übernommen
-
+06.01.2018  - CRM-89 ist übernommen
+            - CRM-91 ist übernommen
+            - CRM-92 ist übernommen
+            - 21.11.2017: gleiches accountedTo und EndDate führen zu keinem Fehler
+            - CRM-93 übernommen a) CompanyType "nicht mehr relevant" (NOTPERTINENT)
+                                b) Prüfung OfferItemType
+            - CRM-96 übernommen
+            - CRM-97 übernommen
 
 
 
@@ -39,4 +46,8 @@ offene Punkte:
 
 18.07.2017  - CRM-81 Auftragsbestätigung für Vertrag versenden
 
+18.10.2017  - CRM-90, Attachments einer Mail als "Attachment" speichern
 
+- CRM-88, Wiederaufnahme: - Attachmentname muss "Vertrag_<cotract.id> werden"
+- CRM-94: Die Kopfdaten bei der Darstellung eines Angebots werden nach den Funktionen NEU oder LÖSCHEN nicht aktualisiert.
+- Anpassung UK --> GB in exportCompanyForCollmex, siehe CRM.

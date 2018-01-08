@@ -99,7 +99,7 @@ public interface AccountingService {
 	 */
 	public void checkContractSinglePriceState(Contract givenContract) ;
 
-	public File createCsvFilename(String filename, int nr);
+	public File createCsvFilename(String filename, int nr, LocalDateTime timestamp);
 
 	/**
 	 * counts old rival contracts

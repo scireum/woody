@@ -42,6 +42,7 @@ import woody.sales.ProductType;
 import woody.xrm.Company;
 
 import java.text.CharacterIterator;
+import java.text.MessageFormat;
 import java.text.StringCharacterIterator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -234,6 +235,43 @@ public class OfferItem extends BizEntity {
                     text = "Zwischensummen:";
                 }
             } else {
+                // check the presence of the packageDefinition
+                if (packageDefinition == null) {
+                    throw Exceptions.createHandled().withNLSKey("OfferItem.packageDefinitionMissing")
+                                    .set("angebot", offer.getNumber()).set("pos", position).handle();
+                }
+
+                // check the packageDefinition
+                Product product = this.getPackageDefinition().getValue().getProduct().getValue();
+                PackageDefinition pd = oma.select(PackageDefinition.class)
+                                          .eq(PackageDefinition.PRODUCT, product)
+                                          .eq(PackageDefinition.NAME, packageDefinition.getValue().getName())
+                                          .queryFirst();
+                if (pd == null) {
+                    throw Exceptions.createHandled().withNLSKey("OfferItem.pdWrong")
+                                    .set("prod", packageDefinition.getValue().getProduct().getValue().getName())
+                                    .set("pd", packageDefinition.getValue().getName())
+                                    .set("angebot", offer.getNumber()).set("pos", position).handle();
+                }
+
+                if (packageDefinition.getId() != pd.getId()) {
+                    throw Exceptions.createHandled().withNLSKey("OfferItem.idWrong")
+                                    .set("pd1", packageDefinition.getValue().getName())
+                                    .set("pd2", pd.getName())
+                                    .set("angebot", offer.getNumber()).set("pos", position).handle();
+                }
+
+                // check the offerItemType
+                if(OfferItemType.SERVICE.equals(this.getOfferItemType()) &&
+                   ProductType.LICENSE.equals(this.getPackageDefinition().getValue().getProduct().getValue().getProductType()) ||
+                   OfferItemType.LICENSE.equals(this.getOfferItemType()) &&
+                   ProductType.SERVICE.equals(this.getPackageDefinition().getValue().getProduct().getValue().getProductType())) {
+                   throw Exceptions.createHandled().withNLSKey("OfferItem.typesWrong")
+                            .set("oiType", this.getOfferItemType().toString())
+                            .set("productType", this.getPackageDefinition().getValue().getProduct().getValue().toString())
+                            .handle();
+                }
+
                 //set the accountingUnitComplete
                 String accUnit = this.getPackageDefinition().getValue().getAccountingUnit();
                 Tuple<String, String> tuple = cls.getValues("accountingUnit", accUnit);
@@ -265,32 +303,6 @@ public class OfferItem extends BizEntity {
                 // check the presence of the position-text
                 if(Strings.isEmpty(this.getText())) {
                     throw Exceptions.createHandled().withNLSKey("OfferItem.textMissing")
-                                    .set("angebot", offer.getNumber()).set("pos", position).handle();
-                }
-
-                // check the presence of the packageDefinition
-                if (packageDefinition == null) {
-                    throw Exceptions.createHandled().withNLSKey("OfferItem.packageDefinitionMissing")
-                                    .set("angebot", offer.getNumber()).set("pos", position).handle();
-                }
-
-                // check the packageDefinition
-                Product product = this.getPackageDefinition().getValue().getProduct().getValue();
-                PackageDefinition pd = oma.select(PackageDefinition.class)
-                        .eq(PackageDefinition.PRODUCT, product)
-                        .eq(PackageDefinition.NAME, packageDefinition.getValue().getName())
-                        .queryFirst();
-                if (pd == null) {
-                    throw Exceptions.createHandled().withNLSKey("OfferItem.pdWrong")
-                                    .set("prod", packageDefinition.getValue().getProduct().getValue().getName())
-                                    .set("pd", packageDefinition.getValue().getName())
-                                    .set("angebot", offer.getNumber()).set("pos", position).handle();
-                }
-
-                if (packageDefinition.getId() != pd.getId()) {
-                    throw Exceptions.createHandled().withNLSKey("OfferItem.idWrong")
-                                    .set("pd1", packageDefinition.getValue().getName())
-                                    .set("pd2", pd.getName())
                                     .set("angebot", offer.getNumber()).set("pos", position).handle();
                 }
 
@@ -415,6 +427,7 @@ public class OfferItem extends BizEntity {
             int  divisionsrest = pos % 10;
             position =  pos - divisionsrest;
         }
+
         if(!(isSum() || isInfoText()) ) {
             // build the history string, organize last come --> first serve
             // offerItems withe the same md5-key are saved only one time in the history

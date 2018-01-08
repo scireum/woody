@@ -107,11 +107,8 @@ public class MailController extends BizController {
                 break;
         }
         List<String> messageList = sms.prepareAndSendMail(offer, mail);
-        String text = MessageFormat.format(
-                "Mail mit Id: {0} an {1} wurde versendet", mail.getId(), mail.getReceiverAddress());
-        UserContext.message(Message.info(text));
         for(String s: messageList) {
-            UserContext.message(Message.info(text));
+            UserContext.message(Message.info(s));
         }
 
         ctx.respondWith().template("view/mails/mail-details.html", templateList, mail, mail.getFunction());

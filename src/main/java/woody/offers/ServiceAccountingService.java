@@ -52,10 +52,10 @@ public interface ServiceAccountingService {
      */
     public Amount getTestUmsatz();
 
-    /**
-     * export the invoicItem to Collmex
-     */
-    public void exportInvoiceItemsToCollmex();
+//    /**
+//     * export the invoicItem to Collmex
+//     */
+//    public void exportInvoiceItemsToCollmex();
 
     /**
      * copies the given offer, the state of the given offer is "canceldd", the state of the new offer is "copy"

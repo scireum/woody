@@ -558,8 +558,8 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                     context.set("offerPeriodLicenceBrutto", offerPeriodLicenceBrutto.toString(NumberFormat.TWO_DECIMAL_PLACES));
                 }
                 String buyerMessage = "";
-                if (offer.getBuyer() != null) {
-                    buyerMessage = offer.getBuyer().getValue().getPerson().getAddressableName() + " erhält diese Mail ebenfalls zur Information.";
+                if (offer.getBuyer().isFilled()) {
+                        buyerMessage = offer.getBuyer().getValue().getPerson().getAddressableName() + " erhält diese Mail ebenfalls zur Information.";
                 }
                 context.set("buyerMessage", buyerMessage);
                 context.set("isOffer", false);
@@ -962,11 +962,12 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         return testUmsatz;
     }
 
+/*    // 04.01.2018: Code durch exportLineitems in AccountingServiceBean ersetzt.
 
     @Override
     public void exportInvoiceItemsToCollmex() {
         LocalDate invoiceDate = LocalDate.now();
-        LocalDateTime exportDate = LocalDateTime.now();
+        LocalDateTime timeStamp = LocalDateTime.now();
         // get all new invoiceItems
         List<Lineitem> invoiceItemList = oma.select(Lineitem.class)
                 .eq(Lineitem.STATUS, Lineitem.LINEITEMSTATUS_NEW)
@@ -974,7 +975,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 .orderDesc(Lineitem.INVOICENR)
                 .orderAsc(Lineitem.POSITION).queryList();
         if (invoiceItemList.size() <= 0) {
-            //ToDo Rechtsnachfolger für ss.orBackendStream(
+
 //                    DisplayMarkdownFactory.FACTORY_NAME,
 //            ss.forBackendStream(
 //                    DisplayMarkdownFactory.FACTORY_NAME,
@@ -987,7 +988,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
         }
         // export them to the file
-        File file = as.createCsvFilename("invoiceItem",-1);
+        File file = as.createCsvFilename("invoiceItem",-1, timeStamp);
         try {
             FileOutputStream output = new FileOutputStream(file);
             Writer fw = new OutputStreamWriter(output, "ISO_8859_1");
@@ -997,7 +998,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 int i = 0;
                 for (Lineitem invoiceItem : invoiceItemList) {
                     i++;
-                    sum = sum.add(generateCollmexInvoiceLine(pw, invoiceItem, invoiceDate, exportDate));
+                    sum = sum.add(generateCollmexInvoiceLine(pw, invoiceItem, invoiceDate, timeStamp));
                 }
                 pw.flush(); // flush the printwriter to get all data to the file
                 // build a activity-news
@@ -1007,7 +1008,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                         NLS.toUserString(sum),
                         file.getAbsoluteFile());
                 System.out.println(text);
-                // ToDo  ss.forBackendStream(
+
 //                ss.forBackendStream(
 //                        DisplayMarkdownFactory.FACTORY_NAME,
 //                        "Service-Abrechnung",text)
@@ -1022,15 +1023,18 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
     }
 
-    /**
-     * generates a invoice-position in Collmex based on the given invoiceitem
-     * @param pw  printwriter
-     * @param invoiceItem
-     * @param invoiceDate
-     * @return sum = quantity * (price * (1-discount))
-     */
+*/
+
+//    /**
+//     * generates a invoice-position in Collmex based on the given invoiceitem
+//     * @param pw  printwriter
+//     * @param invoiceItem
+//     * @param invoiceDate
+//     * @return sum = quantity * (price * (1-discount))
+//     */
+/*
     private Amount generateCollmexInvoiceLine(PrintWriter pw, Lineitem invoiceItem, LocalDate invoiceDate,
-                                              LocalDateTime exportDate) {
+                                              LocalDateTime timeStamp) {
         Amount sum = Amount.ZERO;
 
         // step 2: generate a csv-line for the export in Collmex-Notation
@@ -1220,7 +1224,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
         // Step 5: set status and the clearingDate
         invoiceItem.setStatus(Lineitem.LINEITEMSTATUS_ACCOUNTED);
-        invoiceItem.setExportDate(exportDate);
+        invoiceItem.setExportDate(timeStamp);
         oma.update(invoiceItem);
         // Step 6: calculate the position-sum
         Amount quantity = invoiceItem.getQuantity().fill(Amount.ONE);
@@ -1238,6 +1242,9 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         return sum;
 
     }
+
+*/
+
     private Amount getVatRateForCompany(Company company, LocalDate referenceDate)  {
 
         String countryCode = company.getAddress().getCountry();
