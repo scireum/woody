@@ -94,6 +94,7 @@ public class UnitRelationProvider implements RelationProvider {
     public List<Tuple<String, String>> getSourceTypes() {
         String prefix = getName() + "-";
         String typeNameSuffix = " (" + NLS.get("Unit.plural") + ")";
+
         List<Tuple<String, String>> result = Lists.newArrayList();
         result.add(Tuple.create(Schema.getNameForType(Unit.class), NLS.get("Unit.plural")));
         result.addAll(oma.select(UnitType.class)

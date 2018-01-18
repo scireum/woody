@@ -41,6 +41,10 @@ public class Commented extends Composite {
         }
     }
 
+    public String getReferenceId() {
+        return owner.getUniqueName();
+    }
+
     /**
      * Returns all comments available for this entity.
      *

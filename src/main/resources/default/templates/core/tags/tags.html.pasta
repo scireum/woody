@@ -1,5 +1,5 @@
 <i:arg type="Page" name="tags"/>
-<i:arg type="woody.core.tags.TagsController" name="controller"/>
+<i:arg type="woody.core.tags.TagController" name="controller"/>
 
 <w:page titleKey="Tag.plural">
     <i:block name="breadcrumbs">

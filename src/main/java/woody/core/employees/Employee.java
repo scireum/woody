@@ -18,12 +18,15 @@ import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Mixin;
 import sirius.db.mixing.annotations.NullAllowed;
+import sirius.db.mixing.annotations.OnValidate;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
+import sirius.kernel.commons.Strings;
 import sirius.kernel.health.Exceptions;
 import woody.core.relations.Relateable;
 
 import java.time.LocalDate;
+import java.util.function.Consumer;
 
 /**
  * Extends a <tt>UserAccount</tt> with information related to an employee.
@@ -118,6 +121,15 @@ public class Employee extends Mixable {
     protected void checkIntegrity(UserAccount parent) {
         if (getDischargeDate() != null && !parent.getLogin().isAccountLocked()) {
             throw Exceptions.createHandled().withNLSKey("Employee.cannotDischargeWithoutLock").handle();
+        }
+    }
+
+    @OnValidate
+    protected void checkContacts(UserAccount parent, Consumer<String> warningConsumer) {
+        if (getDischargeDate() == null) {
+            if (Strings.isEmpty(getPersonalContact().getPhone())) {
+                warningConsumer.accept("Es liegt keine persönliche Telefonnummer vor!");
+            }
         }
     }
 

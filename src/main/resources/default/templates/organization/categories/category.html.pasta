@@ -1,0 +1,33 @@
+<i:arg type="woody.organization.categories.Category" name="category"/>
+<i:arg type="woody.organization.categories.CategoryController" name="controller"/>
+
+<w:page titleKey="Model.category">
+    <i:block name="breadcrumbs">
+        <li><a href="/categories">@i18n("Category.plural")</a></li>
+        <li><a href="/category/@category.getIdAsString()">@i18n("Model.category")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.category"/>
+
+    <w:editForm url="@apply('/category/%s', category.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@category.getName()" labelKey="Model.name" required="true" span="4"/>
+            <w:textfield name="technicalName" value="@category.getTechnicalName()" labelKey="Category.technicalName" span="4"/>
+            <w:textfield name="typeName" value="@controller.translateType(category)" labelKey="Category.type" span="4" readonly="true"/>
+            <input name="type" value="@category.getType()" type="hidden"/>
+            <w:textfield name="description" value="@category.getDescription()" labelKey="Model.description" span="12"/>
+            <w:singleSelect name="viewRole" labelKey="Category.viewRole" optional="true">
+                <i:for type="String" var="role" items="controller.getRoles()">
+                    <option value="@role" @if (role.equals(category.getViewRole())) { selected="selected" }>@controller.translateRole(role)</option>
+                </i:for>
+            </w:singleSelect>
+            <w:singleSelect name="editRole" labelKey="Category.editRole" optional="true">
+                <i:for type="String" var="role" items="controller.getRoles()">
+                    <option value="@role" @if (role.equals(category.getEditRole())) { selected="selected" }>@controller.translateRole(role)</option>
+                </i:for>
+            </w:singleSelect>
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/categories"/>
+</w:page>

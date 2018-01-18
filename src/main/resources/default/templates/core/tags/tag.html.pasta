@@ -1,9 +1,9 @@
 <i:arg type="woody.core.tags.Tag" name="tag" />
-<i:arg type="woody.core.tags.TagsController" name="controller" />
+<i:arg type="woody.core.tags.TagController" name="controller" />
 
 <w:page titleKey="Model.tag">
     <i:block name="breadcrumbs">
-        <li><a href="/tags">@i18n("Model.tag")</a></li>
+        <li><a href="/tags">@i18n("Tag.plural")</a></li>
         <li><a href="/tag/@tag.getId()">@i18n("Model.tag")</a></li>
     </i:block>
 

@@ -1,0 +1,40 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="Page" name="persons"/>
+
+<i:invoke template="templates/xrm/company.html.pasta" company="company" page="persons">
+    <i:block name="breadcrumbs">
+        <li><a href="/company/@company.getId()/persons">@i18n("Person.plural")</a></li>
+    </i:block>
+
+    <w:taggedSearch page="persons" baseUrl="@apply('/company/%s/persons', company.getId())" suggestionsName="PERSON"/>
+
+    <w:table data="persons">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")
+            </th>
+            <th>
+                @i18n("Tag.plural")<br>
+                <span class="muted">@i18n("Relation.plural")</span>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.xrm.Person" var="person" items="persons.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/company/@person.getCompany().getId()/person/@person.getId()">@person</a>
+                </td>
+                <td>
+                    <woody:listTags tagged="person.getTags()"/>
+                    <br>
+                    <woody:listRelations relations="person.getRelations()"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="persons" baseUrl="@apply('company/%s/persons', company.getId())"/>
+</i:invoke>

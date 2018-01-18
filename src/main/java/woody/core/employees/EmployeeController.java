@@ -35,7 +35,9 @@ public class EmployeeController extends BizController {
     @Permission(UserAccountController.PERMISSION_MANAGE_USER_ACCOUNTS)
     public void employee(WebContext ctx, String accountId) {
         UserAccount userAccount = findForTenant(UserAccount.class, accountId);
+
         prepareSave(ctx).saveEntity(userAccount);
+        validate(userAccount);
         ctx.respondWith().template("/templates/core/employee/user-account-employee.html.pasta", userAccount);
     }
 }

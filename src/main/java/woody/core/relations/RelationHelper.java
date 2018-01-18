@@ -63,8 +63,8 @@ public class RelationHelper {
             return context.findPart(typeAndName.getFirst(), RelationProvider.class)
                           .resolveNameAndUri(targetName)
                           .orElse(EMPTY);
-        } catch (Throwable e) {
-            Exceptions.ignore(e);
+        } catch (Exception e) {
+            Exceptions.handle(e);
             return EMPTY;
         }
     }

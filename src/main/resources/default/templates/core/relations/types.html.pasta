@@ -1,5 +1,5 @@
 <i:arg type="Page" name="types"/>
-<i:arg type="woody.core.relations.RelationsController" name="controller"/>
+<i:arg type="woody.core.relations.RelationTypeController" name="controller"/>
 
 <w:page titleKey="RelationType.plural">
     <i:block name="breadcrumbs">

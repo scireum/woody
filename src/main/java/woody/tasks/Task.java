@@ -20,8 +20,6 @@ import sirius.db.mixing.annotations.NullAllowed;
 import sirius.kernel.di.std.Part;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
-import woody.xrm.Company;
-import woody.xrm.Person;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -45,21 +43,6 @@ public class Task extends TenantAware {
     @Autoloaded
     private final EntityRef<UserAccount> assignee = EntityRef.on(UserAccount.class, EntityRef.OnDelete.SET_NULL);
     public static final Column ASSIGNEE = Column.named("assignee");
-
-    @NullAllowed
-    @Autoloaded
-    private final EntityRef<Person> person = EntityRef.on(Person.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column PERSON = Column.named("person");
-
-    @NullAllowed
-    @Autoloaded
-    private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column COMPANY = Column.named("company");
-
-    @NullAllowed
-    @Autoloaded
-    private final EntityRef<Project> project = EntityRef.on(Project.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column PROJECT = Column.named("project");
 
     @Autoloaded
     private boolean hidden;

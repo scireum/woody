@@ -21,4 +21,9 @@ public interface HasRelations {
      * @return the relations management facility
      */
     Relations getRelations();
+
+    default String getTargetsString() {
+        return null;
+    }
+
 }

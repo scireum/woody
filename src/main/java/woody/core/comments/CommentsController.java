@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * Provides the handlers used to create, edit or delete a comment.
  * <p>
  * To perform autorisation (we don't know who may comment on what), a shared secret is computed and provided here.
- * This is used to generate an autorisation hash which is checked here. Clients of the comments framework can user
+ * This is used to generate an autorisation hash which is checked here. Clients of the comments framework can use
  * {@link Commented#getAuthHash()} to embed commenting functionalities into their UI. The <tt>comments.html</tt> part
  * takes care of that for most cases.
  */

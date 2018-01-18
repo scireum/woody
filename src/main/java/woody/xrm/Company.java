@@ -35,7 +35,6 @@ public class Company extends TenantAware implements HasComments, HasRelations {
 
     @Trim
     @Autoloaded
-    @Unique(within = "tenant")
     @Length(255)
     private String name;
     public static final Column NAME = Column.named("name");
@@ -43,6 +42,7 @@ public class Company extends TenantAware implements HasComments, HasRelations {
     @NullAllowed
     @Autoloaded
     @Length(255)
+    @Trim
     private String name2;
     public static final Column NAME2 = Column.named("name2");
 
@@ -57,18 +57,21 @@ public class Company extends TenantAware implements HasComments, HasRelations {
     @NullAllowed
     @Autoloaded
     @Length(255)
+    @Trim
     private String website;
     public static final Column WEBSITE = Column.named("website");
 
     @NullAllowed
     @Autoloaded
     @Length(255)
+    @Trim
     private String matchcode;
     public static final Column MATCHCODE = Column.named("matchcode");
 
     @NullAllowed
     @Autoloaded
     @Length(255)
+    @Trim
     private String image;
     public static final Column IMAGE = Column.named("image");
 
@@ -76,10 +79,10 @@ public class Company extends TenantAware implements HasComments, HasRelations {
     private final InternationalAddressData address =
             new InternationalAddressData(AddressData.Requirements.NOT_PARTIAL, null);
 
+    public static final Column POSTBOX_ADDRESS = Column.named("postboxAddress");
     private final InternationalAddressData postboxAddress =
             new InternationalAddressData(InternationalAddressData.Requirements.NOT_PARTIAL,
                                          NLS.get("Company.postboxAddress"));
-    public static final Column POSTBOX_ADDRESS = Column.named("postboxAddress");
 
     private final ContactData contact = new ContactData(true);
     public static final Column CONTACT = Column.named("contact");
@@ -218,6 +221,7 @@ public class Company extends TenantAware implements HasComments, HasRelations {
         return tags;
     }
 
+    @Override
     public Commented getComments() {
         return comments;
     }
@@ -226,6 +230,7 @@ public class Company extends TenantAware implements HasComments, HasRelations {
         return contact;
     }
 
+    @Override
     public Relations getRelations() {
         return relations;
     }

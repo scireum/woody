@@ -25,7 +25,6 @@ import sirius.db.mixing.annotations.Trim;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
-import sirius.kernel.nls.Formatter;
 import woody.core.comments.Commented;
 import woody.core.comments.HasComments;
 import woody.core.relations.HasRelations;
@@ -82,6 +81,9 @@ public class Person extends BizEntity implements HasComments, HasRelations {
     private final Relateable relateable = new Relateable(this);
     public static final Column RELATEABLE = Column.named("relateable");
 
+    public static final Column QUIT = Column.named("quit");
+    private boolean quit = false;
+
     @Part
     private static Sequences sequences;
 
@@ -102,9 +104,6 @@ public class Person extends BizEntity implements HasComments, HasRelations {
         return code;
     }
 
-    private boolean offline = false;
-    public static final Column OFFLINE = Column.named("offline");
-
     @BeforeSave
     protected void onSave() {
         if (Strings.isEmpty(uniquePath) && company.isFilled()) {
@@ -122,19 +121,6 @@ public class Person extends BizEntity implements HasComments, HasRelations {
         } else {
             return super.toString();
         }
-    }
-
-    public String getLetterSalutation() {
-        String text = "Sehr geehrte";
-        if ("SIR".equals(this.getPerson().getSalutation())) {
-            text = text.concat("r");
-        }
-        return Formatter.create("[${text} ][${salutation} ][${title} ]${lastname},")
-                        .set("text", text)
-                        .set("salutation", this.getPerson().getTranslatedSalutation())
-                        .set("title", this.getPerson().getTitle())
-                        .set("lastname", this.getPerson().getLastname())
-                        .smartFormat();
     }
 
     public EntityRef<Company> getCompany() {
@@ -197,5 +183,13 @@ public class Person extends BizEntity implements HasComments, HasRelations {
 
     public void setUniquePath(String uniquePath) {
         this.uniquePath = uniquePath;
+    }
+
+    public boolean isQuit() {
+        return quit;
+    }
+
+    public void setQuit(boolean quit) {
+        this.quit = quit;
     }
 }

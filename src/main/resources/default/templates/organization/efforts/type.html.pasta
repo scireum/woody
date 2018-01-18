@@ -1,0 +1,25 @@
+<i:arg type="woody.organization.efforts.EffortType" name="type"/>
+<i:arg type="List" name="categories"/>
+
+<w:page titleKey="Model.effortType">
+    <i:block name="breadcrumbs">
+        <li><a href="/efforts/types">@i18n("EffortType.plural")</a></li>
+        <li><a href="/efforts/type/@type.getIdAsString()">@i18n("Model.effortType")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.effortType"/>
+
+    <w:editForm url="@apply('/efforts/type/%s', type.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@type.getName()" labelKey="Model.name" required="true" />
+            <w:singleSelect name="category" labelKey="BasicType.category">
+                <i:for type="woody.organization.categories.Category" var="category" items="categories">
+                    <option value="@category.getIdAsString()" @if (type.getCategory().is(category)) { selected="selected" }>@category.getName()</option>
+                </i:for>
+            </w:singleSelect>
+            <w:textfield name="description" value="@type.getDescription()" labelKey="Model.description" span="12"/>
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/efforts/types" />
+</w:page>

@@ -1,64 +1,82 @@
 <i:arg type="Page" name="units" />
+<i:arg type="woody.organization.categories.Category" name="category" />
+<i:arg type="List" name="types" />
 
-<w:page titleKey="Unit.plural">
+<w:page title="@category.getName()">
     <i:block name="breadcrumbs">
-        <li><a href="/units">@i18n("Unit.plural")</a></li>
+        <li><a href="/units/@category.getTechnicalName()">@category.getName()</a></li>
     </i:block>
 
-    <w:pageHeader titleKey="Unit.plural"/>
+    <w:pageHeader title="@category.getName()"/>
 
-    <w:taggedSearch page="units" baseUrl="units" suggestionsName="UNIT">
-        <a class="btn btn-primary" href="/unit/new">@i18n("Model.create")</a>
-    </w:taggedSearch>
+    <div class="row">
+        <div class="col-md-3">
+            <w:filterbox page="units" baseUrl="@apply('/units/%s', category.getTechnicalName())"/>
+        </div>
+        <div class="col-md-9">
+            <w:taggedSearch page="units" baseUrl="@apply('/units/%s', category.getTechnicalName())" suggestionsName="UNIT">
+                <div class="btn-group">
+                    <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">
+                        @i18n("Model.create")
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <i:for type="woody.organization.units.UnitType" var="type" items="types">
+                            <li>
+                                <a href="@apply('/unit/new?type=%s', type.getIdAsString())">@type.getName()</a>
+                            </li>
+                        </i:for>
+                    </ul>
+                </div>
+            </w:taggedSearch>
 
-    <w:table data="units">
-        <thead>
-        <tr>
-            <th>
-                @i18n("Model.name") <span class="muted">(@i18n("Model.code"))</span><br>
-                <span class="muted">@i18n("Model.type")</span>
-            </th>
-            <th>
-                @i18n("Unit.parent")<br>
-                <span class="muted">@i18n("Model.type")</span>
-            </th>
-            <th>
-                @i18n("Tag.plural")<br>
-                <span class="muted">@i18n("Relation.plural")</span>
-            </th>
-            <th />
-        </tr>
-        </thead>
-        <tbody>
-        <i:for type="woody.organization.units.Unit" var="unit" items="units.getItems()">
-            <tr>
-                <td>
-                    <a class="link" href="/unit/@unit.getId()">@unit.getName()</a>
-                    <i:if test="isFilled(unit.getCode())">
-                        <span class="muted">(@unit.getCode())</span>
-                    </i:if>
-                    <br>
-                    <span class="muted"><small>@unit.getType().getValue().as(woody.organization.units.UnitType.class).getName()</small></span>
-                </td>
-                <td>
-                    <i:if test="unit.getParent().isFilled()">
-                        @unit.getParent().getValue().as(woody.organization.units.Unit.class).getName()<br>
-                        <span class="muted">@unit.getParent().getValue().as(woody.organization.units.Unit.class).getType().getValue().as(woody.organization.units.UnitType.class).getName()</span>
-                    </i:if>
-                </td>
-                <td>
-                    <woody:listTags tagged="unit.getTags()" />
-                    <br>
-                    <woody:listRelations relations="unit.getRelations()" />
-                </td>
-                <td class="col-md-2 align-center">
-                    <w:deleteLink url="@apply('/unit/%s/delete', unit.getId())" page="units"/>
-                </td>
-            </tr>
-        </i:for>
-        </tbody>
-    </w:table>
+            <w:table data="units">
+                <thead>
+                <tr>
+                    <th>
+                        @i18n("Model.name") <span class="muted">(@i18n("Model.code"))</span><br>
+                        <span class="muted">@i18n("Model.type")</span>
+                    </th>
+                    <th>
+                        @i18n("Unit.parent")<br>
+                        <span class="muted">@i18n("Model.type")</span>
+                    </th>
+                    <th>
+                        @i18n("Tag.plural")<br>
+                        <span class="muted">@i18n("Relation.plural")</span>
+                    </th>
+                    <th />
+                </tr>
+                </thead>
+                <tbody>
+                <i:for type="woody.organization.units.Unit" var="unit" items="units.getItems()">
+                    <tr>
+                        <td>
+                            <a class="link" href="/unit/@unit.getId()">@unit.getName()</a>
+                            <i:if test="isFilled(unit.getCode())"><span class="muted">(@unit.getCode())</span></i:if><br>
+                            <span class="muted"><small>@unit.getType().getValue()</small></span>
+                        </td>
+                        <td>
+                            <i:if test="unit.getParent().isFilled()">
+                                @unit.getParent().getValue()<br>
+                                <span class="muted">@unit.getParent().getValue().as(woody.organization.units.Unit.class).getType().getValue()</span>
+                            </i:if>
+                        </td>
+                        <td>
+                            <woody:listTags tagged="unit.getTags()" />
+                            <br>
+                            <woody:listRelations relations="unit.getRelations()" />
+                        </td>
+                        <td class="col-md-2 align-center">
+                            <w:deleteLink url="@apply('/unit/%s/%s/delete', category, unit.getId())" page="units"/>
+                        </td>
+                    </tr>
+                </i:for>
+                </tbody>
+            </w:table>
 
-    <w:pagination page="units" baseUrl="units"/>
+            <w:pagination page="units" baseUrl="@apply('/units/%s', category.getTechnicalName())"/>
+        </div>
+    </div>
 
 </w:page>

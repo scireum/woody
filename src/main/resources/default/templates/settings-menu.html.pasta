@@ -1,11 +1,15 @@
 <w:permission permission="permission-manage-tags">
     <li class="divider"></li>
 </w:permission>
+
 <w:menuItem titleKey="Tag.plural" url="/tags" permission="permission-manage-tags" />
-<w:permission permission="permission-manage-relation-types,permission-manage-unit-types,permission-manage-inventory-types">
+
+<w:permission permission="permission-manage-categories,permission-manage-relation-types,permission-manage-unit-types,permission-manage-thing-types,permission-manage-effort-types">
     <li class="divider"></li>
 </w:permission>
+
+<w:menuItem titleKey="Category.plural" url="/categories" permission="permission-manage-categories" />
 <w:menuItem titleKey="RelationType.plural" url="/relations/types" permission="permission-manage-relation-types" />
 <w:menuItem titleKey="UnitType.plural" url="/units/types" permission="permission-manage-unit-types" />
-<w:menuItem titleKey="InventoryType.plural" url="/inventory/types" permission="permission-manage-inventory-types" />
-<w:menuItem titleKey="ProjectType.plural" url="/projects/types" permission="permission-manage-project-types" />
+<w:menuItem titleKey="ThingType.plural" url="/things/types" permission="permission-manage-thing-types" />
+<w:menuItem titleKey="EffortType.plural" url="/efforts/types" permission="permission-manage-effort-types" />

@@ -113,6 +113,7 @@ public class XRMRelationProvider implements RelationProvider {
         if (typeAndId.getSecond().length() <= 6) {
             return oma.select(Company.class)
                       .fields(Company.ID, Company.NAME)
+                      .eq(Company.TENANT, tenants.getRequiredTenant())
                       .eq(Company.ID, Long.parseLong(typeAndId.getSecond(), 36))
                       .first()
                       .map(company -> ComparableTuple.create(company.getName(), "/company/" + company.getId()));
@@ -124,6 +125,7 @@ public class XRMRelationProvider implements RelationProvider {
                               Person.PERSON.inner(PersonData.FIRSTNAME),
                               Person.PERSON.inner(PersonData.LASTNAME),
                               Person.PERSON.inner(PersonData.SALUTATION))
+                      .eq(Person.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
                       .eq(Person.UNIQUE_PATH, typeAndId.getSecond())
                       .first()
                       .map(person -> ComparableTuple.create(person.toString(),
@@ -137,8 +139,8 @@ public class XRMRelationProvider implements RelationProvider {
     @Override
     public List<Tuple<String, String>> getSourceTypes() {
         List<Tuple<String, String>> result = Lists.newArrayList();
-        result.add(Tuple.create("XRM-PERSON", NLS.get("Person.plural") + "(Y)"));
-        result.add(Tuple.create("XRM-COMPANY", NLS.get("Company.plural") + "(Y)"));
+        result.add(Tuple.create("XRM-PERSON", NLS.get("Person.plural")));
+        result.add(Tuple.create("XRM-COMPANY", NLS.get("Company.plural")));
         return result;
     }
 

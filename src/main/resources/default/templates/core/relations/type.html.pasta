@@ -1,5 +1,5 @@
 <i:arg type="woody.core.relations.RelationType" name="type"/>
-<i:arg type="woody.core.relations.RelationsController" name="controller"/>
+<i:arg type="woody.core.relations.RelationTypeController" name="controller"/>
 
 <w:page titleKey="Model.relationType">
     <i:block name="breadcrumbs">
@@ -27,15 +27,25 @@
                     <w:textfield name="targetType" value="@controller.translateType(type.getTargetType())" labelKey="RelationType.targetType" readonly="true" />
                 </i:else>
             </i:if>
-
-            <w:textfield name="name" value="@type.getName()" labelKey="Model.name" required="true" />
-            <w:textfield name="reverseName" value="@type.getReverseName()" labelKey="RelationType.reverseName" />
         </div>
         <div class="row">
-            <w:checkbox name="viewInList" value="type.isViewInList()" labelKey="RelationType.viewInList" />
-            <w:checkbox name="showReverse" value="type.isShowReverse()" labelKey="RelationType.showReverse" />
+            <div class="col-md-6">
+                <div class="row">
+                    <w:textfield name="name" value="@type.getName()" labelKey="Model.name" required="true" span="12" />
+                    <w:textfield name="reverseName" value="@type.getReverseName()" labelKey="RelationType.reverseName" span="12" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <w:checkbox name="multiple" value="type.isMultiple()" labelKey="RelationType.multiple" span="12" />
+                    <w:checkbox name="viewInList" value="type.isViewInList()" labelKey="RelationType.viewInList" span="12" />
+                    <w:checkbox name="showReverse" value="type.isShowReverse()" labelKey="RelationType.showReverse" span="12" />
+                </div>
+            </div>
         </div>
     </w:editForm>
 
-    <w:formBar backUrl="/relations/types" />
+    <w:formBar backUrl="/relations/types">
+        <w:tracing trace="@type.getTrace()" />
+    </w:formBar>
 </w:page>

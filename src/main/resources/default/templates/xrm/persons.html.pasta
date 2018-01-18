@@ -1,0 +1,45 @@
+<i:arg type="Page" name="persons" />
+
+<w:page titleKey="Person.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/persons">@i18n("Person.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Person.plural"/>
+
+    <w:taggedSearch page="persons" baseUrl="/persons" suggestionsName="PERSON" />
+
+    <w:table data="persons">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")<br>
+                <span class="muted">@i18n("Model.company")</span>
+            </th>
+            <th>
+                @i18n("Tag.plural")<br>
+                <span class="muted">@i18n("Relation.plural")</span>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.xrm.Person" var="person" items="persons.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/company/@person.getCompany().getId()/person/@person.getId()">@person</a><br>
+                    <span class="small"><a class="link" href="/company/@person.getCompany().getId()">
+                        @person.getCompany().getValue().as(woody.xrm.Company.class).getName()
+                    </a></span>
+                </td>
+                <td>
+                    <woody:listTags tagged="person.getTags()" />
+                    <br>
+                    <woody:listRelations relations="person.getRelations()" />
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="persons" baseUrl="persons"/>
+</w:page>

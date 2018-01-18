@@ -1,0 +1,14 @@
+<i:arg type="java.lang.Object" name="object"/>
+
+<i:if test="object.is(woody.core.relations.IsRelateable.class)">
+    <i:local name="relateable" value="object.as(woody.core.relations.IsRelateable.class).getRelateable()"/>
+    <i:for type="woody.organization.categories.Category" var="category" items="@organization.getCategories()">
+        <i:local name="template" value="@category.getProvider().getOverviewTemplate()" />
+        <i:if test="isFilled(template)">
+            <i:dynamicInvoke template="@template" category="@category" relateable="@relateable" />
+        </i:if>
+        <i:if test="category.getType() == 'thing'">
+
+        </i:if>
+    </i:for>
+</i:if>

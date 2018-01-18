@@ -234,7 +234,7 @@ public class SendOfferView /* extends BasicView*/ {
             Offer offer = (Offer) ctx.get("offer");
             Person person = (Person) ctx.get("person");
             StringBuilder sb = new StringBuilder();
-            sb.append(person.getLetterSalutation());
+//            sb.append(person.getLetterSalutation());
             sb.append("\n\n");
 
             switch(function) {

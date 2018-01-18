@@ -1,52 +1,64 @@
 <i:arg type="String" name="id"/>
 <i:arg type="woody.core.comments.Commented" name="commented"/>
 
-<w:subHeading labelKey="Comment.plural"/>
+<w:infobox titleKey="Comment.plural" color="blueviolet">
+    <i:for type="woody.core.comments.Comment" var="comment" items="commented.getAllComments()">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="comment">
+                    <div class="comment-infos">
+                        <span class="comment-name">@comment.getPersonName()</span>
+                        <span class="comment-date">@comment.getDateString()</span>
+                    </div>
+                    <div class="comment-content">@comment.getTextContent()</div>
 
-<a name="comments"></a>
-
-<textarea id="comment" rows="3">
-
-</textarea>
-<a class="btn btn-primary" id="submitComment">Speichern</a>
-
-<i:for type="woody.core.comments.Comment" var="comment" items="commented.getAllComments()">
-    <div class="comment">
-        @comment.getPersonName()<br>
-        @comment.getDateString()<br>
-        @comment.getTextContent()
-        <i:if test="comment.canBeEditedByCurrentUser()">
-            <br><a onclick="deleteComment('@comment.getIdAsString()')">Löschen</a>
-        </i:if>
+                    <i:if test="comment.canBeEditedByCurrentUser()">
+                        <div class="comment-actions">
+                            <i class="fa fa-trash"></i>
+                            <a class="link link-danger" href="javascript:deleteComment('@comment.getIdAsString()')">
+                                @i18n("NLS.delete")
+                            </a>
+                        </div>
+                    </i:if>
+                </div>
+            </div>
+        </div>
+    </i:for>
+    <div class="row">
+        <a name="comments"></a>
+        <w:textarea id="comment" name="comment" value="" span="12"/>
+        <div class="col-md-12">
+            <a class="btn btn-primary" id="submitComment">Absenden</a>
+        </div>
     </div>
-</i:for>
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('#submitComment').click(function () {
-            $.getJSON('/comments/add/@id', {
-                authHash: '@commented.getAuthHash()',
-                comment: $('#comment').val()
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#submitComment').click(function () {
+                $.getJSON('/comments/add/@id', {
+                    authHash: '@commented.getAuthHash()',
+                    comment: $('#comment').val()
+                }, function (json) {
+                    $('#comment').val('');
+                    if (json.error) {
+                        addErrorMessage(json.message);
+                    } else if (json.refresh) {
+                        window.location.reload();
+                    }
+                });
+            });
+        });
+
+        function deleteComment(id) {
+            $.getJSON('/comments/delete/' + id, {
+                authHash: '@commented.getAuthHash()'
             }, function (json) {
-                $('#comment').val('');
                 if (json.error) {
                     addErrorMessage(json.message);
                 } else if (json.refresh) {
                     window.location.reload();
                 }
             });
-        });
-    });
-
-    function deleteComment(id) {
-        $.getJSON('/comments/delete/' + id, {
-            authHash: '@commented.getAuthHash()'
-        }, function (json) {
-            if (json.error) {
-                addErrorMessage(json.message);
-            } else if (json.refresh) {
-                window.location.reload();
-            }
-        });
-    }
-</script>
+        }
+    </script>
+</w:infobox>

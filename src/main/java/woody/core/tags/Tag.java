@@ -9,6 +9,7 @@
 package woody.core.tags;
 
 import sirius.biz.tenants.TenantAware;
+import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
@@ -29,6 +30,7 @@ public class Tag extends TenantAware {
     public static final Column NAME = Column.named("name");
     @Trim
     @Length(255)
+    @Autoloaded
     private String name;
 
     public static final Column TARGET_TYPE = Column.named("targetType");
@@ -37,6 +39,7 @@ public class Tag extends TenantAware {
     private String targetType;
 
     public static final Column VIEW_IN_LIST = Column.named("viewInList");
+    @Autoloaded
     private boolean viewInList;
 
     @BeforeSave

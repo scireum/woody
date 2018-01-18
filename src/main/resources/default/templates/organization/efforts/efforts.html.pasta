@@ -1,0 +1,72 @@
+<i:arg type="Page" name="efforts" />
+<i:arg type="woody.organization.categories.Category" name="category" />
+<i:arg type="List" name="types" />
+
+<w:page title="@category.getName()">
+    <i:block name="breadcrumbs">
+        <li><a href="/efforts/@category.getTechnicalName()">@category.getName()</a></li>
+    </i:block>
+
+    <w:pageHeader title="@category.getName()"/>
+
+    <div class="row">
+        <div class="col-md-3">
+            <w:filterbox page="efforts" baseUrl="@apply('/efforts/%s', category.getTechnicalName())"/>
+        </div>
+        <div class="col-md-9">
+            <w:taggedSearch page="efforts" baseUrl="@apply('/efforts/%s', category.getTechnicalName())" suggestionsName="EFFORT">
+                <div class="btn-group">
+                    <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">
+                        @i18n("Model.create")
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <i:for type="woody.organization.efforts.EffortType" var="type" items="types">
+                            <li>
+                                <a href="@apply('/effort/new?type=%s', type.getIdAsString())">@type.getName()</a>
+                            </li>
+                        </i:for>
+                    </ul>
+                </div>
+            </w:taggedSearch>
+
+            <w:table data="efforts">
+                <thead>
+                <tr>
+                    <th>
+                        @i18n("Model.name") <span class="muted">(@i18n("Model.code"))</span><br>
+                        <span class="muted">@i18n("Model.type")</span>
+                    </th>
+                    <th>
+                        @i18n("Tag.plural")<br>
+                        <span class="muted">@i18n("Relation.plural")</span>
+                    </th>
+                    <th />
+                </tr>
+                </thead>
+                <tbody>
+                <i:for type="woody.organization.efforts.Effort" var="effort" items="efforts.getItems()">
+                    <tr>
+                        <td>
+                            <a class="link" href="/effort/@effort.getId()">@effort.getName()</a>
+                            <i:if test="isFilled(effort.getCode())"><span class="muted">(@effort.getCode())</span></i:if><br>
+                            <span class="muted"><small>@effort.getType().getValue()</small></span>
+                        </td>
+                        <td>
+                            <woody:listTags tagged="effort.getTags()" />
+                            <br>
+                            <woody:listRelations relations="effort.getRelations()" />
+                        </td>
+                        <td class="col-md-2 align-center">
+                            <w:deleteLink url="@apply('/effort/%s/%s/delete', category, effort.getId())" page="efforts"/>
+                        </td>
+                    </tr>
+                </i:for>
+                </tbody>
+            </w:table>
+
+            <w:pagination page="efforts" baseUrl="@apply('/efforts/%s', category.getTechnicalName())"/>
+        </div>
+    </div>
+
+</w:page>

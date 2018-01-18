@@ -13,12 +13,9 @@ import sirius.biz.model.PersonData;
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
-import sirius.db.mixing.constraints.Like;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
-import sirius.kernel.health.Exceptions;
-import sirius.web.controller.AutocompleteHelper;
 import sirius.web.controller.Controller;
 import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
@@ -27,7 +24,6 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import woody.core.relations.RelationHelper;
-import woody.sales.contracts.AccountingService;
 
 import java.util.Optional;
 
@@ -41,49 +37,13 @@ public class XRMController extends BizController {
     public static final String PERMISSION_MANAGE_XRM = "permission-manage-xrm";
 
     @Part
-    private AccountingService asb;
-
-    @Part
     private RelationHelper relations;
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/exportLineitems")
-    public void exportLineitems(WebContext ctx) {
-
-        try {
-            asb.exportLicenceLineitems(1000, null);
-            int vvv = 1;
-        } catch (Exception e) {
-            Exceptions.handle();
-        }
-    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/licenceAccounting")
-    public void licenceAccounting(WebContext ctx) {
-//        LocalDate referenceDate = LocalDate.of(2017, 1, 2);
-//        boolean dryRun = true;
-//        DataCollector<Lineitem> lineitemCollection = asb.accountAllContracts(dryRun, referenceDate, null,
-//                                                         /*TaskMonitor monitor,*/ foreignCountry);
-//        int vvv = 1;
-    }
 
     @DefaultRoute
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/companies")
     public void companies(WebContext ctx) {
-//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-//        SmartQuery<Company> query = oma.select(Company.class).orderAsc(Company.NAME);
-//        search.applyQueries(query,
-//                            Company.NAME,
-//                            Company.ADDRESS.inner(AddressData.CITY),
-//                            Company.CUSTOMER_NUMBER,
-//                            Company.MATCHCODE);
-//        Tagged.applyTagSuggestions(Company.class, search, query);
-//        Relations.applySuggestions(Company.class, search, query);
         PageHelper<Company> ph =
                 PageHelper.withQuery(oma.select(Company.class).orderAsc(Company.NAME)).forCurrentTenant();
         ph.withSearchFields(Company.NAME,
@@ -93,36 +53,7 @@ public class XRMController extends BizController {
 
         ph.withContext(ctx);
         ph.enableAdvancedSearch();
-        ctx.respondWith().template("view/xrm/companies.html", ph.asPage());
-    }
-
-//    @LoginRequired
-//    @Permission(PERMISSION_MANAGE_XRM)
-//    @Routed(value = "/companies/suggest", jsonCall = true)
-//    public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
-//        MagicSearch.generateSuggestions(ctx, (q, c) -> {
-//            Tagged.computeSuggestions(Company.class, q, c);
-//            Relations.computeSuggestions(Company.class, q, c);
-//        });
-//    }
-
-    @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/companies/autocomplete")
-    public void autocomplete(WebContext ctx) {
-        AutocompleteHelper.handle(ctx,
-                                  (query, result) -> oma.select(Company.class)
-                                                        .eq(Company.TENANT, currentTenant())
-                                                        .where(Like.allWordsInAnyField(query,
-                                                                                       Company.NAME,
-                                                                                       Company.NAME2,
-                                                                                       Company.CUSTOMER_NUMBER,
-                                                                                       Company.MATCHCODE))
-                                                        .orderAsc(Company.NAME)
-                                                        .iterateAll(company -> result.accept(new AutocompleteHelper.Completion(
-                                                                company.getIdAsString(),
-                                                                company.getName(),
-                                                                null))));
+        ctx.respondWith().template("templates/xrm/companies.html.pasta", ph.asPage());
     }
 
     @LoginRequired
@@ -143,9 +74,9 @@ public class XRMController extends BizController {
     public void company(WebContext ctx, String companyId) {
         Company cl = findForTenant(Company.class, companyId);
         if (cl.isNew()) {
-            ctx.respondWith().template("view/xrm/company-details.html", cl);
+            ctx.respondWith().template("templates/xrm/company-details.html.pasta", cl);
         } else {
-            ctx.respondWith().template("view/xrm/company-overview.html", cl);
+            ctx.respondWith().template("templates/xrm/company-overview.html.pasta", cl);
         }
     }
 
@@ -172,42 +103,28 @@ public class XRMController extends BizController {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/xrm/company-details.html", cl);
+        ctx.respondWith().template("templates/xrm/company-details.html.pasta", cl);
     }
-//
-//    @LoginRequired
-//    @Permission(PERMISSION_MANAGE_XRM)
-//    @Routed(value = "/persons/suggest", jsonCall = true)
-//    public void personsSuggest(WebContext ctx, JSONStructuredOutput out) {
-//        MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Person.class, q, c));
-//    }
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/persons")
     public void companyPersons(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);
-//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
         SmartQuery<Person> query = oma.select(Person.class)
                                       .eq(Person.COMPANY, company)
                                       .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                                       .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME));
-//        search.applyQueries(query,
-//                            Person.PERSON.inner(PersonData.LASTNAME),
-//                            Person.PERSON.inner(PersonData.FIRSTNAME),
-//                            Person.CONTACT.inner(ContactData.PHONE),
-//                            Person.CONTACT.inner(ContactData.EMAIL),
-//                            Person.CONTACT.inner(ContactData.MOBILE));
-//        Tagged.applyTagSuggestions(Person.class, search, query);
         PageHelper<Person> ph = PageHelper.withQuery(query);
         ph.withContext(ctx);
-        ctx.respondWith().template("view/xrm/company-persons.html", company, ph.asPage());
+        ph.withSearchFields(Person.PERSON.inner(PersonData.FIRSTNAME), Person.PERSON.inner(PersonData.LASTNAME));
+        ph.enableAdvancedSearch();
+        ctx.respondWith().template("templates/xrm/company-persons.html.pasta", company, ph.asPage());
     }
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/persons")
-
     public void persons(WebContext ctx) {
         SmartQuery<Person> query = oma.select(Person.class)
                                       .fields(Person.ID,
@@ -222,8 +139,15 @@ public class XRMController extends BizController {
                                       .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                                       .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME));
         PageHelper<Person> ph = PageHelper.withQuery(query);
+        ph.withSearchFields(Person.PERSON.inner(PersonData.TITLE),
+                            Person.PERSON.inner(PersonData.FIRSTNAME),
+                            Person.PERSON.inner(PersonData.LASTNAME),
+                            Person.COMPANY.join(Company.ID),
+                            Person.COMPANY.join(Company.CUSTOMER_NUMBER),
+                            Person.COMPANY.join(Company.NAME));
         ph.withContext(ctx);
-        ctx.respondWith().template("view/xrm/persons.html", ph.asPage());
+        ph.enableAdvancedSearch();
+        ctx.respondWith().template("templates/xrm/persons.html.pasta", ph.asPage());
     }
 
     @LoginRequired
@@ -248,7 +172,7 @@ public class XRMController extends BizController {
         assertNotNew(company);
         setOrVerify(person, person.getCompany(), company);
 
-        ctx.respondWith().template("view/xrm/person-overview.html", company, person);
+        ctx.respondWith().template("templates/xrm/person-overview.html.pasta", company, person);
     }
 
     @LoginRequired
@@ -275,13 +199,13 @@ public class XRMController extends BizController {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/xrm/person-details.html", company, person);
+        ctx.respondWith().template("templates/xrm/person-details.html.pasta", company, person);
     }
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/company/:1/person/:2/css")
-    public void personCSS(WebContext ctx, String companyId, String personId) {
+    @Routed("/person/:1/css")
+    public void personCSS(WebContext ctx, String personId) {
         Person person = find(Person.class, personId);
         assertNotNew(person);
         assertTenant(person.getCompany().getValue());
@@ -294,6 +218,6 @@ public class XRMController extends BizController {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/xrm/person-css.html", person.getCompany().getValue(), person);
+        ctx.respondWith().template("templates/xrm/person-css.html.pasta", person.getCompany().getValue(), person);
     }
 }

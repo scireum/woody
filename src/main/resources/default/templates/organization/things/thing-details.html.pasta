@@ -1,0 +1,41 @@
+<i:arg type="woody.organization.things.Thing" name="thing"/>
+<i:arg type="List" name="types"/>
+
+<i:invoke template="templates/organization/things/thing.html.pasta" thing="thing" page="details">
+    <w:editForm url="@apply('/thing/%s/edit', thing.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@thing.getName()" labelKey="Model.name" required="true" span="4"/>
+            <w:textfield name="code" value="@thing.getCode()" labelKey="Model.code" span="4"/>
+            <i:if test="thing.isNew()">
+                <w:singleSelect name="type" labelKey="Model.type" span="4">
+                    <i:for type="woody.organization.things.ThingType" var="type" items="types">
+                        <option value="@type.getId()" @if (thing.getType().is(type)) { selected="selected" }>
+                            @type.getName()
+                        </option>
+                    </i:for>
+                </w:singleSelect>
+                <i:else>
+                    <w:textfield name="type"
+                                 value="@thing.getType().getValue().as(woody.organization.things.ThingType.class).getName()"
+                                 labelKey="Model.type" readonly="true" span="4"/>
+                </i:else>
+            </i:if>
+        </div>
+        <div class="row">
+            <w:autocompleteMultiSelect span="12" name="tags" labelKey="Tag.plural" serviceUri="/tags/THING/autocomplete"
+                                       optional="true">
+                <i:for type="woody.core.tags.Tag" var="tag" items="thing.getTags().getTags()">
+                    <option value="@tag.getName()" selected>@tag.getName()</option>
+                </i:for>
+            </w:autocompleteMultiSelect>
+        </div>
+        <div class="row">
+            <w:textarea name="description" value="@thing.getDescription()" labelKey="Model.description" span="12" rows="4"/>
+        </div>
+
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@thing.getTrace()" />
+    </w:formBar>
+</i:invoke>

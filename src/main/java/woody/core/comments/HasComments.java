@@ -19,4 +19,5 @@ public interface HasComments {
      * @return the comments facility used to manage comments for the entity.
      */
     Commented getComments();
+
 }

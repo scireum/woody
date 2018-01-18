@@ -29,14 +29,12 @@ public class RelationType extends TenantAware {
     public static final Column SOURCE_TYPE = Column.named("sourceType");
     @Length(100)
     @Trim
-    @Autoloaded
     private String sourceType;
 
     public static final Column TARGET_TYPE = Column.named("targetType");
     @Length(100)
     @NullAllowed
     @Trim
-    @Autoloaded
     private String targetType;
 
     public static final Column MULTIPLE = Column.named("multiple");
@@ -44,6 +42,7 @@ public class RelationType extends TenantAware {
     private boolean multiple;
 
     public static final Column VIEW_IN_LIST = Column.named("viewInList");
+    @Autoloaded
     private boolean viewInList;
 
     public static final Column SHOW_REVERSE = Column.named("showReverse");

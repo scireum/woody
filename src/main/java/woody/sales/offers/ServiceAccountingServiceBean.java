@@ -411,7 +411,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         context.set("offerline", offerline);
         context.set("licenceItemCyclicUnit", licenceItemCyclicUnit);
         context.set("headlinePrefix", headlinePrefix);
-        context.set("salutation", offer.getPerson().getValue().getLetterSalutation());
+//        context.set("salutation", offer.getPerson().getValue().getLetterSalutation());
         context.set("offerState", offerStateString);
         context.set("offer", offer);
         context.set("offerItemList", offerItemList);
