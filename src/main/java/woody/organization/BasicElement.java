@@ -10,14 +10,20 @@ package woody.organization;
 
 import sirius.biz.protocol.JournalData;
 import sirius.biz.protocol.Journaled;
+import sirius.biz.sequences.Sequences;
 import sirius.biz.tenants.TenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.Schema;
+import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
+import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.Part;
 import sirius.kernel.nls.NLS;
+import woody.core.colors.Colors;
 import woody.core.comments.Commented;
 import woody.core.comments.HasComments;
 import woody.core.relations.HasRelations;
@@ -25,6 +31,7 @@ import woody.core.relations.IsRelateable;
 import woody.core.relations.Relateable;
 import woody.core.relations.Relations;
 import woody.core.tags.Tagged;
+import woody.organization.things.ThingColorTypeProvider;
 
 /**
  * Created by aha on 13.01.17.
@@ -70,8 +77,32 @@ public abstract class BasicElement<T extends BasicType> extends TenantAware
     public static final Column JOURNAL = Column.named("journal");
     private final JournalData journal = new JournalData(this);
 
+    @Part
+    private static Sequences sequences;
+
+    @Part
+    private static Colors colors;
+
     protected BasicElement() {
         type = initializeTypeRef();
+    }
+
+    @BeforeSave
+    protected void onSave() {
+        if (Strings.isEmpty(code)) {
+            String codePrefix = getType().getValue().getCodePrefix();
+            if (Strings.isFilled(codePrefix)) {
+                code = codePrefix + "-" + generateCode();
+            }
+        }
+    }
+
+    private long generateCode() {
+        return sequences.generateId(Schema.getNameForType(getType().getValue().getClass())
+                                    + "-"
+                                    + getType().getId()
+                                    + "-"
+                                    + getTenant().getId());
     }
 
     @Override
@@ -89,6 +120,16 @@ public abstract class BasicElement<T extends BasicType> extends TenantAware
                + getTypeName()
                + "-CATEGORY:"
                + getType().getValue().getCategory().getId();
+    }
+
+    public String getColor() {
+        return colors.getColor(getType().getValue().getColor().getColor())
+                     .orElseGet(() -> colors.getColor(getType().getValue()
+                                                               .getCategory()
+                                                               .getValue()
+                                                               .getColor()
+                                                               .getColor())
+                                            .orElse(colors.getColorForType(ThingColorTypeProvider.TYPE)));
     }
 
     @Override

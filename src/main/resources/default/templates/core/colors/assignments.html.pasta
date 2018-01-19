@@ -1,0 +1,50 @@
+<i:arg type="java.util.Map" name="assignments"/>
+
+<w:page titleKey="TypeColorAssignment.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/colors/assignments">@i18n("TypeColorAssignment.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="TypeColorAssignment.plural">
+
+    </w:pageHeader>
+
+    <i:local name="types" value="@colors.getColorTypes()"/>
+    <w:table data="types">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")
+            </th>
+            <th>
+                @i18n("Model.color")
+            </th>
+            <th/>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="Tuple" var="type" items="types">
+            <i:local name="assignment"
+                     value="@assignments.get(type.getFirst()).as(woody.core.colors.TypeColorAssignment.class)"/>
+            <tr>
+                <td>
+                    <a class="link" href="/colors/assignment/@type.getFirst()">@type.getSecond()</a>
+                </td>
+                <td>
+                    <i:if test="assignment != null">
+                        <span style="display: inline-block; lin-height: 16px; width: 16px; background-color: @assignment.getColor().getValue().as(woody.core.colors.ColorDefinition.class).getHexCode(); margin-right: 8px; border-radius: 2px">
+                            &nbsp;
+                        </span>
+                        @assignment.getColor().getValue().as(woody.core.colors.ColorDefinition.class).getName()
+                    </i:if>
+                </td>
+                <td class="col-md-2 align-center">
+                    <i:if test="assignment != null">
+                        <w:deleteLink url="@apply('/colors/assignment/%s/delete', type.getFirst())"/>
+                    </i:if>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+</w:page>

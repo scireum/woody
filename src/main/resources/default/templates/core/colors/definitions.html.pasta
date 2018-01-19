@@ -1,0 +1,57 @@
+<i:arg type="Page" name="definitions"/>
+
+<w:page titleKey="ColorDefinition.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/colors/definitions">@i18n("ColorDefinition.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="ColorDefinition.plural">
+
+    </w:pageHeader>
+
+
+    <w:tableSearchHeader page="definitions" baseUrl="/colors/definitions">
+        <a class="btn btn-primary" href="/colors/definition/new">@i18n("Model.create")</a>
+    </w:tableSearchHeader>
+
+    <w:table data="definitions">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")
+            </th>
+            <th>
+                @i18n("ColorDefinition.palette")
+            </th>
+            <th>
+                @i18n("ColorDefinition.hexCode")
+            </th>
+            <th/>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.core.colors.ColorDefinition" var="color" items="definitions.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/colors/definition/@color.getId()">@color.getName()</a>
+                </td>
+                <td>
+                    @color.getPalette()
+                </td>
+                <td>
+                    <span style="display: inline-block; lin-height: 16px; width: 16px; background-color: @color.getHexCode(); margin-right: 8px; border-radius: 2px">
+                            &nbsp;
+                    </span>
+                    @color.getHexCode()
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/colors/definition/%s/delete', color.getId())" page="definitions"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="definitions" baseUrl="/colors/definitions"/>
+
+</w:page>

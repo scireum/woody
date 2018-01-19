@@ -21,6 +21,9 @@
                     <th>
                         @i18n("Model.name")
                     </th>
+                    <th>
+                        @i18n("Model.color")
+                    </th>
                     <th/>
                 </tr>
                 </thead>
@@ -32,6 +35,9 @@
                             <small class="muted">(@type.getCategory().getValue().toString())</small>
                             <br>
                             <small class="muted">@type.getDescription()</small>
+                        </td>
+                        <td>
+                            <woody:colorBox colorData="@type.getColor()"/>
                         </td>
                         <td class="col-md-2 align-center">
                             <w:deleteLink url="@apply('/units/type/%s/delete', type.getId())" page="types"/>

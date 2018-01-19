@@ -17,6 +17,10 @@
                     <option value="@category.getIdAsString()" @if (type.getCategory().is(category)) { selected="selected" }>@category.getName()</option>
                 </i:for>
             </w:singleSelect>
+
+            <woody:colorSelector colorData="@type.getColor()" />
+            <w:textfield name="codePrefix" value="@type.getCodePrefix()" labelKey="BasicType.codePrefix" />
+
             <w:textfield name="description" value="@type.getDescription()" labelKey="Model.description" span="12"/>
         </div>
     </w:editForm>

@@ -8,16 +8,23 @@
 
 package woody.core.colors;
 
+import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.OMA;
 import sirius.kernel.cache.Cache;
 import sirius.kernel.cache.CacheManager;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
+import sirius.kernel.di.GlobalContext;
 import sirius.kernel.di.std.Part;
+import sirius.kernel.di.std.Parts;
 import sirius.kernel.di.std.Register;
 import sirius.web.security.UserContext;
 
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Register(classes = Colors.class)
 public class Colors {
@@ -30,20 +37,29 @@ public class Colors {
     @Part
     private OMA oma;
 
+    @Parts(ColorTypeProvider.class)
+    private Collection<ColorTypeProvider> colorTypeProviders;
+
+    @Part
+    private GlobalContext context;
+
     public void flushColorDefinition(String id) {
         colorCache.remove(id);
     }
 
-    public void flushColorAssignment(String tenantId, String id) {
-        colorAssignmentCache.remove(Tuple.create(tenantId, id));
+    public void flushColorAssignment(String tenantId, String type) {
+        colorAssignmentCache.remove(Tuple.create(tenantId, type));
     }
 
     public List<Tuple<String, String>> getColorTypes() {
-        return null;
+        return colorTypeProviders.stream()
+                                 .sorted(Comparator.comparing(ColorTypeProvider::getLabel))
+                                 .map(provider -> Tuple.create(provider.getName(), provider.getLabel()))
+                                 .collect(Collectors.toList());
     }
 
     public String getLabel(String colorType) {
-        return null;
+        return context.findPart(colorType, ColorTypeProvider.class).getLabel();
     }
 
     public String getColorForType(String colorType) {
@@ -75,17 +91,22 @@ public class Colors {
         return String.valueOf(assignment.getColor().getId());
     }
 
-    public String getColor(ColorDefinition... colorDefinitions) {
-        for (ColorDefinition definition : colorDefinitions) {
-            if (definition != null) {
-               return colorCache.get(definition.getIdAsString(), this::loadColorDefinition);
-            }
+    public Optional<String> getColor(EntityRef<ColorDefinition> definition) {
+        if (definition.isFilled()) {
+            return Optional.of(colorCache.get(String.valueOf(definition.getId()), this::loadColorDefinition));
         }
 
-        return getColorForType(DefaultColorTypeProvider.TYPE);
+        return Optional.empty();
     }
 
     private String loadColorDefinition(String idAsString) {
         return oma.find(ColorDefinition.class, idAsString).map(ColorDefinition::getHexCode).orElse(FALLBACK_COLOR);
+    }
+
+    public List<ColorDefinition> getColorDefinitions() {
+        return oma.select(ColorDefinition.class)
+                  .eq(ColorDefinition.TENANT, Long.parseLong(UserContext.getCurrentUser().getTenantId()))
+                  .orderAsc(ColorDefinition.NAME)
+                  .queryList();
     }
 }

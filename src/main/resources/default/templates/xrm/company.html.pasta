@@ -13,7 +13,7 @@
     <div class="row">
         <i:if test="!company.isNew()">
             <div class="col-md-3">
-                <w:infobox titleKey="Model.details" color="blueviolet">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('COMPANY')">
                     <w:infoboxElement labelKey="Model.name" value="@company.getName()"/>
                     <w:infoboxElement labelKey="AddressData.city" value="@company.getAddress().getCity()"/>
                     <w:infoboxElement labelKey="Company.customerNumber" value="@company.getCustomerNumber()"/>

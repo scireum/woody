@@ -19,6 +19,8 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
+import woody.core.colors.ColorData;
+import woody.core.colors.ColorDefinition;
 import woody.organization.BasicType;
 import woody.organization.categories.Category;
 
@@ -39,7 +41,11 @@ public class ThingTypeController extends BizController {
                                                                    ThingType.NAME,
                                                                    ThingType.DESCRIPTION,
                                                                    ThingType.CATEGORY.join(Category.ID),
-                                                                   ThingType.CATEGORY.join(Category.NAME))
+                                                                   ThingType.CATEGORY.join(Category.NAME),
+                                                                   ThingType.COLOR.inner(ColorData.COLOR)
+                                                                                  .join(ColorDefinition.NAME),
+                                                                   ThingType.COLOR.inner(ColorData.COLOR)
+                                                                                  .join(ColorDefinition.HEX_CODE))
                                                            .orderAsc(ThingType.NAME));
         ph.withContext(ctx);
         ph.withSearchFields(ThingType.NAME, ThingType.DESCRIPTION).forCurrentTenant();

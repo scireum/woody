@@ -1,13 +1,5 @@
 <i:arg type="woody.xrm.Company" name="company"/>
 <i:arg type="woody.xrm.Person" name="person"/>
 <i:invoke template="templates/xrm/person.html.pasta" company="company" person="person" page="overview">
-    <div class="row">
-        <div class="col-md-6">
-            <woody:comments id="@person.getUniqueName()" commented="person.getComments()"/>
-        </div>
-        <div class="col-md-6">
-            <woody:relations id="@person.getUniqueName()"
-                             relations="person.getRelations()" />
-        </div>
-    </div>
+    <woody:overview object="@person"/>
 </i:invoke>

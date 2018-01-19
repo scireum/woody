@@ -1,0 +1,20 @@
+<i:arg type="woody.core.colors.ColorDefinition" name="definition"/>
+
+<w:page titleKey="Model.colorDefinition">
+    <i:block name="breadcrumbs">
+        <li><a href="/colors/definitions">@i18n("ColorDefinition.plural")</a></li>
+        <li><a href="/colors/definition/@definition.getIdAsString()">@i18n("Model.colorDefinition")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.colorDefinition"/>
+
+    <w:editForm url="@apply('/colors/definition/%s', definition.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@definition.getName()" labelKey="Model.name" required="true" span="4" />
+            <w:textfield name="palette" value="@definition.getPalette()" labelKey="ColorDefinition.palette" required="true" span="4" />
+            <w:colorpicker name="hexCode" value="@definition.getHexCode()" labelKey="ColorDefinition.hexCode" span="4" />
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/colors/definitions"/>
+</w:page>

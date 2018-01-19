@@ -16,7 +16,9 @@ import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
+import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
+import woody.core.colors.ColorData;
 import woody.core.relations.RelationTypeController;
 import woody.organization.categories.Category;
 
@@ -36,8 +38,27 @@ public abstract class BasicType extends TenantAware {
     @NullAllowed
     private String description;
 
+    public static final Column CODE_PREFIX = Column.named("codePrefix");
+    @Length(20)
+    @Autoloaded
+    @NullAllowed
+    private String codePrefix;
+
+    public static final Column COLOR = Column.named("color");
+    private final ColorData color = new ColorData();
+
     @Part
     private static RelationTypeController relationTypeController;
+
+    @BeforeSave
+    protected void onSave() {
+        if (Strings.isFilled(codePrefix)) {
+            codePrefix = codePrefix.trim().toUpperCase();
+            if (codePrefix.endsWith("-")) {
+                codePrefix = codePrefix.substring(0, codePrefix.length() - 1);
+            }
+        }
+    }
 
     @BeforeSave
     @BeforeDelete
@@ -68,5 +89,17 @@ public abstract class BasicType extends TenantAware {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public ColorData getColor() {
+        return color;
+    }
+
+    public String getCodePrefix() {
+        return codePrefix;
+    }
+
+    public void setCodePrefix(String codePrefix) {
+        this.codePrefix = codePrefix;
     }
 }

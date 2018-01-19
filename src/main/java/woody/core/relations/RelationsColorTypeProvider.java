@@ -6,7 +6,7 @@
  * http://www.scireum.de - info@scireum.de
  */
 
-package woody.organization.things;
+package woody.core.relations;
 
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
@@ -15,13 +15,13 @@ import woody.core.colors.ColorTypeProvider;
 import javax.annotation.Nonnull;
 
 @Register
-public class ThingColorTypeProvider implements ColorTypeProvider {
+public class RelationsColorTypeProvider implements ColorTypeProvider {
 
-    public static final String TYPE = "THING";
+    public static final String TYPE = "RELATIONS";
 
     @Override
     public String getLabel() {
-        return NLS.get("Thing.plural");
+        return NLS.get("Relation.plural");
     }
 
     @Nonnull

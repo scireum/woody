@@ -2,7 +2,7 @@
 
 <i:if test="object.is(woody.core.relations.HasRelations.class)">
     <i:local name="relations" value="object.as(woody.core.relations.HasRelations.class).getRelations()" />
-    <w:infobox titleKey="Relation.plural" color="red">
+    <w:infobox titleKey="Relation.plural" color="@colors.getColorForType('RELATIONS')">
 
         <i:local name="relationList" value="relations.getRelations()"/>
         <i:if test="!relationList.isEmpty()">

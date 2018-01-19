@@ -22,13 +22,11 @@
                     <ul class="dropdown-menu">
                         <i:for type="Tuple" var="type" items="controller.getTypes()">
                             <li>
-                                <a href="@apply('/category/new?type=%s', type.getFirst())">@type.getSecond()</a>
+                                <a href="@apply('/category/new?type=%s', type.getFirst())">@format(i18n('Category.forType')).set('type', type.getSecond()).format()</a>
                             </li>
                         </i:for>
                     </ul>
                 </div>
-
-                <a class="btn btn-primary" href="/category/new">@i18n("Model.create")</a>
             </w:tableSearchHeader>
 
             <w:table data="categories">
@@ -36,6 +34,9 @@
                 <tr>
                     <th>
                         @i18n("Model.name")
+                    </th>
+                    <th>
+                        @i18n("Model.color")
                     </th>
                     <th/>
                 </tr>
@@ -46,6 +47,9 @@
                         <td>
                             <a class="link" href="/category/@category.getId()">@category.getName()</a> <small class="muted">(@controller.translateType(category))</small><br>
                             <small class="muted">@category.getDescription()</small>
+                        </td>
+                        <td>
+                            <woody:colorBox colorData="@category.getColor()"/>
                         </td>
                         <td class="col-md-2 align-center">
                             <w:deleteLink url="@apply('/category/%s/delete', category.getId())" page="categories"/>

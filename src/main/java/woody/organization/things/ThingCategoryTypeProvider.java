@@ -27,7 +27,7 @@ public class ThingCategoryTypeProvider implements CategoryTypeProvider {
 
     @Override
     public String getLabel() {
-        return NLS.get("Model.thing");
+        return NLS.get("Thing.plural");
     }
 
     @Override

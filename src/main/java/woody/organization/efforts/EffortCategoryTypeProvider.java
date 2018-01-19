@@ -27,7 +27,7 @@ public  class EffortCategoryTypeProvider implements CategoryTypeProvider {
 
     @Override
     public String getLabel() {
-        return NLS.get("Model.effort");
+        return NLS.get("Effort.plural");
     }
 
     @Override

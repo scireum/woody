@@ -11,11 +11,18 @@
 
     <w:editForm url="@apply('/category/%s', category.getIdAsString())">
         <div class="row">
-            <w:textfield name="name" value="@category.getName()" labelKey="Model.name" required="true" span="4"/>
-            <w:textfield name="technicalName" value="@category.getTechnicalName()" labelKey="Category.technicalName" span="4"/>
-            <w:textfield name="typeName" value="@controller.translateType(category)" labelKey="Category.type" span="4" readonly="true"/>
+            <w:textfield name="name" value="@category.getName()" labelKey="Model.name" required="true"/>
+            <w:textfield name="technicalName" value="@category.getTechnicalName()" labelKey="Category.technicalName"/>
+        </div>
+        <div class="row">
+            <woody:colorSelector colorData="category.getColor()" />
+            <w:textfield name="typeName" value="@controller.translateType(category)" labelKey="Category.type" readonly="true"/>
             <input name="type" value="@category.getType()" type="hidden"/>
+        </div>
+        <div class="row">
             <w:textfield name="description" value="@category.getDescription()" labelKey="Model.description" span="12"/>
+        </div>
+        <div class="row">
             <w:singleSelect name="viewRole" labelKey="Category.viewRole" optional="true">
                 <i:for type="String" var="role" items="controller.getRoles()">
                     <option value="@role" @if (role.equals(category.getViewRole())) { selected="selected" }>@controller.translateRole(role)</option>
@@ -26,6 +33,9 @@
                     <option value="@role" @if (role.equals(category.getEditRole())) { selected="selected" }>@controller.translateRole(role)</option>
                 </i:for>
             </w:singleSelect>
+        </div>
+        <div class="row">
+            <w:textarea name="description" value="@category.getDescription()" labelKey="Model.description" span="12" rows="4"/>
         </div>
     </w:editForm>
 

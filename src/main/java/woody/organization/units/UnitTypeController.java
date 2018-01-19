@@ -19,6 +19,8 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
+import woody.core.colors.ColorData;
+import woody.core.colors.ColorDefinition;
 import woody.organization.BasicType;
 import woody.organization.categories.Category;
 
@@ -39,7 +41,11 @@ public class UnitTypeController extends BizController {
                                                                   UnitType.NAME,
                                                                   UnitType.DESCRIPTION,
                                                                   UnitType.CATEGORY.join(Category.ID),
-                                                                  UnitType.CATEGORY.join(Category.NAME))
+                                                                  UnitType.CATEGORY.join(Category.NAME),
+                                                                  UnitType.COLOR.inner(ColorData.COLOR)
+                                                                                 .join(ColorDefinition.NAME),
+                                                                  UnitType.COLOR.inner(ColorData.COLOR)
+                                                                                 .join(ColorDefinition.HEX_CODE))
                                                           .orderAsc(UnitType.NAME));
         ph.withContext(ctx);
         ph.withSearchFields(UnitType.NAME, UnitType.DESCRIPTION).forCurrentTenant();

@@ -1,8 +1,14 @@
 <w:permission permission="permission-manage-tags">
     <li class="divider"></li>
+    <w:menuItem titleKey="Tag.plural" url="/tags" />
 </w:permission>
 
-<w:menuItem titleKey="Tag.plural" url="/tags" permission="permission-manage-tags" />
+<w:permission permission="permission-manage-colors">
+    <li class="divider"></li>
+    <w:menuItem titleKey="ColorDefinition.plural" url="/colors/definitions" />
+    <w:menuItem titleKey="TypeColorAssignment.plural" url="/colors/assignments" />
+</w:permission>
+
 
 <w:permission permission="permission-manage-categories,permission-manage-relation-types,permission-manage-unit-types,permission-manage-thing-types,permission-manage-effort-types">
     <li class="divider"></li>

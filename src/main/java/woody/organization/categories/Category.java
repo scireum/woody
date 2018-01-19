@@ -18,6 +18,7 @@ import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.di.GlobalContext;
 import sirius.kernel.di.std.Part;
+import woody.core.colors.ColorData;
 import woody.core.relations.RelationTypeController;
 import woody.organization.OrganizationHelper;
 
@@ -59,6 +60,9 @@ public class Category extends TenantAware {
     @NullAllowed
     private String description;
 
+    public static final Column COLOR = Column.named("color");
+    private final ColorData color = new ColorData();
+
     @Part
     private static RelationTypeController relationTypeController;
 
@@ -73,8 +77,7 @@ public class Category extends TenantAware {
     }
 
     public CategoryTypeProvider getProvider() {
-        return context.getPart(getType(),
-                               CategoryTypeProvider.class);
+        return context.getPart(getType(), CategoryTypeProvider.class);
     }
 
     @Override
@@ -128,5 +131,9 @@ public class Category extends TenantAware {
 
     public void setEditRole(String editRole) {
         this.editRole = editRole;
+    }
+
+    public ColorData getColor() {
+        return color;
     }
 }

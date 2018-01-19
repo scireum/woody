@@ -17,7 +17,7 @@
     <div class="row">
         <i:if test="!effort.isNew()">
             <div class="col-md-3">
-                <w:infobox titleKey="Model.details">
+                <w:infobox titleKey="Model.details" color="@effort.getColor()">
                     <w:infoboxElement labelKey="Model.type" value="@effort.getType().getValue()"/>
                     <w:infoboxElement labelKey="Model.code" value="@effort.getCode()"/>
                     <w:infoboxElement labelKey="Model.name" value="@effort.getName()"/>

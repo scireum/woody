@@ -19,8 +19,11 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
+import woody.core.colors.ColorData;
+import woody.core.colors.ColorDefinition;
 import woody.organization.BasicType;
 import woody.organization.categories.Category;
+import woody.organization.things.ThingType;
 
 import java.util.Optional;
 
@@ -39,7 +42,11 @@ public class EffortTypeController extends BizController {
                                                                     EffortType.NAME,
                                                                     EffortType.DESCRIPTION,
                                                                     EffortType.CATEGORY.join(Category.ID),
-                                                                    EffortType.CATEGORY.join(Category.NAME))
+                                                                    EffortType.CATEGORY.join(Category.NAME),
+                                                                    EffortType.COLOR.inner(ColorData.COLOR)
+                                                                                   .join(ColorDefinition.NAME),
+                                                                    EffortType.COLOR.inner(ColorData.COLOR)
+                                                                                   .join(ColorDefinition.HEX_CODE))
                                                             .orderAsc(EffortType.NAME));
         ph.withContext(ctx);
         ph.withSearchFields(EffortType.NAME, EffortType.DESCRIPTION).forCurrentTenant();

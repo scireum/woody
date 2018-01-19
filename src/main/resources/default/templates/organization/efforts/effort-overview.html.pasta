@@ -1,12 +1,14 @@
 <i:arg type="woody.organization.efforts.Effort" name="effort"/>
 <i:invoke template="templates/organization/efforts/effort.html.pasta" effort="effort" page="overview">
-    <div class="row">
-        <div class="col-md-6">
-            <woody:comments id="@effort.getUniqueName()" commented="effort.getComments()"/>
+    <i:if test="isFilled(effort.getDescription())">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="well">
+                    @effort.getDescription()
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <woody:relations id="@effort.getUniqueName()"
-                             relations="effort.getRelations()" />
-        </div>
-    </div>
+    </i:if>
+
+    <woody:overview object="@effort"/>
 </i:invoke>

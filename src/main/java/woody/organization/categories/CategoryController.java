@@ -23,6 +23,8 @@ import sirius.web.controller.Facet;
 import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.Permission;
+import woody.core.colors.ColorData;
+import woody.core.colors.ColorDefinition;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -45,7 +47,17 @@ public class CategoryController extends BizController {
     @Permission(PERMISSION_MANAGE_CATEGORIES)
     @Routed("/categories")
     public void categories(WebContext ctx) {
-        PageHelper<Category> ph = PageHelper.withQuery(oma.select(Category.class).orderAsc(Category.NAME));
+        PageHelper<Category> ph = PageHelper.withQuery(oma.select(Category.class)
+                                                          .fields(Category.ID,
+                                                                  Category.NAME,
+                                                                  Category.TYPE,
+                                                                  Category.TECHNICAL_NAME,
+                                                                  Category.DESCRIPTION,
+                                                                  Category.COLOR.inner(ColorData.COLOR)
+                                                                                .join(ColorDefinition.NAME),
+                                                                  Category.COLOR.inner(ColorData.COLOR)
+                                                                                .join(ColorDefinition.HEX_CODE))
+                                                          .orderAsc(Category.NAME));
         ph.withContext(ctx);
         ph.withSearchFields(Category.NAME).forCurrentTenant();
         Facet typeFacet = new Facet(NLS.get("Category.type"),

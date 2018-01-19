@@ -9,9 +9,13 @@
 package woody.core.colors;
 
 import sirius.biz.tenants.TenantAware;
+import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.annotations.BeforeDelete;
+import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
+import sirius.kernel.di.std.Part;
 
 public class TypeColorAssignment extends TenantAware {
 
@@ -20,7 +24,17 @@ public class TypeColorAssignment extends TenantAware {
     private String type;
 
     public static final Column COLOR = Column.named("color");
+    @Autoloaded
     private final EntityRef<ColorDefinition> color = EntityRef.on(ColorDefinition.class, EntityRef.OnDelete.REJECT);
+
+    @Part
+    private static Colors colors;
+
+    @BeforeSave
+    @BeforeDelete
+    protected void onModify() {
+        colors.flushColorAssignment(String.valueOf(getTenant().getId()), getType());
+    }
 
     public String getType() {
         return type;
@@ -33,5 +47,4 @@ public class TypeColorAssignment extends TenantAware {
     public EntityRef<ColorDefinition> getColor() {
         return color;
     }
-
 }

@@ -16,7 +16,7 @@
     <div class="row">
         <i:if test="!person.isNew()">
             <div class="col-md-3">
-                <w:infobox titleKey="Model.details">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('PERSON')">
                     <w:infoboxElement labelKey="Model.name" value="@person"/>
                     <w:infoboxElement labelKey="Model.company" value="@company"/>
                     <w:infoboxElement labelKey="ContactData.phone" value="@person.getContact().getPhone()"/>

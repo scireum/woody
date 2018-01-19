@@ -27,7 +27,7 @@ public class UnitCategoryTypeProvider implements CategoryTypeProvider {
 
     @Override
     public String getLabel() {
-        return NLS.get("Model.unit");
+        return NLS.get("Unit.plural");
     }
 
     @Override
