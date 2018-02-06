@@ -14,7 +14,7 @@ import sirius.db.mixing.Column;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
-import sirius.kernel.commons.Strings;
+import woody.core.colors.ColorData;
 
 /**
  * Created by aha on 11.01.17.
@@ -45,19 +45,12 @@ public class RelationType extends TenantAware {
     @Autoloaded
     private boolean viewInList;
 
-    public static final Column SHOW_REVERSE = Column.named("showReverse");
+    public static final Column LIST_REVERSE = Column.named("listReverse");
     @Autoloaded
-    private boolean showReverse;
+    private boolean listReverse;
 
-    public static final Column REVERSE_NAME = Column.named("reverseName");
-    @Autoloaded
-    @Length(100)
-    @NullAllowed
-    private String reverseName;
-
-    public String getEffectiveReverseName() {
-        return Strings.isFilled(reverseName) ? reverseName : name;
-    }
+    public static final Column COLOR = Column.named("color");
+    private final ColorData color = new ColorData();
 
     public String getName() {
         return name;
@@ -99,19 +92,15 @@ public class RelationType extends TenantAware {
         this.viewInList = viewInList;
     }
 
-    public boolean isShowReverse() {
-        return showReverse;
+    public boolean isListReverse() {
+        return listReverse;
     }
 
-    public void setShowReverse(boolean showReverse) {
-        this.showReverse = showReverse;
+    public void setListReverse(boolean listReverse) {
+        this.listReverse = listReverse;
     }
 
-    public String getReverseName() {
-        return reverseName;
-    }
-
-    public void setReverseName(String reverseName) {
-        this.reverseName = reverseName;
+    public ColorData getColor() {
+        return color;
     }
 }

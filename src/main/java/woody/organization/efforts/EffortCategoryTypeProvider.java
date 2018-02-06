@@ -18,7 +18,7 @@ import woody.organization.categories.CategoryTypeProvider;
 import javax.annotation.Nonnull;
 
 @Register
-public  class EffortCategoryTypeProvider implements CategoryTypeProvider {
+public class EffortCategoryTypeProvider implements CategoryTypeProvider {
 
     public static final String TYPE_NAME = "effort";
 
@@ -42,12 +42,17 @@ public  class EffortCategoryTypeProvider implements CategoryTypeProvider {
 
     @Override
     public String getOverviewTemplate() {
-        return null;
+        return "templates/organization/efforts/relateable-efforts-overview.html.pasta";
     }
 
     @Nonnull
     @Override
     public String getName() {
         return TYPE_NAME;
+    }
+
+    @Override
+    public String getColorType() {
+        return EffortColorTypeProvider.TYPE;
     }
 }

@@ -50,4 +50,9 @@ public class ThingCategoryTypeProvider implements CategoryTypeProvider {
     public String getName() {
         return TYPE_NAME;
     }
+
+    @Override
+    public String getColorType() {
+        return ThingColorTypeProvider.TYPE;
+    }
 }

@@ -1,7 +1,7 @@
-<i:arg type="woody.core.tags.Tagged" name="tagged" />
+<i:arg type="woody.core.tags.Tagged" name="tagged"/>
 
 <i:for type="woody.core.tags.Tag" var="tag" items="tagged.getTags()">
     <i:if test="tag.isViewInList()">
-        <span class="badge">@tag.getName()</span>
+        <span class="list-tag" style="background-color: @tag.getEffectiveColor()">@tag.getName()</span>
     </i:if>
 </i:for>

@@ -22,6 +22,7 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
+import woody.core.colors.Colors;
 
 /**
  * Represents a relation between two entities.
@@ -76,6 +77,9 @@ public class Relation extends Entity {
     @Part
     private static RelationHelper relations;
 
+    @Part
+    private static Colors colors;
+
     @Length(255)
     @NullAllowed
     private String description;
@@ -102,6 +106,15 @@ public class Relation extends Entity {
                                                       getType().getValue().getName(),
                                                       relations.getTargetName(this)));
         }
+    }
+
+    public String getRelationType() {
+        return getType().getValue().getName();
+    }
+
+    public String getColor() {
+        return colors.getColor(getType().getValue().getColor().getColor())
+                     .orElseGet(() -> colors.getColorForType(RelationQueryTagColorTypeProvider.TYPE));
     }
 
     public long getOwnerId() {

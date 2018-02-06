@@ -97,7 +97,7 @@ public class Company extends TenantAware implements HasComments, HasRelations {
     private final Relations relations = new Relations(this);
 
     public static final Column RELATEABLE = Column.named("relateable");
-    private Relateable relateable = new Relateable(this);
+    private final Relateable relateable = new Relateable(this);
 
     @Override
     public String toString() {

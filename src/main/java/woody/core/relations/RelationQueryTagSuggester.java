@@ -23,6 +23,9 @@ import sirius.kernel.di.GlobalContext;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Parts;
 import sirius.kernel.di.std.Register;
+import woody.core.colors.ColorData;
+import woody.core.colors.ColorDefinition;
+import woody.core.colors.Colors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,6 +50,9 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
     @Part
     private GlobalContext context;
 
+    @Part
+    private Colors colors;
+
     @Override
     public void computeQueryTags(@Nonnull String type,
                                  @Nullable Class<? extends Entity> entityType,
@@ -63,6 +69,13 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
         String sourceTypeName = Schema.getNameForType(entityType);
 
         oma.select(RelationType.class)
+           .fields(RelationType.ID,
+                   RelationType.SOURCE_TYPE,
+                   RelationType.TARGET_TYPE,
+                   RelationType.NAME,
+                   RelationType.VIEW_IN_LIST,
+                   RelationType.MULTIPLE,
+                   RelationType.COLOR.inner(ColorData.COLOR).join(ColorDefinition.HEX_CODE))
            .eq(RelationType.TENANT, tenants.getRequiredTenant())
            .where(Or.of(FieldOperator.on(RelationType.SOURCE_TYPE).eq(sourceTypeName),
                         Like.on(RelationType.SOURCE_TYPE).matches(sourceTypeName + "-*")))
@@ -73,7 +86,7 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
                    for (RelationProvider provider : relationProviders) {
                        provider.computeSearchSuggestions(null, effectiveQuery, suggestion -> {
                            consumer.accept(new QueryTag(RelationQueryTagHandler.TYPE_RELATION,
-                                                        "black",
+                                                        fetchEffectiveColor(relationType),
                                                         relationType.getIdAsString() + ":" + suggestion.getFirst(),
                                                         relationType.getName() + ": " + suggestion.getSecond()));
                        });
@@ -83,11 +96,16 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
                    RelationProvider provider = context.findPart(mainAndSubType.getFirst(), RelationProvider.class);
                    provider.computeSearchSuggestions(mainAndSubType.getSecond(), effectiveQuery, suggestion -> {
                        consumer.accept(new QueryTag(RelationQueryTagHandler.TYPE_RELATION,
-                                                    "black",
+                                                    fetchEffectiveColor(relationType),
                                                     relationType.getIdAsString() + ":" + suggestion.getFirst(),
                                                     relationType.getName() + ": " + suggestion.getSecond()));
                    });
                }
            });
+    }
+
+    protected String fetchEffectiveColor(RelationType relationType) {
+        return colors.getColor(relationType.getColor().getColor())
+                     .orElseGet(() -> colors.getColorForType(RelationQueryTagColorTypeProvider.TYPE));
     }
 }

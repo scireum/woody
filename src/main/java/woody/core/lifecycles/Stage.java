@@ -16,19 +16,7 @@ public enum Stage {
     COMPLETE
 
 /*
-    -> Dates/Ranges for Efforts
-    -> Relations fixxen (Relation-Providerz / Overview für efforts)
-    -> Overview für Persons
-    -> Stages
-    -> Lifecycles
-    -> Checklists
-    -> Reminders
-    -> Journal
-    -> Permissions
-    -> Attachments / Files / GDocs / KBAs - Glühbirne!!
-    -> Tasks
-    -> Import of basedata
-    -> Dashboards
+
     */
 
 }

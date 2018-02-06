@@ -13,7 +13,7 @@
             <w:singleSelect name="color" labelKey="Model.color">
                 <i:for type="woody.core.colors.ColorDefinition" var="color" items="colors.getColorDefinitions()">
                     <option value="@color.getIdAsString()" @if (assignment.getColor().is(color)) { selected="selected" }>
-                        &lt;span style="display: inline-block; line-height: 16px; height: 16px; width: 16px; background-color: @color.getHexCode(); margin-right: 8px; border-radius: 2px"&gt;&amp;nbsp;&lt;/span&gt; @color.getName()
+                        &lt;span style="background-color: @color.getHexCode()" class="color-box"&gt;&amp;nbsp;&lt;/span&gt; @color.getName()
                     </option>
                 </i:for>
             </w:singleSelect>

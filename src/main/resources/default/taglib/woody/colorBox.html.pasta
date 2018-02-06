@@ -2,7 +2,5 @@
 <i:arg type="sirius.db.mixing.EntityRef" name="colorRef" default="colorData.getColor()" />
 <i:arg type="woody.core.colors.ColorDefinition" name="color" default="@colorRef.getValue().as(woody.core.colors.ColorDefinition.class)" />
 
-<span style="display: inline-block; lin-height: 16px; width: 16px; background-color: @color.getHexCode(); margin-right: 8px; border-radius: 2px">
-                            &nbsp;
-                        </span>
+<span style="background-color: @color.getHexCode()" class="color-box">&nbsp;</span>
 @color.getName()

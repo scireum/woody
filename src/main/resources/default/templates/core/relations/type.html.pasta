@@ -32,14 +32,14 @@
             <div class="col-md-6">
                 <div class="row">
                     <w:textfield name="name" value="@type.getName()" labelKey="Model.name" required="true" span="12" />
-                    <w:textfield name="reverseName" value="@type.getReverseName()" labelKey="RelationType.reverseName" span="12" />
+                    <woody:colorSelector colorData="@type.getColor()" span="12" />
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="row">
                     <w:checkbox name="multiple" value="type.isMultiple()" labelKey="RelationType.multiple" span="12" />
                     <w:checkbox name="viewInList" value="type.isViewInList()" labelKey="RelationType.viewInList" span="12" />
-                    <w:checkbox name="showReverse" value="type.isShowReverse()" labelKey="RelationType.showReverse" span="12" />
+                    <w:checkbox name="listReverse" value="type.isListReverse()" labelKey="RelationType.listReverse" span="12" />
                 </div>
             </div>
         </div>

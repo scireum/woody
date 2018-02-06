@@ -31,7 +31,6 @@ import woody.core.relations.IsRelateable;
 import woody.core.relations.Relateable;
 import woody.core.relations.Relations;
 import woody.core.tags.Tagged;
-import woody.organization.things.ThingColorTypeProvider;
 
 /**
  * Created by aha on 13.01.17.
@@ -124,12 +123,7 @@ public abstract class BasicElement<T extends BasicType> extends TenantAware
 
     public String getColor() {
         return colors.getColor(getType().getValue().getColor().getColor())
-                     .orElseGet(() -> colors.getColor(getType().getValue()
-                                                               .getCategory()
-                                                               .getValue()
-                                                               .getColor()
-                                                               .getColor())
-                                            .orElse(colors.getColorForType(ThingColorTypeProvider.TYPE)));
+                     .orElseGet(() -> getType().getValue().getCategory().getValue().getEffectiveColor());
     }
 
     @Override

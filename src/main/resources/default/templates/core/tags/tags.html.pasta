@@ -29,6 +29,9 @@
                     <th>
                         @i18n("Tag.viewInList")
                     </th>
+                    <th>
+                        @i18n("Model.color")
+                    </th>
                     <th/>
                 </tr>
                 </thead>
@@ -44,6 +47,10 @@
                         <td>
                             @toUserString(tag.isViewInList())
                         </td>
+                        <td>
+                            <woody:colorBox colorData="@tag.getColor()"/>
+                        </td>
+
                         <td class="col-md-2 align-center">
                             <w:deleteLink url="@apply('/tag/%s/delete',tag.getId())" page="tags"/>
                         </td>

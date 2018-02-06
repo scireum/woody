@@ -24,6 +24,7 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
+import woody.core.colors.ColorData;
 
 import java.util.List;
 import java.util.Map;
@@ -72,7 +73,14 @@ public class TagController extends BizController {
     @Permission(MANAGE_TAGS)
     @Routed("/tags")
     public void tags(WebContext ctx) {
-        PageHelper<Tag> ph = PageHelper.withQuery(oma.select(Tag.class).orderAsc(Tag.TARGET_TYPE).orderAsc(Tag.NAME));
+        PageHelper<Tag> ph = PageHelper.withQuery(oma.select(Tag.class)
+                                                     .fields(Tag.ID,
+                                                             Tag.NAME,
+                                                             Tag.TARGET_TYPE,
+                                                             Tag.COLOR.inner(ColorData.COLOR),
+                                                             Tag.VIEW_IN_LIST)
+                                                     .orderAsc(Tag.TARGET_TYPE)
+                                                     .orderAsc(Tag.NAME));
         ph.withContext(ctx);
         ph.withSearchFields(Tag.NAME).forCurrentTenant();
         Facet typeFilter = new Facet(NLS.get("Tag.targetType"),

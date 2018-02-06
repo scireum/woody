@@ -42,8 +42,7 @@
                         <span class="muted">@i18n("Model.type")</span>
                     </th>
                     <th>
-                        @i18n("Tag.plural")<br>
-                        <span class="muted">@i18n("Relation.plural")</span>
+                        @i18n("Tag.plural") / @i18n("Relation.plural")
                     </th>
                     <th />
                 </tr>
@@ -64,7 +63,6 @@
                         </td>
                         <td>
                             <woody:listTags tagged="unit.getTags()" />
-                            <br>
                             <woody:listRelations relations="unit.getRelations()" />
                         </td>
                         <td class="col-md-2 align-center">

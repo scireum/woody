@@ -3,7 +3,7 @@
 
 <i:local name="units" value="organization.queryRelatedUnits(relateable, category)"/>
 <i:if test="!units.isEmpty()">
-    <w:infobox title="@category.getName()" color="red">
+    <w:infobox title="@category.getName()" color="@category.getEffectiveColor()">
         <table class="table">
             <i:for type="woody.organization.units.Unit" var="unit" items="units">
                 <tr>

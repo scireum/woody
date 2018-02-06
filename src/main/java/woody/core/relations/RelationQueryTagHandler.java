@@ -19,8 +19,10 @@ import sirius.db.mixing.constraints.FieldOperator;
 import sirius.db.mixing.constraints.Like;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
+import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
+import woody.core.colors.Colors;
 
 import javax.annotation.Nonnull;
 
@@ -32,24 +34,18 @@ public class RelationQueryTagHandler implements QueryTagHandler {
 
     public static final String TYPE_RELATION = "relation";
 
+    @Part
+    private static Colors colors;
+
     @Override
     public Constraint generateConstraint(EntityDescriptor descriptor, String tagValue) {
         Tuple<String, String> typeAndObjectName = Strings.split(tagValue, ":");
-//            if (TYPE_RELATION.equals(suggestion.getType())) {
         Exists constraint = createConstraintForTarget(typeAndObjectName.getSecond());
         constraint.where(FieldOperator.on(Relation.OWNER_TYPE).eq(Schema.getNameForType(descriptor.getType())));
         if (Strings.isFilled(typeAndObjectName.getFirst())) {
             constraint.where(FieldOperator.on(Relation.TYPE).eq(Long.parseLong(typeAndObjectName.getFirst())));
         }
         return constraint;
-//            } else if (TYPE_NOT_RELATION.equals(suggestion.getType())) {
-//                //TODO * --> like
-//                query.where(Exists.notMatchingIn(Entity.ID, Relation.class, Relation.OWNER_ID)
-//                                  .where(FieldOperator.on(Relation.TYPE)
-//                                                      .eq(Long.parseLong(typeAndObjectName.getFirst())))
-//                                  .where(FieldOperator.on(Relation.OWNER_TYPE).eq(Schema.getNameForType(type)))
-//                                  .where(FieldOperator.on(Relation.TARGET).eq(typeAndObjectName.getSecond())));
-//            }
     }
 
     protected static Exists createConstraintForTarget(String target) {
@@ -64,7 +60,9 @@ public class RelationQueryTagHandler implements QueryTagHandler {
 
     protected static Exists generateRelationExistsConstraint(Class<? extends Entity> sourceType, String target) {
         return createConstraintForTarget(target).where(FieldOperator.on(Relation.OWNER_TYPE)
-                                                                    .eq(Schema.getNameForType(sourceType)));//TODO .where(FieldOperator.on(Relation.TYPE.join(RelationType.SHOW_REVERSE)).eq(true));
+                                                                    .eq(Schema.getNameForType(sourceType)))
+                                                .where(FieldOperator.on(Relation.TYPE.join(RelationType.LIST_REVERSE))
+                                                                    .eq(true));
     }
 
     @Nonnull
@@ -75,7 +73,7 @@ public class RelationQueryTagHandler implements QueryTagHandler {
 
     public static String createShowRelatedQuery(String uniqueName, String visibleName) {
         return new QueryTag(TYPE_RELATION,
-                            "black",
+                            colors.getColorForType(RelationQueryTagColorTypeProvider.TYPE),
                             ":" + uniqueName,
                             NLS.fmtr("RelationQueryTagHandler.relatesTo")
                                .set("target", visibleName)

@@ -19,12 +19,15 @@ import sirius.web.security.ScopeInfo;
 import sirius.web.security.UserContext;
 import woody.core.relations.Relateable;
 import woody.organization.categories.Category;
+import woody.organization.efforts.Effort;
+import woody.organization.efforts.EffortType;
 import woody.organization.things.Thing;
 import woody.organization.things.ThingType;
 import woody.organization.units.Unit;
 import woody.organization.units.UnitType;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,6 +76,10 @@ public class OrganizationHelper {
     }
 
     public List<Category> getCategories() {
+        if (!UserContext.getCurrentUser().isLoggedIn()) {
+            return Collections.emptyList();
+        }
+
         //TODO filter by role
         return categoriesPerTenant.get(UserContext.getCurrentUser().getTenantId(), this::fetchCategoriesPerTenant);
     }
@@ -86,26 +93,37 @@ public class OrganizationHelper {
 
     public List<Thing> queryRelatedThings(Relateable target, Category category) {
         return oma.select(Thing.class)
-                                .fields(Thing.ID, Thing.NAME, Thing.CODE, Thing.TYPE.join(ThingType.NAME))
-                                .eq(Thing.TENANT, Long.parseLong(UserContext.getCurrentUser().getTenantId()))
-                                .eq(Thing.TYPE.join(ThingType.CATEGORY), category)
-                                .where(target.generateRelationExistsConstraint(Thing.class))
-                                .orderAsc(Thing.CODE)
-                                .orderAsc(Thing.NAME)
-                                .limit(5)
-                                .queryList();
+                  .fields(Thing.ID, Thing.NAME, Thing.CODE, Thing.TYPE.join(ThingType.NAME))
+                  .eq(Thing.TENANT, Long.parseLong(UserContext.getCurrentUser().getTenantId()))
+                  .eq(Thing.TYPE.join(ThingType.CATEGORY), category)
+                  .where(target.generateRelationExistsConstraint(Thing.class))
+                  .orderAsc(Thing.CODE)
+                  .orderAsc(Thing.NAME)
+                  .limit(5)
+                  .queryList();
     }
 
     public List<Unit> queryRelatedUnits(Relateable target, Category category) {
         return oma.select(Unit.class)
-                                .fields(Unit.ID, Unit.NAME, Unit.CODE, Unit.TYPE.join(UnitType.NAME))
-                                .eq(Unit.TENANT, Long.parseLong(UserContext.getCurrentUser().getTenantId()))
-                                .eq(Unit.TYPE.join(UnitType.CATEGORY), category)
-                                .where(target.generateRelationExistsConstraint(Unit.class))
-                                .orderAsc(Unit.CODE)
-                                .orderAsc(Unit.NAME)
-                                .limit(5)
-                                .queryList();
+                  .fields(Unit.ID, Unit.NAME, Unit.CODE, Unit.TYPE.join(UnitType.NAME))
+                  .eq(Unit.TENANT, Long.parseLong(UserContext.getCurrentUser().getTenantId()))
+                  .eq(Unit.TYPE.join(UnitType.CATEGORY), category)
+                  .where(target.generateRelationExistsConstraint(Unit.class))
+                  .orderAsc(Unit.CODE)
+                  .orderAsc(Unit.NAME)
+                  .limit(5)
+                  .queryList();
     }
 
+    public List<Effort> queryRelatedEfforts(Relateable target, Category category) {
+        return oma.select(Effort.class)
+                  .fields(Effort.ID, Effort.NAME, Effort.CODE, Effort.TYPE.join(EffortType.NAME))
+                  .eq(Effort.TENANT, Long.parseLong(UserContext.getCurrentUser().getTenantId()))
+                  .eq(Effort.TYPE.join(EffortType.CATEGORY), category)
+                  .where(target.generateRelationExistsConstraint(Effort.class))
+                  .orderAsc(Effort.CODE)
+                  .orderAsc(Effort.NAME)
+                  .limit(5)
+                  .queryList();
+    }
 }

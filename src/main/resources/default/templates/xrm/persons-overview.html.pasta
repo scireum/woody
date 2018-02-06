@@ -1,0 +1,40 @@
+<i:arg type="java.lang.Object" name="object"/>
+
+<i:if test="object.is(woody.xrm.Company.class)">
+    <i:local name="company" value="object.as(woody.xrm.Company.class)"/>
+
+    <i:local name="persons" value="xrm.queryPersons(company)"/>
+    <i:if test="!persons.isEmpty()">
+        <w:infobox titleKey="Person.plural" color="@colors.getColorForType('PERSON')">
+            <w:table data="persons">
+                <thead>
+                <tr>
+                    <th>
+                        @i18n("Model.name")
+                    </th>
+                    <th>
+                        @i18n("Tag.plural") / @i18n("Relation.plural")
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <i:for type="woody.xrm.Person" var="person" items="persons">
+                    <tr>
+                        <td>
+                            <a class="link" href="/company/@person.getCompany().getId()/person/@person.getId()">@person</a>
+                        </td>
+                        <td>
+                            <woody:listTags tagged="person.getTags()"/>
+                            <woody:listRelations relations="person.getRelations()"/>
+                        </td>
+                    </tr>
+                </i:for>
+                </tbody>
+            </w:table>
+
+            <div class="align-right">
+                <a class="link" href="/company/@company.getIdAsString()/persons"><small><i class="fa fa-search"></i> @i18n('overview.showAll')</small></a>
+            </div>
+        </w:infobox>
+    </i:if>
+</i:if>

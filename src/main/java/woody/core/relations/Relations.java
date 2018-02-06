@@ -17,7 +17,6 @@ import sirius.kernel.di.GlobalContext;
 import sirius.kernel.di.std.Part;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by aha on 11.01.17.
@@ -72,22 +71,13 @@ public class Relations extends Composite {
                   .queryList();
     }
 
-    public List<ComparableTuple<String, String>> getListRelations() {
+    public List<Relation> getListRelations() {
         return oma.select(Relation.class)
                   .fields(Relation.ID, Relation.TARGET, Relation.TYPE, Relation.TYPE.join(RelationType.NAME))
                   .eq(Relation.OWNER_ID, owner.getId())
                   .eq(Relation.TYPE.join(RelationType.VIEW_IN_LIST), true)
                   .eq(Relation.OWNER_TYPE, owner.getTypeName())
-                  .queryList()
-                  .stream()
-                  .map(relation -> {
-                      ComparableTuple<String, String> nameAndUri = getTargetNameAndUri(relation);
-                      return ComparableTuple.create(relation.getType().getValue().getName()
-                                                    + ": "
-                                                    + nameAndUri.getFirst(), nameAndUri.getSecond());
-                  })
-                  .sorted(ComparableTuple::compareTo)
-                  .collect(Collectors.toList());
+                  .queryList();
     }
 
     public ComparableTuple<String, String> getTargetNameAndUri(Relation relation) {

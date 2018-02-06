@@ -16,6 +16,7 @@ import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
+import woody.core.colors.ColorData;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,7 +67,8 @@ public class Tagged extends Composite {
                   .fields(TagAssignment.ID,
                           TagAssignment.TAG,
                           TagAssignment.TAG.join(Tag.NAME),
-                          TagAssignment.TAG.join(Tag.VIEW_IN_LIST))
+                          TagAssignment.TAG.join(Tag.VIEW_IN_LIST),
+                          TagAssignment.TAG.join(Tag.COLOR.inner(ColorData.COLOR)))
                   .orderAsc(TagAssignment.TAG.join(Tag.NAME))
                   .eq(TagAssignment.TARGET_ENTITY, owner.getId())
                   .eq(TagAssignment.TARGET_TYPE, owner.getTypeName())

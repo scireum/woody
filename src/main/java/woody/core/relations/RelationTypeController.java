@@ -25,6 +25,8 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
+import woody.core.colors.ColorData;
+import woody.core.colors.ColorDefinition;
 
 import java.util.Collections;
 import java.util.List;
@@ -109,11 +111,20 @@ public class RelationTypeController extends BizController {
     @Routed("/relations/types")
     public void relationTypes(WebContext ctx) {
         PageHelper<RelationType> ph = PageHelper.withQuery(oma.select(RelationType.class)
+                                                              .fields(RelationType.ID,
+                                                                      RelationType.NAME,
+                                                                      RelationType.SOURCE_TYPE,
+                                                                      RelationType.TARGET_TYPE,
+                                                                      RelationType.VIEW_IN_LIST,
+                                                                      RelationType.MULTIPLE,
+                                                                      RelationType.LIST_REVERSE,
+                                                                      RelationType.COLOR.inner(ColorData.COLOR)
+                                                                                        .join(ColorDefinition.HEX_CODE))
                                                               .orderAsc(RelationType.SOURCE_TYPE)
                                                               .orderAsc(RelationType.TARGET_TYPE)
                                                               .orderAsc(RelationType.NAME));
         ph.withContext(ctx);
-        ph.withSearchFields(RelationType.NAME, RelationType.REVERSE_NAME).forCurrentTenant();
+        ph.withSearchFields(RelationType.NAME).forCurrentTenant();
         Facet sourceTypeFilter = new Facet(NLS.get("RelationType.sourceType"),
                                            RelationType.SOURCE_TYPE.getName(),
                                            ctx.get(RelationType.SOURCE_TYPE.getName()).asString(),

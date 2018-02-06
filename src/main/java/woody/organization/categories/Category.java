@@ -19,6 +19,7 @@ import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.di.GlobalContext;
 import sirius.kernel.di.std.Part;
 import woody.core.colors.ColorData;
+import woody.core.colors.Colors;
 import woody.core.relations.RelationTypeController;
 import woody.organization.OrganizationHelper;
 
@@ -69,6 +70,9 @@ public class Category extends TenantAware {
     @Part
     private static GlobalContext context;
 
+    @Part
+    private static Colors colors;
+
     @BeforeSave
     @BeforeDelete
     protected void onModify() {
@@ -78,6 +82,10 @@ public class Category extends TenantAware {
 
     public CategoryTypeProvider getProvider() {
         return context.getPart(getType(), CategoryTypeProvider.class);
+    }
+
+    public String getEffectiveColor() {
+        return colors.getColor(getColor().getColor()).orElse(colors.getColorForType(getProvider().getColorType()));
     }
 
     @Override

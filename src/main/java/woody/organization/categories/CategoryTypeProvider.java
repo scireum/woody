@@ -19,4 +19,6 @@ public interface CategoryTypeProvider extends Named {
     String makeUrl(String technicalName);
 
     String getOverviewTemplate();
+
+    String getColorType();
 }

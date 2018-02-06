@@ -16,6 +16,9 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.Part;
+import woody.core.colors.ColorData;
+import woody.core.colors.Colors;
 
 /**
  * Created by aha on 25.11.15.
@@ -41,6 +44,17 @@ public class Tag extends TenantAware {
     public static final Column VIEW_IN_LIST = Column.named("viewInList");
     @Autoloaded
     private boolean viewInList;
+
+    public static final Column COLOR = Column.named("color");
+    private final ColorData color = new ColorData();
+
+    @Part
+    private static Colors colors;
+
+    public String getEffectiveColor() {
+        return colors.getColor(getColor().getColor())
+                     .orElseGet(() -> colors.getColorForType(TagQueryTagColorTypeProvider.TYPE));
+    }
 
     @BeforeSave
     protected void clearTagName() {
@@ -82,5 +96,9 @@ public class Tag extends TenantAware {
 
     public void setViewInList(boolean viewInList) {
         this.viewInList = viewInList;
+    }
+
+    public ColorData getColor() {
+        return color;
     }
 }

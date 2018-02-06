@@ -14,6 +14,7 @@ import sirius.web.security.UserContext;
 import sirius.web.templates.GlobalContextExtender;
 import woody.core.colors.Colors;
 import woody.organization.OrganizationHelper;
+import woody.xrm.XRMHelper;
 
 import java.util.function.BiConsumer;
 
@@ -26,6 +27,7 @@ public class WoodyContextExtender implements GlobalContextExtender {
     @Override
     public void collectTemplate(BiConsumer<String, Object> biConsumer) {
         biConsumer.accept("organization", UserContext.getHelper(OrganizationHelper.class));
+        biConsumer.accept("xrm", UserContext.getHelper(XRMHelper.class));
         biConsumer.accept("colors", colors);
     }
 

@@ -29,6 +29,9 @@
                     <th>
                         @i18n("RelationType.targetType")
                     </th>
+                    <th>
+                        @i18n("Model.color")
+                    </th>
                     <th/>
                 </tr>
                 </thead>
@@ -37,15 +40,15 @@
                     <tr>
                         <td>
                             <a class="link" href="/relations/type/@type.getId()">@type.getName()</a>
-                            <i:if test="@isFilled(type.getReverseName())">
-                                (@type.getReverseName())
-                            </i:if>
                         </td>
                         <td>
                             @controller.translateType(type.getSourceType())
                         </td>
                         <td>
                             @controller.translateType(type.getTargetType())
+                        </td>
+                        <td>
+                            <woody:colorBox colorData="@type.getColor()"/>
                         </td>
                         <td class="col-md-2 align-center">
                             <w:deleteLink url="@apply('/relations/type/%s/delete', type.getId())" page="types"/>

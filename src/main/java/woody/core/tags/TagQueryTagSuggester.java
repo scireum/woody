@@ -49,11 +49,14 @@ public class TagQueryTagSuggester implements QueryTagSuggester {
            .iterateAll(t -> {
                if (inverted) {
                    consumer.accept(new QueryTag(NotTagQueryTagHandler.TYPE_NOT_TAG,
-                                                "black",
+                                                t.getEffectiveColor(),
                                                 t.getIdAsString(),
                                                 "!" + t.getName()));
                } else {
-                   consumer.accept(new QueryTag(TagQueryTagHandler.TYPE_TAG, "black", t.getIdAsString(), t.getName()));
+                   consumer.accept(new QueryTag(TagQueryTagHandler.TYPE_TAG,
+                                                t.getEffectiveColor(),
+                                                t.getIdAsString(),
+                                                t.getName()));
                }
            });
     }

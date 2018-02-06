@@ -1,18 +1,18 @@
 <i:arg type="woody.core.relations.Relateable" name="relateable"/>
 <i:arg type="woody.organization.categories.Category" name="category"/>
 
-<i:local name="things" value="organization.queryRelatedThings(relateable, category)"/>
-<i:if test="!things.isEmpty()">
+<i:local name="efforts" value="organization.queryRelatedEfforts(relateable, category)"/>
+<i:if test="!efforts.isEmpty()">
     <w:infobox title="@category.getName()" color="@category.getEffectiveColor()">
         <table class="table">
-            <i:for type="woody.organization.things.Thing" var="thing" items="things">
+            <i:for type="woody.organization.efforts.Effort" var="effort" items="efforts">
                 <tr>
                     <td class="col-md-4">
-                        <a class="link" href="/thing/@thing.getId()">@thing.getName()</a>
-                        <i:if test="isFilled(thing.getCode())"><span class="muted">(@thing.getCode())</span></i:if>
+                        <a class="link" href="/effort/@effort.getId()">@effort.getName()</a>
+                        <i:if test="isFilled(effort.getCode())"><span class="muted">(@effort.getCode())</span></i:if>
                     </td>
                     <td>
-                        <span class="muted"><small>@thing.getType().getValue()</small></span>
+                        <span class="muted"><small>@effort.getType().getValue()</small></span>
                     </td>
                 </tr>
             </i:for>
@@ -22,7 +22,7 @@
             <a class="link pointer" onclick="$('#myHiddenFormId').submit()"><small><i class="fa fa-search"></i> @i18n('overview.showAll')</small></a>
         </div>
 
-        <form id="myHiddenFormId" action="/things/@category.getTechnicalName()" method="post">
+        <form id="myHiddenFormId" action="/efforts/@category.getTechnicalName()" method="post">
             <input type="hidden" name="query" value="@relateable.createShowRelatedQuery()">
         </form>
     </w:infobox>

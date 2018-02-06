@@ -17,6 +17,9 @@
                     <w:infoboxElement labelKey="Model.name" value="@company.getName()"/>
                     <w:infoboxElement labelKey="AddressData.city" value="@company.getAddress().getCity()"/>
                     <w:infoboxElement labelKey="Company.customerNumber" value="@company.getCustomerNumber()"/>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@company.getTags()" />
+                    </w:infoboxElement>
 
                     <i:extensions name="templates-company-sidebar-infos" company="company" page="page"/>
                 </w:infobox>
