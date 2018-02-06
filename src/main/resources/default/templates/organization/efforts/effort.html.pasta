@@ -21,6 +21,11 @@
                     <w:infoboxElement labelKey="Model.type" value="@effort.getType().getValue()"/>
                     <w:infoboxElement labelKey="Model.code" value="@effort.getCode()"/>
                     <w:infoboxElement labelKey="Model.name" value="@effort.getName()"/>
+                    <w:infoboxElement labelKey="Effort.startDate" value="@effort.getStartDate()"/>
+                    <w:infoboxElement labelKey="Effort.endDate" value="@effort.getEndDate()"/>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@effort.getTags()" />
+                    </w:infoboxElement>
 
                     <i:extensions name="templates-effort-sidebar-infos" company="effort" page="page"/>
                 </w:infobox>

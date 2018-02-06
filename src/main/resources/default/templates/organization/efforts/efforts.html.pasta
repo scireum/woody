@@ -38,6 +38,10 @@
                         <span class="muted">@i18n("Model.type")</span>
                     </th>
                     <th>
+                        @i18n("Effort.startDate")<br>
+                        @i18n("Effort.endDate")
+                    </th>
+                    <th>
                         @i18n("Tag.plural")<br>
                         <span class="muted">@i18n("Relation.plural")</span>
                     </th>
@@ -51,6 +55,10 @@
                             <a class="link" href="/effort/@effort.getId()">@effort.getName()</a>
                             <i:if test="isFilled(effort.getCode())"><span class="muted">(@effort.getCode())</span></i:if><br>
                             <span class="muted"><small>@effort.getType().getValue()</small></span>
+                        </td>
+                        <td>
+                            @toUserString(effort.getStartDate())<br>
+                            @toUserString(effort.getEndDate())
                         </td>
                         <td>
                             <woody:listTags tagged="effort.getTags()" />

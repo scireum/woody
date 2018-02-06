@@ -140,7 +140,7 @@ public class UnitController extends BizController {
             unit.getType().setValue(type);
         }
 
-        boolean requestHandled = prepareSave(ctx).withAfterCreateURI("/unit/${id}").withPreSaveHandler(isNew -> {
+        boolean requestHandled = prepareSave(ctx).withAfterSaveURI("/unit/${id}").withPreSaveHandler(isNew -> {
             if (isNew) {
                 Unit parent = findForTenant(Unit.class, ctx.get(Unit.PARENT.getName()).asString());
                 if (parent != null) {

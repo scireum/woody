@@ -22,6 +22,10 @@
             </i:if>
         </div>
         <div class="row">
+            <w:datefield name="startDate" value="@toUserString(effort.getStartDate())" labelKey="Effort.startDate" />
+            <w:datefield name="endDate" value="@toUserString(effort.getEndDate())" labelKey="Effort.endDate" />
+        </div>
+        <div class="row">
             <w:autocompleteMultiSelect span="12" name="tags" labelKey="Tag.plural" serviceUri="/tags/EFFORT/autocomplete"
                                        optional="true">
                 <i:for type="woody.core.tags.Tag" var="tag" items="effort.getTags().getTags()">

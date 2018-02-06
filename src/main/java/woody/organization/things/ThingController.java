@@ -104,7 +104,7 @@ public class ThingController extends BizController {
             thing.getType().setValue(type);
         }
 
-        boolean requestHandled = prepareSave(ctx).withAfterCreateURI("/thing/${id}").withPostSaveHandler(isNew -> {
+        boolean requestHandled = prepareSave(ctx).withAfterSaveURI("/thing/${id}").withPostSaveHandler(isNew -> {
             thing.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
         }).saveEntity(thing);
 

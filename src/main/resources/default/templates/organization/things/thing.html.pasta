@@ -21,6 +21,9 @@
                     <w:infoboxElement labelKey="Model.type" value="@thing.getType().getValue()"/>
                     <w:infoboxElement labelKey="Model.code" value="@thing.getCode()"/>
                     <w:infoboxElement labelKey="Model.name" value="@thing.getName()"/>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@thing.getTags()" />
+                    </w:infoboxElement>
 
                     <i:extensions name="templates-thing-sidebar-infos" company="thing" page="page"/>
                 </w:infobox>

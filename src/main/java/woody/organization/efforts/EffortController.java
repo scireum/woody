@@ -100,7 +100,7 @@ public class EffortController extends BizController {
             effort.getType().setValue(type);
         }
 
-        boolean requestHandled = prepareSave(ctx).withAfterCreateURI("/effort/${id}").withPostSaveHandler(isNew -> {
+        boolean requestHandled = prepareSave(ctx).withAfterSaveURI("/effort/${id}").withPostSaveHandler(isNew -> {
             effort.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
         }).saveEntity(effort);
 

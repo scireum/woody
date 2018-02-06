@@ -22,6 +22,9 @@
                     <w:infoboxElement labelKey="Model.code" value="@unit.getCode()"/>
                     <w:infoboxElement labelKey="Model.name" value="@unit.getName()"/>
                     <w:infoboxElement labelKey="Unit.parent" value="@unit.getParent().getValue()"/>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@unit.getTags()" />
+                    </w:infoboxElement>
 
                     <i:extensions name="templates-unit-sidebar-infos" company="unit" page="page"/>
                 </w:infobox>
