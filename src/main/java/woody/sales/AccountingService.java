@@ -145,7 +145,7 @@ public interface AccountingService {
 	 * creates a string like YYYYMMDD_hhmmss_name "_" is the given space
 	 * if cal == null the Calende-Value cal is created
 	 */
-	public String dateTimeFilename(String space, LocalDateTime dateTime);
+	public String dateTimeFilename(String space, LocalDateTime timestamp);
 
 	/**
 	 * gets the last (the smallest) virtual invoiceNr
@@ -162,12 +162,11 @@ public interface AccountingService {
 	 * creates a PDF-Information for the given company
 	 * @param company
 	 */
-	public void createYearInformationForCompany(Company company, int year);
+	public void createYearInformationForCompany(Company company, int year, LocalDateTime timestamp);
 
 	/**
 	 * returns the errorList.
      */
 	public List<String> getErrorList();
-
 
 }

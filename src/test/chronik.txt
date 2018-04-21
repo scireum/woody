@@ -48,6 +48,7 @@ offene Punkte:
 
 18.10.2017  - CRM-90, Attachments einer Mail als "Attachment" speichern
 
+
 - CRM-88, Wiederaufnahme: - Attachmentname muss "Vertrag_<cotract.id> werden"
 - CRM-94: Die Kopfdaten bei der Darstellung eines Angebots werden nach den Funktionen NEU oder LÖSCHEN nicht aktualisiert.
 - Anpassung UK --> GB in exportCompanyForCollmex, siehe CRM.

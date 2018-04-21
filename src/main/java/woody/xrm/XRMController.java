@@ -44,6 +44,7 @@ import woody.opportunities.Opportunity;
 
 import java.security.Provider;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -238,7 +239,7 @@ public class XRMController extends BizController {
     @Routed("/company/:1/yearInfo")
     public void companyYearInfo(WebContext ctx, String companyId) {
         Company company = findForTenant(Company.class, companyId);
-        asb.createYearInformationForCompany(company, 2018);
+        asb.createYearInformationForCompany(company, 2018, LocalDateTime.now());
         ctx.respondWith().template("view/xrm/company-details.html", company);
     }
 

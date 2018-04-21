@@ -502,19 +502,14 @@ public class AccountingServiceBean implements AccountingService {
                 positionPrice = unitPrice.times(Amount.of(contract.getQuantity()));
             }
         }
-        positionPrice = round(positionPrice, 2);
 
+        positionPrice = round(positionPrice, 2);
         Amount positionDiscount = contract.getDiscountPercent().fill(Amount.ZERO);
-        if (positionDiscount.isPositive()) {
-            int gggg = 1;
-        }
         Amount discountAmount = contract.getDiscountAbsolute().fill(Amount.ZERO);
-        if (discountAmount.isPositive()) {
-            int hhh = 1;
-        }
         Amount reducedPrice = positionPrice.decreasePercent(positionDiscount);
         Amount discount = positionPrice.subtract(reducedPrice);
         discount = round(discount, 2);
+
         // build the lineitem-data
         boolean isCredit = false;
         Amount lineitemPrice = positionPrice;
@@ -1212,195 +1207,6 @@ public class AccountingServiceBean implements AccountingService {
     }
 
 
-/*
-    @Override
-    public void exportLicenceLineitems(int maxLineitemsDefault, String filter) {
-        if (maxLineitemsDefault <= 0) {
-            maxLineitemsDefault = 300;
-        }
-        if (filter == null) {
-            filter = "";
-        }
-        String type = Lineitem.LINEITEMTYPE_LA;
-        sum = Amount.ZERO;
-        counter = 0;
-        LocalDateTime exportDate = LocalDateTime.now();
-        // get all lineitems with status "NEW' and Type "LA"
-        List<Lineitem> lineitemList = oma.select(Lineitem.class)
-                                         .eq(Lineitem.STATUS, Lineitem.LINEITEMSTATUS_NEW)
-                                         .eq(Lineitem.LINEITEMTYPE, Lineitem.LINEITEMTYPE_LA)
-                                         .orderDesc(Lineitem.INVOICENR)
-                                         .orderAsc(Lineitem.POSITION)
-                                         .queryList();
-
-        if (lineitemList.size() <= 0) {
-
-//                ss.forBackendStream(
-//                        DisplayMarkdownFactory.FACTORY_NAME,
-//                        "Lizenz-Abrechnung",MessageFormat.format(
-//                                "In der Tabelle 'lineitem' wurden keine lineitems mit dem Typ {0} zum exportieren gefunden",
-//                                LineitemType.LA))
-//                  .loginRequired(true).setUser(Users.getCurrentUser())
-//                  .publish();
-            return;
-        }
-        int counterNew = lineitemList.size();
-        // check, modify and save these lineitems where the sum of the invoice = 0,00 EUR; set the CollmexCredit-Flag
-        int counterNull = 0;
-        counterNull = counterNull + checkLineitems(lineitemList);
-        lineitemList.clear();
-
-        // get all lineitems with status "NEW' and Type "LA" after modifying
-        lineitemList = oma.select(Lineitem.class)
-                          .eq(Lineitem.STATUS, Lineitem.LINEITEMSTATUS_NEW)
-                          .eq(Lineitem.LINEITEMTYPE, Lineitem.LINEITEMTYPE_LA)
-                          .orderDesc(Lineitem.INVOICENR)
-                          .orderAsc(Lineitem.POSITION)
-                          .queryList();
-        boolean filterFlag = false;
-        if (Strings.isFilled(filter)) {
-            filter = filter.toUpperCase();
-            if (filter.contains("AUSL")) {
-                filterFlag = true;
-                filter = "AUSLAND";
-            }
-            if (filter.contains("NEIN")) {
-                filterFlag = false;
-            } else {
-                filterFlag = true;
-            }
-        } else {
-            filter = "NEIN";
-            filterFlag = false;
-        }
-        // filter the lineitems. Is no filter given --> add all lineitems to the lineitemFilteredList
-        List<Lineitem> lineitemFilteredList = new ArrayList<Lineitem>();
-        for (Lineitem l : lineitemList) {
-            if (filterFlag) { // filter is != nein
-                String customerNr = l.getCustomerNr();
-                Company company = oma.select(Company.class).eq(Company.CUSTOMERNR, customerNr).queryFirst();
-                String countryCode = company.getAddress().getCountry().toUpperCase();
-                if (Strings.isEmpty(countryCode)) {
-                    countryCode = "DE";
-                }
-                boolean flagAdd = false;
-                if ("AUSLAND".equals(filter)) {  // filter is Ausland
-                    if (!("DE".equals(countryCode))) {
-                        flagAdd = true;    // add all lineitems with contyCode != DE
-                    }
-                }
-                if (!flagAdd) {
-                    if (filter.contains(countryCode)) {
-                        flagAdd = true;    // add the lineitem if the countryCode matches the filter, eg "AT FR NL"
-                    }
-                }
-                if (flagAdd) {
-                    lineitemFilteredList.add(l);
-                }
-            } else {
-                lineitemFilteredList.add(l);
-            }
-        }
-
-        // process the lineitemFilteredList --> write the lineitems in groups (size= maxLineDefault) to a outputList
-        // Each group is written in a separate file
-        List<Lineitem> outputList = new ArrayList<Lineitem>();
-        List<File> filenames = new ArrayList<File>();
-        long invoiceNr = 0;
-        int fileNr = 0;
-        File file = null;
-        Lineitem l = null;
-        int maxLineitems = maxLineitemsDefault;
-        for (int k = 0; k < lineitemFilteredList.size(); k++) {
-            maxLineitems--;
-            // check if the maxLineitems is in the range of maxLineitems-default-value
-            if (maxLineitems <= 0) {
-                // the value is outside the range  --> look for lineitems with the same invoiceNr and finish the outputList
-                boolean flag = false;
-                l = lineitemFilteredList.get(k);
-                if (invoiceNr == l.getInvoiceNr()) {
-                    // the invoiceNr is the same --> add the lineitem to the outputList
-                    outputList.add(l);
-                    // Look for more lineitems with the same invoiceNr
-                    for (int m = 0; m < 100; m++) {
-                        k = k + 1;
-                        l = lineitemFilteredList.get(k);
-                        if (invoiceNr == l.getInvoiceNr()) {
-                            //  the invoiceNr is the same --> add the lineitem to the outputList
-                            outputList.add(l);
-                        } else {
-                            // the invoiceNr is different --> the outputList can be finished
-                            flag = true;
-                            break;
-                        }
-                    }
-                } else {
-                    // the invoiceNr is different --> the outputList can be finished
-                    flag = true;
-                }
-                if (flag) {
-                    // finish the outputList --> write the lineitems in the outputList to a new file
-                    k = k - 1;
-                    fileNr++;
-                    file = createCsvFilename("lineitems", fileNr);
-                    filenames.add(file);
-                    writeToFile(outputList, file, exportDate, type);
-                    outputList.clear();
-                    maxLineitems = maxLineitemsDefault;
-                }
-            } else {
-                // the counter for the maxLineitems is in range of the defaultvalue -->
-                // add the lineitem to the outputList and get the invoiceNr
-                l = lineitemFilteredList.get(k);
-                invoiceNr = l.getInvoiceNr();
-                outputList.add(l);
-            }
-        }
-        // look for the last lineitems in the outputList
-        if (outputList.size() > 0) {
-            fileNr++;
-            file = createCsvFilename("lineitems", fileNr);
-            filenames.add(file);
-            writeToFile(outputList, file, exportDate, type);
-        }
-
-        // build a activity-news
-        String message = MessageFormat.format("Es wurde nichts exportiert, Filter: {0}", filter);
-        if (filenames.size() > 0) {
-            file = filenames.get(0);
-            File fileLast = null;
-            String fileNameLast = "keine weitere Dateien";
-            int last = filenames.size() - 1;
-            if (last > 0) {
-                fileLast = filenames.get(last);
-                fileNameLast = "bis " + fileLast.getName();
-            }
-            message = MessageFormat.format(
-                    "{0} Rechnungspositionen mit Status NEW, {1} Rechnungspositionen mit Betrag = null, {2} Rechnungspositionen exportiert,"
-                    +
-                    "Anzahl aller Rechnungspositionen {3}, Netto-Umsatz: {4} EUR, Datei: {5}   {6}"
-                    +
-                    ", Filter: {7}",
-                    counterNew,
-                    counterNull,
-                    counter,
-                    counter + counterNull,
-                    NLS.toUserString(sum),
-                    file.getAbsoluteFile(),
-                    fileNameLast,
-                    filter);
-            System.err.println(message);
-        }
-
-//            ss.forBackendStream(
-//                    DisplayMarkdownFactory.FACTORY_NAME,
-//                    "Lizenz-Abrechnung",message)
-//              .loginRequired(true).setUser(Users.getCurrentUser())
-//              .publish();
-    }
-
-    */
-
     @Override
     public void exportLineitems(String type, int maxLineitemsDefault, String filter) {
         if(!(Lineitem.LINEITEMTYPE_LA.equals(type) || Lineitem.LINEITEMTYPE_OA.equals(type)) )  {
@@ -1415,7 +1221,6 @@ public class AccountingServiceBean implements AccountingService {
         }
         sum = Amount.ZERO;
         counter = 0;
-        LocalDateTime exportDate = LocalDateTime.now();
         // get all lineitems with status "NEW' and Type type
         List<Lineitem> lineitemList = oma.select(Lineitem.class)
                                          .eq(Lineitem.STATUS, Lineitem.LINEITEMSTATUS_NEW)
@@ -1497,6 +1302,7 @@ public class AccountingServiceBean implements AccountingService {
         // Each group is written in a separate file
         List<Lineitem> outputList = new ArrayList<Lineitem>();
         List<File> filenames = new ArrayList<File>();
+        LocalDateTime exportTimestamp = LocalDateTime.now();
         long invoiceNr = 0;
         int fileNr = 0;
         File file = null;
@@ -1513,7 +1319,7 @@ public class AccountingServiceBean implements AccountingService {
                     // the invoiceNr is the same --> add the lineitem to the outputList
                     outputList.add(l);
                     // Look for more lineitems with the same invoiceNr
-                    for (int m = 0; m < 100; m++) {
+                    for (int m = 0; m < 1000; m++) {
                         k = k + 1;
                         l = lineitemFilteredList.get(k);
                         if (invoiceNr == l.getInvoiceNr()) {
@@ -1533,9 +1339,9 @@ public class AccountingServiceBean implements AccountingService {
                     // finish the outputList --> write the lineitems in the outputList to a new file
                     k = k - 1;
                     fileNr++;
-                    file = createCsvFilename("lineitems", fileNr, exportDate);
+                    file = createCsvFilename("lineitems", fileNr, exportTimestamp);
                     filenames.add(file);
-                    writeToFile(outputList, file, exportDate, type);
+                    writeToFile(outputList, file, exportTimestamp, type);
                     outputList.clear();
                     maxLineitems = maxLineitemsDefault;
                 }
@@ -1550,9 +1356,9 @@ public class AccountingServiceBean implements AccountingService {
         // look for the last lineitems in the outputList
         if (outputList.size() > 0) {
             fileNr++;
-            file = createCsvFilename("lineitems", fileNr, exportDate);
+            file = createCsvFilename("lineitems", fileNr, exportTimestamp);
             filenames.add(file);
-            writeToFile(outputList, file, exportDate, type);
+            writeToFile(outputList, file, exportTimestamp, type);
         }
 
         // build a activity-news
@@ -1595,13 +1401,13 @@ public class AccountingServiceBean implements AccountingService {
      * write the lineitems in the outputList to a new file
      */
 
-    private void writeToFile(List<Lineitem> outputList, File file, LocalDateTime exportDate, String type) {
+    private void writeToFile(List<Lineitem> outputList, File file, LocalDateTime exportTimestamp, String type) {
         PrintWriter pw = null;
         try {
             Amount sum = Amount.ZERO;
             pw = createPrintWriter(file);
             for (Lineitem lineitem : outputList) {
-                Amount value = generateCollmexInvoiceLine(pw, lineitem, exportDate, type);
+                Amount value = generateCollmexInvoiceLine(pw, lineitem, exportTimestamp, type);
                 sum = sum.add(value);
 //                    For testing:
 //                    String text = lineitem.getCompanyName() + ";" + lineitem.getCustomerNr() + ";" + NLS.toUserString(value);
@@ -1738,19 +1544,19 @@ public class AccountingServiceBean implements AccountingService {
      * creates a string like YYYYMMDD_hhmmss_name "-" is the given space
      */
     @Override
-    public String dateTimeFilename(String space, LocalDateTime dateTime) {
-        if (dateTime == null) {
-            dateTime = LocalDateTime.now();
+    public String dateTimeFilename(String space, LocalDateTime timestamp) {
+        if (timestamp == null) {
+            timestamp = LocalDateTime.now();
         }
         if (Strings.isEmpty(space)) {
             space = "_";
         }
-        String s = NLS.toUserString(dateTime.getYear());
-        s += twoDecimals(NLS.toUserString(dateTime.getMonthValue()));
-        s += twoDecimals(NLS.toUserString(dateTime.getDayOfMonth()));
+        String s = NLS.toUserString(timestamp.getYear());
+        s += twoDecimals(NLS.toUserString(timestamp.getMonthValue()));
+        s += twoDecimals(NLS.toUserString(timestamp.getDayOfMonth()));
         s += space;
-        s += twoDecimals(NLS.toUserString(dateTime.getHour()));
-        s += twoDecimals(NLS.toUserString(dateTime.getSecond()));
+        s += twoDecimals(NLS.toUserString(timestamp.getHour()));
+        s += twoDecimals(NLS.toUserString(timestamp.getSecond()));
         s += space;
         return s;
     }
@@ -1768,7 +1574,7 @@ public class AccountingServiceBean implements AccountingService {
     /**
      * generates a invoice-position in Colmex
      */
-    private Amount generateCollmexInvoiceLine(PrintWriter pw, Lineitem lineitem,  LocalDateTime exportDate, String type) {
+    private Amount generateCollmexInvoiceLine(PrintWriter pw, Lineitem lineitem,  LocalDateTime exportTimestamp, String type) {
         Amount sum = Amount.ZERO;
 
         // generate a csv-line for the export in Collmex-Notation
@@ -1941,9 +1747,9 @@ public class AccountingServiceBean implements AccountingService {
         // Step 4: print the CSV-string to the file
         pw.println(sb.toString());
 
-        // Step 5: set status and the exportDate
+        // Step 5: set status and the exportDateTime
         lineitem.setStatus(Lineitem.LINEITEMSTATUS_ACCOUNTED);
-        lineitem.setExportDate(exportDate);
+        lineitem.setExportDate(exportTimestamp);
         oma.update(lineitem);
         // Step 6: calculate the position-sum
         sum = lineitem.getPrice();
@@ -2314,7 +2120,7 @@ public class AccountingServiceBean implements AccountingService {
     }
 
     @Override
-    public void createYearInformationForCompany(Company company, int year) {
+    public void createYearInformationForCompany(Company company, int year, LocalDateTime timestamp) {
         HashMap<String, String> hashMap = new HashMap<String, String>();
         // get all contracts of this company
         List<Contract> contractList = oma.select( Contract.class).eq(Contract.COMPANY, company)
@@ -2340,7 +2146,7 @@ public class AccountingServiceBean implements AccountingService {
                 continue;
             }
             // prepare context for the contracts of this accountingGroup
-            Context context = prepareContextYearInfo(company, year, contracts);
+            Context context = prepareContextYearInfo(company, year, contracts, timestamp);
             if(context == null) {
                 continue;
             }
@@ -2376,7 +2182,7 @@ public class AccountingServiceBean implements AccountingService {
 
     }
 
-    private Context prepareContextYearInfo(Company company, int year, List<Contract> contracts) {
+    private Context prepareContextYearInfo(Company company, int year, List<Contract> contracts, LocalDateTime timestamp) {
         Context context = new Context();
         LocalDate startDate = LocalDate.of(year,1,1);
         Amount nettoSum = Amount.ZERO;
@@ -2387,7 +2193,8 @@ public class AccountingServiceBean implements AccountingService {
         context.set("employee", employee);
         context.set("yearString", NLS.toUserString(year));
         context.set("year", year);
-        context.set("dateString", NLS.toUserString(startDate));
+        LocalDate localDate = LocalDate.of(timestamp.getYear(), timestamp.getMonthValue(), timestamp.getDayOfMonth());
+        context.set("dateString", NLS.toUserString(localDate));
 
         String accountingGroup = null;
         HashMap<String, Person>  personMap = new HashMap<String, Person>();
