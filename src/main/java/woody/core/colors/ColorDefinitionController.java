@@ -19,7 +19,6 @@ import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.Permission;
-import woody.organization.units.UnitType;
 
 import java.util.Optional;
 
@@ -35,7 +34,7 @@ public class ColorDefinitionController extends BizController {
         PageHelper<ColorDefinition> ph =
                 PageHelper.withQuery(oma.select(ColorDefinition.class).orderAsc(ColorDefinition.NAME));
         ph.withContext(ctx);
-        ph.withSearchFields(ColorDefinition.NAME, ColorDefinition.HEX_CODE, UnitType.DESCRIPTION).forCurrentTenant();
+        ph.withSearchFields(ColorDefinition.NAME, ColorDefinition.HEX_CODE, ColorDefinition.PALETTE).forCurrentTenant();
 
         ctx.respondWith().template("/templates/core/colors/definitions.html.pasta", ph.asPage());
     }

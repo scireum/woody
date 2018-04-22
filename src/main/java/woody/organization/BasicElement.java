@@ -26,6 +26,8 @@ import sirius.kernel.nls.NLS;
 import woody.core.colors.Colors;
 import woody.core.comments.Commented;
 import woody.core.comments.HasComments;
+import woody.core.lifecycles.HasLifecycle;
+import woody.core.lifecycles.LifecycleData;
 import woody.core.relations.HasRelations;
 import woody.core.relations.IsRelateable;
 import woody.core.relations.Relateable;
@@ -36,7 +38,7 @@ import woody.core.tags.Tagged;
  * Created by aha on 13.01.17.
  */
 public abstract class BasicElement<T extends BasicType> extends TenantAware
-        implements HasComments, HasRelations, IsRelateable, Journaled {
+        implements HasComments, HasRelations, IsRelateable, HasLifecycle, Journaled {
 
     public static final Column TYPE = Column.named("type");
     private final EntityRef<T> type;
@@ -75,6 +77,9 @@ public abstract class BasicElement<T extends BasicType> extends TenantAware
 
     public static final Column JOURNAL = Column.named("journal");
     private final JournalData journal = new JournalData(this);
+
+    public static final Column LIFECYCLE = Column.named("lifecycle");
+    private final LifecycleData lifecycle = new LifecycleData(this, LIFECYCLE);
 
     @Part
     private static Sequences sequences;
@@ -186,5 +191,10 @@ public abstract class BasicElement<T extends BasicType> extends TenantAware
     @Override
     public JournalData getJournal() {
         return journal;
+    }
+
+    @Override
+    public LifecycleData getLifecycle() {
+        return lifecycle;
     }
 }

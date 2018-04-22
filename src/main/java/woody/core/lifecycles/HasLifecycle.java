@@ -12,6 +12,4 @@ public interface HasLifecycle {
 
     LifecycleData getLifecycle();
 
-    String getLifecycleType();
-
 }
