@@ -31,5 +31,4 @@ public class CSSController implements Controller {
     public void profile(WebContext ctx) {
         ctx.respondWith().error(HttpResponseStatus.NOT_FOUND);
     }
-
 }

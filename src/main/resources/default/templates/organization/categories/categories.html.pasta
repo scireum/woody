@@ -1,0 +1,67 @@
+<i:arg type="Page" name="categories"/>
+<i:arg type="woody.organization.categories.CategoryController" name="controller"/>
+
+<w:page titleKey="Category.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/categories">@i18n("Category.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Category.plural"/>
+
+    <div class="row">
+        <div class="col-md-3">
+            <w:filterbox page="categories" baseUrl="categories"/>
+        </div>
+        <div class="col-md-9">
+            <w:tableSearchHeader page="categories" baseUrl="categories">
+                <div class="btn-group">
+                    <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">
+                        @i18n("Model.create")
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <i:for type="Tuple" var="type" items="controller.getTypes()">
+                            <li>
+                                <a href="@apply('/category/new?type=%s', type.getFirst())">@format(i18n('Category.forType')).set('type', type.getSecond()).format()</a>
+                            </li>
+                        </i:for>
+                    </ul>
+                </div>
+            </w:tableSearchHeader>
+
+            <w:table data="categories">
+                <thead>
+                <tr>
+                    <th>
+                        @i18n("Model.name")
+                    </th>
+                    <th>
+                        @i18n("Model.color")
+                    </th>
+                    <th/>
+                </tr>
+                </thead>
+                <tbody>
+                <i:for type="woody.organization.categories.Category" var="category" items="categories.getItems()">
+                    <tr>
+                        <td>
+                            <a class="link" href="/category/@category.getId()">@category.getName()</a> <small class="muted">(@controller.translateType(category))</small><br>
+                            <small class="muted">@category.getDescription()</small>
+                        </td>
+                        <td>
+                            <woody:colorBox colorData="@category.getColor()"/>
+                        </td>
+                        <td class="col-md-2 align-center">
+                            <w:deleteLink url="@apply('/category/%s/delete', category.getId())" page="categories"/>
+                        </td>
+                    </tr>
+                </i:for>
+                </tbody>
+            </w:table>
+
+            <w:pagination page="categories" baseUrl="categories"/>
+        </div>
+    </div>
+
+
+</w:page>

@@ -1,0 +1,53 @@
+<i:arg type="Page" name="types"/>
+
+<w:page titleKey="ThingType.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/things/types">@i18n("ThingType.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="ThingType.plural"/>
+    <div class="row">
+        <div class="col-md-3">
+            <w:filterbox page="types" baseUrl="/things/types"/>
+        </div>
+        <div class="col-md-9">
+            <w:tableSearchHeader page="types" baseUrl="/things/types">
+                <a class="btn btn-primary" href="/things/type/new">@i18n("Model.create")</a>
+            </w:tableSearchHeader>
+
+            <w:table data="types">
+                <thead>
+                <tr>
+                    <th>
+                        @i18n("Model.name")
+                    </th>
+                    <th>
+                        @i18n("Model.color")
+                    </th>
+                    <th/>
+                </tr>
+                </thead>
+                <tbody>
+                <i:for type="woody.organization.things.ThingType" var="type" items="types.getItems()">
+                    <tr>
+                        <td>
+                            <a class="link" href="/things/type/@type.getId()">@type.getName()</a>
+                            <small class="muted">(@type.getCategory().getValue().toString())</small>
+                            <br>
+                            <small class="muted">@type.getDescription()</small>
+                        </td>
+                        <td>
+                            <woody:colorBox colorData="@type.getColor()"/>
+                        </td>
+                        <td class="col-md-2 align-center">
+                            <w:deleteLink url="@apply('/things/type/%s/delete', type.getId())" page="types"/>
+                        </td>
+                    </tr>
+                </i:for>
+                </tbody>
+            </w:table>
+
+            <w:pagination page="types" baseUrl="things/types"/>
+        </div>
+    </div>
+</w:page>

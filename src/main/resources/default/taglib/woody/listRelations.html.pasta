@@ -1,0 +1,18 @@
+<i:arg type="woody.core.relations.Relations" name="relations"/>
+
+<i:for type="woody.core.relations.Relation" var="relation" items="relations.getListRelations()">
+    <span class="relation-block"><span class="relation-color-block" style="background-color: @relation.getColor()">&nbsp;</span><span class="relation-info-block">
+        <span class="relation-info-type">@relation.getRelationType():</span>
+        <span class="relation-info-target">
+            <i:local name="nameAndUri" value="relations.getTargetNameAndUri(relation)"/>
+            <i:if test="nameAndUri != null">
+                <i:if test="nameAndUri.getSecond() != null">
+                    <a href="@nameAndUri.getSecond()" target="_blank">@nameAndUri.getFirst()</a>
+                    <i:else>
+                        @nameAndUri.getFirst()
+                    </i:else>
+                </i:if>
+            </i:if>
+        </span>
+    </span></span>
+</i:for>

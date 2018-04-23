@@ -1,0 +1,50 @@
+<i:arg type="woody.organization.units.Unit" name="unit"/>
+<i:arg type="String" name="page"/>
+<i:local name="type"
+         value="@unit.getType().getValue().as(woody.organization.units.UnitType.class)"/>
+<i:local name="category"
+         value="@type.getCategory().getValue().as(woody.organization.categories.Category.class)"/>
+
+<w:page title="@unit.toString()">
+    <i:block name="breadcrumbs">
+        <li><a href="/units/@category.getTechnicalName()">@category.getName()</a></li>
+        <li><a href="/unit/@unit.getId()">@unit</a></li>
+        <i:render name="breadcrumbs"/>
+    </i:block>
+
+    <w:pageHeader title="@unit.toString()"/>
+
+    <div class="row">
+        <i:if test="!unit.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@unit.getColor()">
+                    <w:infoboxElement labelKey="Model.type" value="@unit.getType().getValue()"/>
+                    <w:infoboxElement labelKey="Model.code" value="@unit.getCode()"/>
+                    <w:infoboxElement labelKey="Model.name" value="@unit.getName()"/>
+                    <w:infoboxElement labelKey="Unit.parent" value="@unit.getParent().getValue()"/>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@unit.getTags()" />
+                    </w:infoboxElement>
+
+                    <i:extensions name="templates-unit-sidebar-infos" company="unit" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-unit-sidebar-additional" company="unit" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/unit/%s', unit.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/unit/%s/edit', unit.getId())"
+                                  active="page == 'details'"/>
+
+                    <i:extensions name="templates-unit-sidebar-menu" company="unit" page="page"/>
+                </w:navbox>
+
+                <a href="/units/@category.getTechnicalName()" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (unit.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

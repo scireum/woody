@@ -1,0 +1,49 @@
+<i:arg type="woody.organization.things.Thing" name="thing"/>
+<i:arg type="String" name="page"/>
+<i:local name="type"
+         value="@thing.getType().getValue().as(woody.organization.things.ThingType.class)"/>
+<i:local name="category"
+         value="@type.getCategory().getValue().as(woody.organization.categories.Category.class)"/>
+
+<w:page title="@thing.toString()">
+    <i:block name="breadcrumbs">
+        <li><a href="/things/@category.getTechnicalName()">@category.getName()</a></li>
+        <li><a href="/thing/@thing.getId()">@thing</a></li>
+        <i:render name="breadcrumbs"/>
+    </i:block>
+
+    <w:pageHeader title="@thing.toString()"/>
+
+    <div class="row">
+        <i:if test="!thing.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@thing.getColor()">
+                    <w:infoboxElement labelKey="Model.type" value="@thing.getType().getValue()"/>
+                    <w:infoboxElement labelKey="Model.code" value="@thing.getCode()"/>
+                    <w:infoboxElement labelKey="Model.name" value="@thing.getName()"/>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@thing.getTags()" />
+                    </w:infoboxElement>
+
+                    <i:extensions name="templates-thing-sidebar-infos" company="thing" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-thing-sidebar-additional" company="thing" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/thing/%s', thing.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/thing/%s/edit', thing.getId())"
+                                  active="page == 'details'"/>
+
+                    <i:extensions name="templates-thing-sidebar-menu" company="thing" page="page"/>
+                </w:navbox>
+
+                <a href="/things/@category.getTechnicalName()" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (thing.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

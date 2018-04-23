@@ -18,25 +18,25 @@ import sirius.kernel.di.std.Part
 class CommentedSpec extends BaseSpecification {
 
     @Part
-    private static OMA oma;
+    private static OMA oma
 
     def "add a public and private comments work"() {
         given:
-        TenantsHelper.installTestTenant();
+        TenantsHelper.installTestTenant()
         and:
-        CommentedTestEntity entity = new CommentedTestEntity();
+        CommentedTestEntity entity = new CommentedTestEntity()
         and:
-        oma.update(entity);
+        oma.update(entity)
         when:
-        entity.getCommented().addComment("Test", "Test", "This is a test", false);
+        entity.getCommented().addComment("Test", "Test", "This is a test", false)
         and:
         entity.getCommented().addCommentAsCurrentUser("This is another test")
         and:
         entity.getCommented().addPublicCommentAsCurrentUser("This is the 3rd test")
         and:
-        TenantsHelper.clearCurrentUser();
+        TenantsHelper.clearCurrentUser()
         then:
-        oma.select(Comment.class).eq(Comment.TARGET_ENTITY, entity.getUniqueName()).count() == 3;
+        oma.select(Comment.class).eq(Comment.TARGET_ENTITY, entity.getUniqueName()).count() == 3
         and:
         entity.getCommented().getAllComments().size() == 3
         and:
@@ -45,13 +45,13 @@ class CommentedSpec extends BaseSpecification {
 
     def "user can edit own comments"() {
         given:
-        TenantsHelper.installTestTenant();
+        TenantsHelper.installTestTenant()
         and:
-        CommentedTestEntity entity = new CommentedTestEntity();
+        CommentedTestEntity entity = new CommentedTestEntity()
         and:
-        oma.update(entity);
+        oma.update(entity)
         when:
-        entity.getCommented().addCommentAsCurrentUser("This is a test");
+        entity.getCommented().addCommentAsCurrentUser("This is a test")
         then: "A comment created by the current user is considered public even if it isn't publicVisible"
         entity.getCommented().getAllComments().size() == entity.getCommented().getPublicComments().size()
         and:

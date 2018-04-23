@@ -36,69 +36,69 @@ public class StarfaceBean implements Starface {
 
     @Override
     public void createPhoneCall(Employee employee, String destination) {
-            if (employee.getPbxId() == null || Strings.isEmpty(employee.getPbxId())) {
-                throw Exceptions.createHandled().withNLSKey("Starface.pbxIdMissing")
-                                .set("employeeShortName", employee.getShortName()).handle();
-            }
-            if (Strings.isEmpty(employee.getPbxAccessToken())) {
-                throw Exceptions.createHandled().withNLSKey("Starface.pbxAccessTokenMissing")
-                                .set("employeeShortName", employee.getShortName()).handle();
-
-            }
-            // normalize the phone-number 07151 / 741-08 --> +49715174108
-            destination = SyncAsterisk.normalizePhonenumberForStarfaceAddressbook(destination, true);
-
-            try {
-                // prepare the phonecall
-                String urlString = MessageFormat.format(
-                        "http://{0}/xml-rpc?de.vertico.starface.user={1}&de.vertico.starface.auth={2}",
-                        STARFACE_IP, employee.getPbxId(), employee.getPbxAccessToken());
-                URL url = new URL(urlString);
-                // login into Starface
-                XMLCall call = XMLCall.to(url);
-                XMLStructuredOutput out = call.getOutput();
-                out.beginOutput("methodCall").property("methodName","ucp.v22.requests.connection.login").endResult();
-                XMLStructuredInput in = call.getInput();
-                if(test) {
-                    System.out.println(in.toString());
-                }
-
-                // create the phoneCall
-                call = XMLCall.to(url);
-                out = call.getOutput();
-                out.beginOutput("methodCall").property("methodName","ucp.v22.requests.call.placeCallWithPhone")
-                   .beginObject("params")
-                   .beginObject("param")
-                   .beginObject("value")
-                   .property("string", destination)
-                   .endObject()
-                   .endObject()
-                   .beginObject("param")
-                   .beginObject("value")
-                   .property("string", "")
-                   .endObject()
-                   .endObject()
-                   .beginObject("param")
-                   .beginObject("value")
-                   .property("string", "")
-                   .endObject()
-                   .endObject()
-                   .endObject()
-                   .endResult();
-
-                in = call.getInput();
-                if(test) {System.out.println(in.toString());}
-
-                // logout from Starface
-                call = XMLCall.to(url);
-                out = call.getOutput();
-                out.beginOutput("methodCall").property("methodName","ucp.v22.requests.connection.logout").endResult();
-                in = call.getInput();
-                if(test) {System.out.println(in.toString());}
-
-            } catch (Exception e) {
-                Exceptions.handle(e);
-            }
+//            if (employee.getPbxId() == null || Strings.isEmpty(employee.getPbxId())) {
+//                throw Exceptions.createHandled().withNLSKey("Starface.pbxIdMissing")
+//                                .set("employeeShortName", employee.getShortName()).handle();
+//            }
+//            if (Strings.isEmpty(employee.getPbxAccessToken())) {
+//                throw Exceptions.createHandled().withNLSKey("Starface.pbxAccessTokenMissing")
+//                                .set("employeeShortName", employee.getShortName()).handle();
+//
+//            }
+//            // normalize the phone-number 07151 / 741-08 --> +49715174108
+//            destination = SyncAsterisk.normalizePhonenumberForStarfaceAddressbook(destination, true);
+//
+//            try {
+//                // prepare the phonecall
+//                String urlString = MessageFormat.format(
+//                        "http://{0}/xml-rpc?de.vertico.starface.user={1}&de.vertico.starface.auth={2}",
+//                        STARFACE_IP, employee.getPbxId(), employee.getPbxAccessToken());
+//                URL url = new URL(urlString);
+//                // login into Starface
+//                XMLCall call = XMLCall.to(url);
+//                XMLStructuredOutput out = call.getOutput();
+//                out.beginOutput("methodCall").property("methodName","ucp.v22.requests.connection.login").endResult();
+//                XMLStructuredInput in = call.getInput();
+//                if(test) {
+//                    System.out.println(in.toString());
+//                }
+//
+//                // create the phoneCall
+//                call = XMLCall.to(url);
+//                out = call.getOutput();
+//                out.beginOutput("methodCall").property("methodName","ucp.v22.requests.call.placeCallWithPhone")
+//                   .beginObject("params")
+//                   .beginObject("param")
+//                   .beginObject("value")
+//                   .property("string", destination)
+//                   .endObject()
+//                   .endObject()
+//                   .beginObject("param")
+//                   .beginObject("value")
+//                   .property("string", "")
+//                   .endObject()
+//                   .endObject()
+//                   .beginObject("param")
+//                   .beginObject("value")
+//                   .property("string", "")
+//                   .endObject()
+//                   .endObject()
+//                   .endObject()
+//                   .endResult();
+//
+//                in = call.getInput();
+//                if(test) {System.out.println(in.toString());}
+//
+//                // logout from Starface
+//                call = XMLCall.to(url);
+//                out = call.getOutput();
+//                out.beginOutput("methodCall").property("methodName","ucp.v22.requests.connection.logout").endResult();
+//                in = call.getInput();
+//                if(test) {System.out.println(in.toString());}
+//
+//            } catch (Exception e) {
+//                Exceptions.handle(e);
+//            }
         }
 
     @Override

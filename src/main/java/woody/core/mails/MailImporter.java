@@ -70,53 +70,54 @@ public class MailImporter {
 //    }
 
     protected int fetchMails(LocalDate limit) throws NoSuchProviderException, MessagingException {
-        int numFetched = 0;
-
-
-        Properties props = System.getProperties();
-        props.setProperty("mail.store.protocol", "gimap");
-        props.setProperty("mail.gimap.socketFactory.class",
-                          "javax.net.ssl.SSLSocketFactory");
-        props.setProperty("mail.gimap.socketFactory.fallback", "false");
-        props.setProperty("mail.gimap.socketFactory.port", "993");
-        List<UserAccount> userList = oma.select(UserAccount.class).queryList() ;
-        for (UserAccount user : userList) {
-            Employee emp = user.as(Employee.class);
-            if(Strings.isEmpty(emp.getEmailPassword())) {continue;}
-            if(emp.isInaktiv()) {continue;}
-
-
-            try {
-                Session session = Session.getDefaultInstance(props, null);
-                Store store = session.getStore("gimap");
-                store.connect("imap.googlemail.com", user.getEmail(),
-                              emp.getEmailPassword());
-// ToDo Meldung ausgeben
-//                Syslog.log("MAIL-IMPORT",
-//                           "Importing Mails from: " + user.getEmail());
-                try {
-                    Folder inbox = store.getFolder("[Gmail]").getFolder(
-                            "Alle Nachrichten");
-                    inbox.open(Folder.READ_ONLY);
-                    Date limitDate = Date.from(limit.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    Message messages[] = inbox.search(new ReceivedDateTerm(
-                            DateTerm.GT, limitDate));
-                    for (Message message : messages) {
-                        if (importMessageInMail(message)) {
-                            numFetched++;
-                        }
-                    }
-                } finally {
-                    if (store.isConnected()) {
-                        store.close();
-                    }
-                }
-            } catch (Throwable t) {
-                Exceptions.handle(new Exception("Error importing mails from: "
-                                               + emp.getShortName() + ": " + t.getMessage(), t));
-            }
-        }
-          return numFetched;
+//        int numFetched = 0;
+//
+//
+//        Properties props = System.getProperties();
+//        props.setProperty("mail.store.protocol", "gimap");
+//        props.setProperty("mail.gimap.socketFactory.class",
+//                          "javax.net.ssl.SSLSocketFactory");
+//        props.setProperty("mail.gimap.socketFactory.fallback", "false");
+//        props.setProperty("mail.gimap.socketFactory.port", "993");
+//        List<UserAccount> userList = oma.select(UserAccount.class).queryList() ;
+//        for (UserAccount user : userList) {
+//            Employee emp = user.as(Employee.class);
+//            if(Strings.isEmpty(emp.getEmailPassword())) {continue;}
+//            if(emp.isInaktiv()) {continue;}
+//
+//
+//            try {
+//                Session session = Session.getDefaultInstance(props, null);
+//                Store store = session.getStore("gimap");
+//                store.connect("imap.googlemail.com", user.getEmail(),
+//                              emp.getEmailPassword());
+//// ToDo Meldung ausgeben
+////                Syslog.log("MAIL-IMPORT",
+////                           "Importing Mails from: " + user.getEmail());
+//                try {
+//                    Folder inbox = store.getFolder("[Gmail]").getFolder(
+//                            "Alle Nachrichten");
+//                    inbox.open(Folder.READ_ONLY);
+//                    Date limitDate = Date.from(limit.atStartOfDay(ZoneId.systemDefault()).toInstant());
+//                    Message messages[] = inbox.search(new ReceivedDateTerm(
+//                            DateTerm.GT, limitDate));
+//                    for (Message message : messages) {
+//                        if (importMessageInMail(message)) {
+//                            numFetched++;
+//                        }
+//                    }
+//                } finally {
+//                    if (store.isConnected()) {
+//                        store.close();
+//                    }
+//                }
+//            } catch (Throwable t) {
+//                Exceptions.handle(new Exception("Error importing mails from: "
+//                                               + emp.getShortName() + ": " + t.getMessage(), t));
+//            }
+//        }
+//          return numFetched;
+        return 0;
     }
 
 

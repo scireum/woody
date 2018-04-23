@@ -11,12 +11,10 @@ package woody.offers;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
 import sirius.db.mixing.constraints.Like;
 import sirius.kernel.commons.Context;
-import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
@@ -33,7 +31,6 @@ import sirius.web.templates.Templates;
 import woody.core.mails.Mail;
 import woody.core.mails.Mailtemplate;
 import woody.core.mails.SendMailService;
-import woody.core.tags.Tagged;
 import woody.sales.SalesControllerService;
 import woody.xrm.Company;
 import woody.xrm.Person;
@@ -55,7 +52,6 @@ import java.util.Optional;
 @Register(classes = Controller.class)
 public class OffersController extends BizController {
 
-
     public static final String MANAGE_OFFER = "permission-manage-offers";
     public static final String VIEW_OFFER = "permission-view-offers";
 
@@ -74,8 +70,6 @@ public class OffersController extends BizController {
     private static SendMailService sms;
 
     private FileInputStream fileInputStream;
-
-
 
     // Taste 'senden' in Angebotsliste oder Angebots-Details  wurde gedrückt
     @LoginRequired
@@ -108,7 +102,7 @@ public class OffersController extends BizController {
         UserAccount uac = userInfo.as(UserAccount.class);
         mail.getEmployeeEntity().setValue(uac);
         oma.update(mail);
-        List<String> templateList =  new ArrayList<String>();
+        List<String> templateList = new ArrayList<String>();
         switch (function) {
             case ServiceAccountingService.OFFER:
                 // Mail-Template 'Amgebot_senden' vorschlagen
@@ -116,9 +110,13 @@ public class OffersController extends BizController {
                 break;
             case ServiceAccountingService.SALES_CONFIRMATION:
                 List<Mailtemplate> templates = oma.select(Mailtemplate.class)
-                        .where(Like.on(Mailtemplate.NAME).ignoreCase().ignoreEmpty().contains("AB_"))
-                        .orderAsc(Mailtemplate.NAME).queryList();
-                for(Mailtemplate mt : templates) {
+                                                  .where(Like.on(Mailtemplate.NAME)
+                                                             .ignoreCase()
+                                                             .ignoreEmpty()
+                                                             .contains("AB_"))
+                                                  .orderAsc(Mailtemplate.NAME)
+                                                  .queryList();
+                for (Mailtemplate mt : templates) {
                     templateList.add(mt.getName());
                 }
                 String text = "Auftragsbestätigung für Position(en): {0} senden?";
@@ -171,37 +169,41 @@ public class OffersController extends BizController {
         Offer offer = find(Offer.class, offerId);
         setOrVerify(offer, offer.getCompany(), company);
 
-        List<OfferItem> oiList = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION)
-                .queryList();
+        List<OfferItem> oiList =
+                oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION).queryList();
         boolean error = false;
         OfferItem oi1 = null;
-        for(OfferItem oi : oiList) {
-           if(oi.isLicense() || oi.isService()) {
-               if(OfferItemState.UNUSED.equals(oi) || OfferItemState.COPY.equals(oi) || OfferItemState.CANCELED.equals(oi)) {
-                   continue;
-               }
-               oi1 = oi;
-               error = true;
-               break;
-           }
+        for (OfferItem oi : oiList) {
+            if (oi.isLicense() || oi.isService()) {
+                if (OfferItemState.UNUSED.equals(oi)
+                    || OfferItemState.COPY.equals(oi)
+                    || OfferItemState.CANCELED.equals(oi)) {
+                    continue;
+                }
+                oi1 = oi;
+                error = true;
+                break;
+            }
         }
-        if(error) {
+        if (error) {
             String text = MessageFormat.format("Die Position {0} hat den Status {1} --> Storno nicht möglich.",
-                                               oi1.getPosition(), oi1.getState().toString());
+                                               oi1.getPosition(),
+                                               oi1.getState().toString());
             UserContext.message(Message.info(text));
             ctx.respondWith().template("view/offers/offer-details.html", company, offer);
             return;
         }
-        for(OfferItem oi : oiList) {
-            if(OfferItemState.UNUSED.equals(oi) || OfferItemState.COPY.equals(oi) || OfferItemState.CANCELED.equals(oi)) {
+        for (OfferItem oi : oiList) {
+            if (OfferItemState.UNUSED.equals(oi)
+                || OfferItemState.COPY.equals(oi)
+                || OfferItemState.CANCELED.equals(oi)) {
                 continue;
             }
             oi.setState(OfferItemState.CANCELED);
             oma.update(oi);
         }
         offer.setState(OfferState.CLOSED);
-        String text = MessageFormat.format("Das Angebot Nr.: {0} wurde storniert.",
-                                           offer.getNumber());
+        String text = MessageFormat.format("Das Angebot Nr.: {0} wurde storniert.", offer.getNumber());
         UserContext.message(Message.info(text));
         companyOffers(ctx, companyId);
     }
@@ -216,24 +218,22 @@ public class OffersController extends BizController {
         setOrVerify(offer, offer.getCompany(), company);
         List<OfferItem> confirmationList = sas.getConfirmationOfferItems(offer);
         if (confirmationList.size() == 0) {
-            String message = MessageFormat.format(
-                    "Das Angebot {0} enthält keine zu bestätigenden Positionen.",
-                    offer.getNumber());
-            UserContext.message(Message.info(message));
-            MagicSearch search = MagicSearch.parseSuggestions(ctx);
-            SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
-
-            Tagged.applyTagSuggestions(Offer.class, search, query);
-            PageHelper<Offer> ph = PageHelper.withQuery(query);
-            ph.withContext(ctx);
-            ctx.respondWith()
-               .template("view/offers/company-offers.html", company, ph.asPage(), search.getSuggestionsString());
-            return;
+//            String message = MessageFormat.format(
+//                    "Das Angebot {0} enthält keine zu bestätigenden Positionen.",
+//                    offer.getNumber());
+//            UserContext.message(Message.info(message));
+//            MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//            SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
+//
+//            Tagged.applyTagSuggestions(Offer.class, search, query);
+//            PageHelper<Offer> ph = PageHelper.withQuery(query);
+//            ph.withContext(ctx);
+//            ctx.respondWith()
+//               .template("view/offers/company-offers.html", company, ph.asPage(), search.getSuggestionsString());
+//            return;
         }
 
-        askTemplate(ctx, companyId, offerId,
-                    ServiceAccountingService.SALES_CONFIRMATION);
-
+        askTemplate(ctx, companyId, offerId, ServiceAccountingService.SALES_CONFIRMATION);
     }
 
     @LoginRequired
@@ -241,15 +241,15 @@ public class OffersController extends BizController {
     @Routed("/company/:1/offers")
     // shows the offers of the given company
     public void companyOffers(WebContext ctx, String companyId) {
-        Company company = findForTenant(Company.class, companyId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
-
-        Tagged.applyTagSuggestions(Offer.class, search, query);
-        PageHelper<Offer> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/offers/company-offers.html", company, ph.asPage(), search.getSuggestionsString());
+//        Company company = findForTenant(Company.class, companyId);
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
+//
+//        Tagged.applyTagSuggestions(Offer.class, search, query);
+//        PageHelper<Offer> ph = PageHelper.withQuery(query);
+//        ph.withContext(ctx);
+//        ctx.respondWith()
+//           .template("view/offers/company-offers.html", company, ph.asPage(), search.getSuggestionsString());
     }
 
     @LoginRequired
@@ -270,12 +270,7 @@ public class OffersController extends BizController {
 
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix()
-                                            + "/company/"
-                                            + company.getId()
-                                            + "/offer/"
-                                            + offer.getId());
+                    ctx.respondWith().redirectTemporarily("/company/" + company.getId() + "/offer/" + offer.getId());
                     return;
                 }
             } catch (Throwable e) {
@@ -313,66 +308,69 @@ public class OffersController extends BizController {
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2/offerItems")
     // Displays the offerItems of the given offer
-    public void offerOfferItems(WebContext ctx,  String companyId, String offerId) {
-        Company company = findForTenant(Company.class, companyId);
-        assertNotNew(company);
-        Offer offer = findForTenant(Offer.class, offerId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<OfferItem> query = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
-
-        //Tagged.applyTagSuggestions(Offer.class, search, query);
-        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
+    public void offerOfferItems(WebContext ctx, String companyId, String offerId) {
+//        Company company = findForTenant(Company.class, companyId);
+//        assertNotNew(company);
+//        Offer offer = findForTenant(Offer.class, offerId);
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<OfferItem> query =
+//                oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
+//
+//        //Tagged.applyTagSuggestions(Offer.class, search, query);
+//        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
+//        ph.withContext(ctx);
+//        ctx.respondWith()
+//           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
     }
 
     @LoginRequired
     @Permission(MANAGE_OFFER)
     @Routed("/company/:1/offer/:2/offerItem/:3/nextState")
     // calculates the next state for the given offerItem
-    public void offerItemNextState(WebContext ctx,  String companyId, String offerId, String offerItemId) {
-        Company company = findForTenant(Company.class, companyId);
-        assertNotNew(company);
-        Offer offer = findForTenant(Offer.class, offerId);
-        OfferItem oi = findForTenant(OfferItem.class, offerItemId);
-        OfferItemState newState = sas.getNextState(oi);
-        if(newState != null) {
-            oi.setState(newState);
-            oma.update(oi);
-        }
-
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<OfferItem> query = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
-
-        //Tagged.applyTagSuggestions(Offer.class, search, query);
-        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
+    public void offerItemNextState(WebContext ctx, String companyId, String offerId, String offerItemId) {
+//        Company company = findForTenant(Company.class, companyId);
+//        assertNotNew(company);
+//        Offer offer = findForTenant(Offer.class, offerId);
+//        OfferItem oi = findForTenant(OfferItem.class, offerItemId);
+//        OfferItemState newState = sas.getNextState(oi);
+//        if (newState != null) {
+//            oi.setState(newState);
+//            oma.update(oi);
+//        }
+//
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<OfferItem> query =
+//                oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
+//
+//        //Tagged.applyTagSuggestions(Offer.class, search, query);
+//        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
+//        ph.withContext(ctx);
+//        ctx.respondWith()
+//           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
     }
 
     @LoginRequired
     @Permission(MANAGE_OFFER)
     @Routed("/company/:1/offer/:2/offerItem/:3/createContract")
     // calculates the next state for the given offerItem
-    public void offerItemCreateContracte(WebContext ctx,  String companyId, String offerId, String offerItemId) {
-        Company company = findForTenant(Company.class, companyId);
-        assertNotNew(company);
-        Offer offer = findForTenant(Offer.class, offerId);
-        OfferItem oi = findForTenant(OfferItem.class, offerItemId);
-        String message = sas.createContractFromOfferItem(oi);
-        oi.setState(OfferItemState.ACCEPTED);
-        oma.update(oi);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<OfferItem> query = oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
-
-        //Tagged.applyTagSuggestions(Offer.class, search, query);
-        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        UserContext.message(Message.info(message));
-        ctx.respondWith()
-           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
+    public void offerItemCreateContracte(WebContext ctx, String companyId, String offerId, String offerItemId) {
+//        Company company = findForTenant(Company.class, companyId);
+//        assertNotNew(company);
+//        Offer offer = findForTenant(Offer.class, offerId);
+//        OfferItem oi = findForTenant(OfferItem.class, offerItemId);
+//        String message = sas.createContractFromOfferItem(oi);
+//        oi.setState(OfferItemState.ACCEPTED);
+//        oma.update(oi);
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<OfferItem> query =
+//                oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
+//
+//        //Tagged.applyTagSuggestions(Offer.class, search, query);
+//        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
+//        ph.withContext(ctx);
+//        UserContext.message(Message.info(message));
+//        ctx.respondWith()
+//           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
     }
 
     @LoginRequired
@@ -392,34 +390,34 @@ public class OffersController extends BizController {
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2/offerItem/:3")
     // Displays and save te given offerItem
-    public void offerItem(WebContext ctx,  String companyId, String offerId, String offerItemId) {
-        Company company = findForTenant(Company.class, companyId);
-        assertNotNew(company);
-        Offer offer = findForTenant(Offer.class, offerId);
-        OfferItem oi = findForTenant(OfferItem.class, offerItemId);
-        setOrVerify(oi, oi.getOffer(), offer);
-        if (ctx.isPOST() && getUser().hasPermission(MANAGE_OFFER)) {
-            try {
-                boolean wasNew = oi.isNew();
-                load(ctx, oi);
-                oma.update(oi);
-                showSavedMessage();
-                if (wasNew) {
-                    ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix()
-                                            + "/company/"
-                                            + company.getId()
-                                            + "/offer/"
-                                            + offer.getId()
-                                            + "/offerItem/"
-                                            + oi.getId());
-                    return;
-                }
-            } catch (Throwable e) {
-                UserContext.handle(e);
-            }
-        }
-        ctx.respondWith().template("view/offers/offerItem-details.html", company, offer, oi);
+    public void offerItem(WebContext ctx, String companyId, String offerId, String offerItemId) {
+//        Company company = findForTenant(Company.class, companyId);
+//        assertNotNew(company);
+//        Offer offer = findForTenant(Offer.class, offerId);
+//        OfferItem oi = findForTenant(OfferItem.class, offerItemId);
+//        setOrVerify(oi, oi.getOffer(), offer);
+//        if (ctx.isPOST() && getUser().hasPermission(MANAGE_OFFER)) {
+//            try {
+//                boolean wasNew = oi.isNew();
+//                load(ctx, oi);
+//                oma.update(oi);
+//                showSavedMessage();
+//                if (wasNew) {
+//                    ctx.respondWith()
+//                       .redirectTemporarily(WebContext.getContextPrefix()
+//                                            + "/company/"
+//                                            + company.getId()
+//                                            + "/offer/"
+//                                            + offer.getId()
+//                                            + "/offerItem/"
+//                                            + oi.getId());
+//                    return;
+//                }
+//            } catch (Throwable e) {
+//                UserContext.handle(e);
+//            }
+//        }
+//        ctx.respondWith().template("view/offers/offerItem-details.html", company, offer, oi);
     }
 
     @LoginRequired
@@ -434,5 +432,4 @@ public class OffersController extends BizController {
         }
         offerOfferItems(ctx, companyId, offerId);
     }
-
 }

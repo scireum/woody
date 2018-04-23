@@ -1,0 +1,24 @@
+<i:arg type="woody.core.colors.TypeColorAssignment" name="assignment"/>
+
+<w:page titleKey="Model.typeColorAssignment">
+    <i:block name="breadcrumbs">
+        <li><a href="/colors/assignments">@i18n("TypeColorAssignment.plural")</a></li>
+        <li><a href="/colors/assignment/@assignment.getType()">@i18n("Model.typeColorAssignment")</a></li>
+    </i:block>
+
+    <w:pageHeader title="@apply('%s: %s', i18n('Model.typeColorAssignment'), colors.getLabel(assignment.getType()))"/>
+
+    <w:editForm url="@apply('/colors/assignment/%s', assignment.getType())">
+        <div class="row">
+            <w:singleSelect name="color" labelKey="Model.color">
+                <i:for type="woody.core.colors.ColorDefinition" var="color" items="colors.getColorDefinitions()">
+                    <option value="@color.getIdAsString()" @if (assignment.getColor().is(color)) { selected="selected" }>
+                        &lt;span style="background-color: @color.getHexCode()" class="color-box"&gt;&amp;nbsp;&lt;/span&gt; @color.getName()
+                    </option>
+                </i:for>
+            </w:singleSelect>
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/colors/assignments"/>
+</w:page>

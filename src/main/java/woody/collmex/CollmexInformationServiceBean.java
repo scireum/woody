@@ -159,27 +159,28 @@ public class CollmexInformationServiceBean implements CollmexInformationService 
 	@Override
 	public List<String> checkCollmexAgainstCRM(Company companyCRM,
 			HashMap<String, String> collmexMap) {
-		List<String> messages = new ArrayList<String>();
-
-		checkItem(messages, collmexMap, "Kundennummer",
-				companyCRM.getCustomerNr());
-		checkItem(messages, collmexMap, "Firma", companyCRM.getName());
-		checkItem(messages, collmexMap, "Abteilung", companyCRM.getName2());
-		checkItem(messages, collmexMap, "Straße", companyCRM.getAddress().getStreet());
-		checkItem(messages, collmexMap, "PLZ", companyCRM.getAddress().getZip());
-		checkItem(messages, collmexMap, "Ort", companyCRM.getAddress().getCity());
-        String invoiceMedium = companyCRM.getCompanyAccountingData().getInvoiceMedium();
-        String crmValue = "";
-        if(Strings.isEmpty(invoiceMedium))  {
-            crmValue =  "PRINT";
-        }  else {
-            crmValue =  invoiceMedium;
-        }
-        checkItem(messages, collmexMap, "Ausgabemedium", adaptToCollmex(crmValue));
-		if(invoiceMedium.equals("MAIL")) {
-			checkItem(messages, collmexMap, "E-Mail", companyCRM.getCompanyAccountingData().getInvoiceMailAdr());
-		}
-		return messages;
+//		List<String> messages = new ArrayList<String>();
+//
+//		checkItem(messages, collmexMap, "Kundennummer",
+//				companyCRM.getCustomerNr());
+//		checkItem(messages, collmexMap, "Firma", companyCRM.getName());
+//		checkItem(messages, collmexMap, "Abteilung", companyCRM.getName2());
+//		checkItem(messages, collmexMap, "Straße", companyCRM.getAddress().getStreet());
+//		checkItem(messages, collmexMap, "PLZ", companyCRM.getAddress().getZip());
+//		checkItem(messages, collmexMap, "Ort", companyCRM.getAddress().getCity());
+//        String invoiceMedium = companyCRM.getCompanyAccountingData().getInvoiceMedium();
+//        String crmValue = "";
+//        if(Strings.isEmpty(invoiceMedium))  {
+//            crmValue =  "PRINT";
+//        }  else {
+//            crmValue =  invoiceMedium;
+//        }
+//        checkItem(messages, collmexMap, "Ausgabemedium", adaptToCollmex(crmValue));
+//		if(invoiceMedium.equals("MAIL")) {
+//			checkItem(messages, collmexMap, "E-Mail", companyCRM.getCompanyAccountingData().getInvoiceMailAdr());
+//		}
+//		return messages;
+        return null;
 	}
 
     private String adaptToCollmex(String name) {
@@ -217,54 +218,55 @@ public class CollmexInformationServiceBean implements CollmexInformationService 
 	@Override
 	public Company updateCompanyWithCollmex(Company companyCRM,
 			HashMap<String, String> colmexMap, boolean save, boolean newCompany) {
-         if(newCompany) {
-             String companyNr = colmexMap.get("Kundennummer");
-             if(Strings.isEmpty(companyNr)) {
-//                 throw new BusinessException("Die Company-Nr. fehlt in den Collmex-Daten");
-				 throw Exceptions.createHandled().handle() ;
-            }
-             List<Company> companyList = oma.select(Company.class).eq(Company.CUSTOMERNR, companyNr).queryList();
-             if (companyList.size() > 0) {
-                 Company companyTest =companyList.get(0);
-//                 throw new BusinessException("Die Kundennummer " + companyNr + " ist im CRM bereits für "+ companyTest.toString()+" vergeben. Die Funktion 'Neu aus Collmex' ist damit nicht nutzbar");
-				 throw Exceptions.createHandled().handle() ;
-             }
-             companyCRM.setCustomerNr(companyNr);
-         }
-		companyCRM.setName(colmexMap.get("Firma"));
-		companyCRM.setName2(colmexMap.get("Abteilung"));
-		companyCRM.getAddress().setStreet(colmexMap.get("Straße"));
-		companyCRM.getAddress().setZip(colmexMap.get("PLZ"));
-		companyCRM.getAddress().setCity(colmexMap.get("Ort"));
-        String colmexValue = colmexMap.get("Ausgabemedium") ;
-        if(Strings.isFilled(colmexValue)   ) {
-            List<CodeListEntry>   codeList =   cls.getEntries("invoicemedium")   ;
-            for(CodeListEntry cle: codeList)  {
-				String medium = cle.getCode();
-//               String s = types[i].name() ;
-//               String adaptName = adaptToCollmex(s)  ;
-               if(colmexValue.equals(medium)) {
-                   companyCRM.getCompanyAccountingData().setInvoiceMedium(medium);
-                   break;
-               }
-            }
-            if("MAIL".equals(companyCRM.getCompanyAccountingData().getInvoiceMedium()))   {
-                String mailAdr = colmexMap.get("E-Mail") ;
-                if(Strings.isFilled(mailAdr))  {
-                    if(Strings.isEmpty(companyCRM.getCompanyAccountingData().getInvoiceMailAdr())) {
-                        companyCRM.getCompanyAccountingData().setInvoiceMailAdr(mailAdr);
-                    }
-                }  else {
- //                   throw new BusinessException("Bei Colmex ist der Rechnungsversand via Mail vorgegeben, aber es fehlt die Mail-Adresse.");
-					throw Exceptions.createHandled().handle() ;
-                }
-            }
-
-        }
-		if (save) {
-			oma.update(companyCRM);
-		}
-		return companyCRM;
+//         if(newCompany) {
+//             String companyNr = colmexMap.get("Kundennummer");
+//             if(Strings.isEmpty(companyNr)) {
+////                 throw new BusinessException("Die Company-Nr. fehlt in den Collmex-Daten");
+//				 throw Exceptions.createHandled().handle() ;
+//            }
+//             List<Company> companyList = oma.select(Company.class).eq(Company.CUSTOMERNR, companyNr).queryList();
+//             if (companyList.size() > 0) {
+//                 Company companyTest =companyList.get(0);
+////                 throw new BusinessException("Die Kundennummer " + companyNr + " ist im CRM bereits für "+ companyTest.toString()+" vergeben. Die Funktion 'Neu aus Collmex' ist damit nicht nutzbar");
+//				 throw Exceptions.createHandled().handle() ;
+//             }
+//             companyCRM.setCustomerNr(companyNr);
+//         }
+//		companyCRM.setName(colmexMap.get("Firma"));
+//		companyCRM.setName2(colmexMap.get("Abteilung"));
+//		companyCRM.getAddress().setStreet(colmexMap.get("Straße"));
+//		companyCRM.getAddress().setZip(colmexMap.get("PLZ"));
+//		companyCRM.getAddress().setCity(colmexMap.get("Ort"));
+//        String colmexValue = colmexMap.get("Ausgabemedium") ;
+//        if(Strings.isFilled(colmexValue)   ) {
+//            List<CodeListEntry>   codeList =   cls.getEntries("invoicemedium")   ;
+//            for(CodeListEntry cle: codeList)  {
+//				String medium = cle.getCode();
+////               String s = types[i].name() ;
+////               String adaptName = adaptToCollmex(s)  ;
+//               if(colmexValue.equals(medium)) {
+//                   companyCRM.getCompanyAccountingData().setInvoiceMedium(medium);
+//                   break;
+//               }
+//            }
+//            if("MAIL".equals(companyCRM.getCompanyAccountingData().getInvoiceMedium()))   {
+//                String mailAdr = colmexMap.get("E-Mail") ;
+//                if(Strings.isFilled(mailAdr))  {
+//                    if(Strings.isEmpty(companyCRM.getCompanyAccountingData().getInvoiceMailAdr())) {
+//                        companyCRM.getCompanyAccountingData().setInvoiceMailAdr(mailAdr);
+//                    }
+//                }  else {
+// //                   throw new BusinessException("Bei Colmex ist der Rechnungsversand via Mail vorgegeben, aber es fehlt die Mail-Adresse.");
+//					throw Exceptions.createHandled().handle() ;
+//                }
+//            }
+//
+//        }
+//		if (save) {
+//			oma.update(companyCRM);
+//		}
+//		return companyCRM;
+		return null;
 	}
 
 
@@ -294,18 +296,18 @@ public class CollmexInformationServiceBean implements CollmexInformationService 
 //					+ " ist nicht erfolgt, da keine Collmex-Berechtigung.";
 //		}
 		// is the collmex-string empty?
-		if (Strings.isFilled(employee.getCollmex())) {
-			return message
-					+ " ist nicht erfolgt, da Collmexstring bereits vorhanden.";
-		}
-		// generate the collmex access code
-		String code = prepareCollmexCode(employee.getShortName());
-		if (Strings.isEmpty(code)) {
-			return message + " keine Kundennummer angegeben, Abfrage folgt ";
-		}
-		employee.setCollmex(code);
-
-		oma.update(uac);
+//		if (Strings.isFilled(employee.getCollmex())) {
+//			return message
+//					+ " ist nicht erfolgt, da Collmexstring bereits vorhanden.";
+//		}
+//		// generate the collmex access code
+//		String code = prepareCollmexCode(employee.getShortName());
+//		if (Strings.isEmpty(code)) {
+//			return message + " keine Kundennummer angegeben, Abfrage folgt ";
+//		}
+//		employee.setCollmex(code);
+//
+//		oma.update(uac);
 
 		return message + " war erfolgreich.";
 
@@ -377,85 +379,87 @@ public class CollmexInformationServiceBean implements CollmexInformationService 
 
 	@Override
 	public List<String> getCollmexAccessData(UserAccount uac) {
-			if(uac == null) {
-				UserInfo ui = UserContext.getCurrentUser();
-				uac = ui.as(UserAccount.class);
-			}
-			Employee e = uac.as(Employee.class);
-			String code = e.getCollmex();
-			if (Strings.isEmpty(code)) {
-			   throw Exceptions.createHandled().withNLSKey("CollmexInformationServiceBean.noCollmexAccessData")
-					   .set("employee", e.getShortName()).handle();
-			}
-			// do not touch these statements, see also method collmexPrepare
-			String name = e.getShortName();
-			String key = buildKey(name);
-			String text = ss.decodeByKey(key, code);
-			List<String> list = new ArrayList<String>();
-			list.add(getBlock(1, text));
-			list.add(getBlock(2, text));
-			list.add(getBlock(3, text));
-		return list;
+//			if(uac == null) {
+//				UserInfo ui = UserContext.getCurrentUser();
+//				uac = ui.as(UserAccount.class);
+//			}
+//			Employee e = uac.as(Employee.class);
+//			String code = e.getCollmex();
+//			if (Strings.isEmpty(code)) {
+//			   throw Exceptions.createHandled().withNLSKey("CollmexInformationServiceBean.noCollmexAccessData")
+//					   .set("employee", e.getShortName()).handle();
+//			}
+//			// do not touch these statements, see also method collmexPrepare
+//			String name = e.getShortName();
+//			String key = buildKey(name);
+//			String text = ss.decodeByKey(key, code);
+//			List<String> list = new ArrayList<String>();
+//			list.add(getBlock(1, text));
+//			list.add(getBlock(2, text));
+//			list.add(getBlock(3, text));
+//		return list;
+        return null;
 	}
 
 	@Override
 	public String generateCollmexCmxKnd(Company company) {
-		// generate a csv-line for the export in Collmex-Notation
-		final int csvLae = 52; // field #1 - #52
-		String[] csv = new String[csvLae + 1]; // csv[0] - csv[82],
-		csv[1]="CMXKND";
-		csv[2]=company.getCustomerNr(); //Kundennummer
-		csv[3]="1";   // Firma-Nr Gerhard Haufler
-		csv[8]=company.getName();    // Firma
-		csv[14]="0"; // Inaktiv 0 = aktiv, 1 = inaktiv
-		if(company.getCompanyAccountingData().getInvoiceAddress().getCity() != null) {
-			csv[10]=company.getCompanyAccountingData().getInvoiceAddress().getStreet();  // Strasse
-			csv[11]=company.getCompanyAccountingData().getInvoiceAddress().getZip();     // PLZ
-			csv[12]=company.getCompanyAccountingData().getInvoiceAddress().getCity();    // Stadt
-			csv[15]=company.getCompanyAccountingData().getInvoiceAddress().getCountry().toUpperCase(); // Land, ISO-Codes Gross
-		} else {
-			csv[10] = company.getAddress().getStreet();  // Strasse
-			csv[11] = company.getAddress().getZip();     // PLZ
-			csv[12] = company.getAddress().getCity();    // Stadt
-			csv[15] = company.getAddress().getCountry().toUpperCase(); // Land, ISO-Codes Gross
-		}
-		String mainPhone = company.getMainPhoneNr();
-		if(mainPhone != null) {
-			csv[16] = mainPhone; // 16 Telefon
-		}
-		// 17 Telefax
-		String mailAdr = company.getCompanyAccountingData().getInvoiceMailAdr();
-		if(mailAdr != null) {
-			csv[18] = mailAdr; // 18 E-Mail
-		}
-		//csv[26]="0";  // Zahlungsbedingungen, 0 = 30 Tage ohne Abzug
-		//csv[27]="0";  // Rabattgrupope, 0 = kein Rabatt
-		String invoiceMedium = company.getCompanyAccountingData().getInvoiceMedium();
-		if("PRINT".equals(invoiceMedium)) {
-			csv[30] = "0"; // PRINT
-		}
-		if("MAIL".equals(invoiceMedium)) {
-			csv[30] = "1"; // MAIL
-		}
-
-//		csv[34] = "0";  // Preisgruppe
-//		csv[35] = "EUR"; // Währung
-//		csv[36] = "0";  // Vermittler
-//		csv[39] = "0";  // Liefersperre
-//		csv[40] = "0";
-
-		String outputLanguage = company.getCompanyAccountingData().getOutputLanguage();
-		csv[42] = outputLanguage;
-
-		StringBuilder sb = new StringBuilder();
-		for (int i = 1; i <= csvLae; i++) {
-			if(csv[i] != null) {
-				sb.append(csv[i]);
-			}
-			sb.append(";");
-
-		}
-		return sb.toString();
+//		// generate a csv-line for the export in Collmex-Notation
+//		final int csvLae = 52; // field #1 - #52
+//		String[] csv = new String[csvLae + 1]; // csv[0] - csv[82],
+//		csv[1]="CMXKND";
+//		csv[2]=company.getCustomerNr(); //Kundennummer
+//		csv[3]="1";   // Firma-Nr Gerhard Haufler
+//		csv[8]=company.getName();    // Firma
+//		csv[14]="0"; // Inaktiv 0 = aktiv, 1 = inaktiv
+//		if(company.getCompanyAccountingData().getInvoiceAddress().getCity() != null) {
+//			csv[10]=company.getCompanyAccountingData().getInvoiceAddress().getStreet();  // Strasse
+//			csv[11]=company.getCompanyAccountingData().getInvoiceAddress().getZip();     // PLZ
+//			csv[12]=company.getCompanyAccountingData().getInvoiceAddress().getCity();    // Stadt
+//			csv[15]=company.getCompanyAccountingData().getInvoiceAddress().getCountry().toUpperCase(); // Land, ISO-Codes Gross
+//		} else {
+//			csv[10] = company.getAddress().getStreet();  // Strasse
+//			csv[11] = company.getAddress().getZip();     // PLZ
+//			csv[12] = company.getAddress().getCity();    // Stadt
+//			csv[15] = company.getAddress().getCountry().toUpperCase(); // Land, ISO-Codes Gross
+//		}
+//		String mainPhone = company.getMainPhoneNr();
+//		if(mainPhone != null) {
+//			csv[16] = mainPhone; // 16 Telefon
+//		}
+//		// 17 Telefax
+//		String mailAdr = company.getCompanyAccountingData().getInvoiceMailAdr();
+//		if(mailAdr != null) {
+//			csv[18] = mailAdr; // 18 E-Mail
+//		}
+//		//csv[26]="0";  // Zahlungsbedingungen, 0 = 30 Tage ohne Abzug
+//		//csv[27]="0";  // Rabattgrupope, 0 = kein Rabatt
+//		String invoiceMedium = company.getCompanyAccountingData().getInvoiceMedium();
+//		if("PRINT".equals(invoiceMedium)) {
+//			csv[30] = "0"; // PRINT
+//		}
+//		if("MAIL".equals(invoiceMedium)) {
+//			csv[30] = "1"; // MAIL
+//		}
+//
+////		csv[34] = "0";  // Preisgruppe
+////		csv[35] = "EUR"; // Währung
+////		csv[36] = "0";  // Vermittler
+////		csv[39] = "0";  // Liefersperre
+////		csv[40] = "0";
+//
+//		String outputLanguage = company.getCompanyAccountingData().getOutputLanguage();
+//		csv[42] = outputLanguage;
+//
+//		StringBuilder sb = new StringBuilder();
+//		for (int i = 1; i <= csvLae; i++) {
+//			if(csv[i] != null) {
+//				sb.append(csv[i]);
+//			}
+//			sb.append(";");
+//
+//		}
+//		return sb.toString();
+        return null;
 	}
 
 	@Override

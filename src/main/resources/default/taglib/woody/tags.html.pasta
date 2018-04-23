@@ -1,0 +1,5 @@
+<i:arg type="woody.core.tags.Tagged" name="tagged"/>
+
+<i:for type="woody.core.tags.Tag" var="tag" items="tagged.getTags()">
+    <span class="list-tag" style="background-color: @tag.getEffectiveColor()">@tag.getName()</span>
+</i:for>

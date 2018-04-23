@@ -124,12 +124,12 @@ public class SendOfferView /* extends BasicView*/ {
                             .set("value", person.getPerson().getAddressableName())
                             .handle();
         }
-        if(person.isOffline()) {
-            throw Exceptions.createHandled()
-                            .withNLSKey("checkMailReceiver.personOffline")
-                            .set("value", person.getPerson().getAddressableName())
-                            .handle();
-        }
+//        if(person.isOffline()) {
+//            throw Exceptions.createHandled()
+//                            .withNLSKey("checkMailReceiver.personOffline")
+//                            .set("value", person.getPerson().getAddressableName())
+//                            .handle();
+//        }
     }
 // ToDO neue Mailschnittstelle machen
 //    void mailTest() {
@@ -319,47 +319,47 @@ public class SendOfferView /* extends BasicView*/ {
     }
 
     private void invokeTemplate(Context ctx) {
-        try {
-            Offer offer = (Offer) ctx.get("offer");
-            Person person = (Person) ctx.get("person");
-            StringBuilder sb = new StringBuilder();
-            sb.append(person.getLetterSalutation());
-            sb.append("\n\n");
-
-            switch(function) {
-                case ServiceAccountingService .OFFER:
-//                    subjectBox.setValue("Angebot " + offer.getNumber() + " vom " + NLS.toUserString(offer.getDate()) + ", " + offer.getKeyword());
-                    sb.append("anbei erhalten Sie das gewünschte Angebot.") ;
-                    break;
-                case ServiceAccountingService.SALES_CONFIRMATION:
-//                    subjectBox.setValue("Auftragsbestätigung "+offer.getNumber()+ " Positionen: "+ ctx.get("positions")
-//                            +", "+offer.getKeyword());
-                    sb.append("anbei erhalten Sie die Auftragsbestätigung zu Ihrer Bestellung.") ;
-                    break;
-            }
-
-            sb.append("\n\n");
-
-            if(Strings.isFilled(offer.getBuyer())) {
-                sb.append(offer.getBuyer().getValue().getPerson().getAddressableName() + " erhält diese Mail ebenfalls zur Information.") ;
-                sb.append("\n\n");
-            }
-
-            sb.append("Für Erläuterungen und Rückfragen stehen wir gerne zur Verfügung.") ;
-            sb.append("\n\n");
-            UserInfo userInfo = UserContext.getCurrentUser();
-            Employee employee = userInfo.as(Employee.class);
-
-            sb.append(employee.getSignature()) ;        // neue Lösung gemäß CRM-48
-            sb.append("\n\n\n");
-            sb.append("Anlage: Datei: "+ctx.get("filenamePDF")) ;
-// ToDo textArea und attachmentArea
-//           textArea.setValue(sb.toString());
-//           attachmentArea.setValue(attachmentName);
-
-        } catch (Exception e) {
-            Exceptions.handle(e);
-        }
+//        try {
+//            Offer offer = (Offer) ctx.get("offer");
+//            Person person = (Person) ctx.get("person");
+//            StringBuilder sb = new StringBuilder();
+//            sb.append(person.getLetterSalutation());
+//            sb.append("\n\n");
+//
+//            switch(function) {
+//                case ServiceAccountingService .OFFER:
+////                    subjectBox.setValue("Angebot " + offer.getNumber() + " vom " + NLS.toUserString(offer.getDate()) + ", " + offer.getKeyword());
+//                    sb.append("anbei erhalten Sie das gewünschte Angebot.") ;
+//                    break;
+//                case ServiceAccountingService.SALES_CONFIRMATION:
+////                    subjectBox.setValue("Auftragsbestätigung "+offer.getNumber()+ " Positionen: "+ ctx.get("positions")
+////                            +", "+offer.getKeyword());
+//                    sb.append("anbei erhalten Sie die Auftragsbestätigung zu Ihrer Bestellung.") ;
+//                    break;
+//            }
+//
+//            sb.append("\n\n");
+//
+//            if(Strings.isFilled(offer.getBuyer())) {
+//                sb.append(offer.getBuyer().getValue().getPerson().getAddressableName() + " erhält diese Mail ebenfalls zur Information.") ;
+//                sb.append("\n\n");
+//            }
+//
+//            sb.append("Für Erläuterungen und Rückfragen stehen wir gerne zur Verfügung.") ;
+//            sb.append("\n\n");
+//            UserInfo userInfo = UserContext.getCurrentUser();
+//            Employee employee = userInfo.as(Employee.class);
+//
+//            sb.append(employee.getSignature()) ;        // neue Lösung gemäß CRM-48
+//            sb.append("\n\n\n");
+//            sb.append("Anlage: Datei: "+ctx.get("filenamePDF")) ;
+//// ToDo textArea und attachmentArea
+////           textArea.setValue(sb.toString());
+////           attachmentArea.setValue(attachmentName);
+//
+//        } catch (Exception e) {
+//            Exceptions.handle(e);
+//        }
     }
 }
 

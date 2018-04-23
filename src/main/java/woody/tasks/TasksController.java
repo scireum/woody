@@ -8,11 +8,8 @@
 
 package woody.tasks;
 
-import sirius.biz.model.PersonData;
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
 import sirius.web.controller.DefaultRoute;
@@ -21,10 +18,6 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
-import sirius.web.services.JSONStructuredOutput;
-import woody.core.tags.Tagged;
-import woody.xrm.Company;
-import woody.xrm.Person;
 
 import java.util.Optional;
 
@@ -41,25 +34,25 @@ public class TasksController extends BizController {
     @Permission(MANAGE_TASKS)
     @Routed("/tasks")
     public void tasks(WebContext ctx) {
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Task> query = oma.select(Task.class).orderAsc(Task.ID);
-        search.applyQueries(query,
-                            Task.DESCRIPTION,
-                            Task.PERSON.join(Person.PERSON).inner(PersonData.LASTNAME),
-                            Task.COMPANY.join(Company.NAME),
-                            Task.PROJECT.join(Project.DESCRIPTION));
-        Tagged.applyTagSuggestions(Task.class, search, query);
-        PageHelper<Task> ph = PageHelper.withQuery(query).forCurrentTenant();
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<Task> query = oma.select(Task.class).orderAsc(Task.ID);
+//        search.applyQueries(query,
+//                            Task.DESCRIPTION,
+//                            Task.PERSON.join(Person.PERSON).inner(PersonData.LASTNAME),
+//                            Task.COMPANY.join(Company.NAME),
+//                            Task.PROJECT.join(Project.DESCRIPTION));
+//        Tagged.applyTagSuggestions(Task.class, search, query);
+        PageHelper<Task> ph = PageHelper.withQuery(oma.select(Task.class).orderAsc(Task.ID)).forCurrentTenant();
         ph.withContext(ctx);
-        ctx.respondWith().template("view/tasks/tasks.html", ph.asPage(), search.getSuggestionsString());
+        ctx.respondWith().template("view/tasks/tasks.html", ph.asPage());
     }
 
-    @LoginRequired
-    @Permission(MANAGE_TASKS)
-    @Routed(value = "/tasks/suggest", jsonCall = true)
-    public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
-        MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Task.class, q, c));
-    }
+//    @LoginRequired
+//    @Permission(MANAGE_TASKS)
+//    @Routed(value = "/tasks/suggest", jsonCall = true)
+//    public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
+//        MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Task.class, q, c));
+//    }
 
     @LoginRequired
     @Permission(MANAGE_TASKS)
@@ -89,7 +82,7 @@ public class TasksController extends BizController {
                 tasks.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith().redirectTemporarily(WebContext.getContextPrefix() + "/task/" + tasks.getId());
+                    ctx.respondWith().redirectTemporarily( "/task/" + tasks.getId());
                     return;
                 }
             } catch (Throwable e) {
@@ -98,5 +91,4 @@ public class TasksController extends BizController {
         }
         ctx.respondWith().template("view/tasks/task.html", tasks);
     }
-
 }

@@ -14,6 +14,7 @@ import sirius.biz.model.ContactData;
 import sirius.biz.model.InternationalAddressData;
 import sirius.biz.model.LoginData;
 import sirius.biz.model.PersonData;
+import sirius.biz.sequences.Sequences;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
@@ -22,24 +23,31 @@ import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
 import sirius.kernel.commons.Strings;
-import sirius.kernel.nls.Formatter;
+import sirius.kernel.di.std.Part;
+import sirius.kernel.health.Exceptions;
 import woody.core.comments.Commented;
-import woody.core.mails.Mailed;
+import woody.core.comments.HasComments;
+import woody.core.relations.HasRelations;
+import woody.core.relations.Relateable;
+import woody.core.relations.Relations;
 import woody.core.tags.Tagged;
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Created by aha on 06.10.15.
  */
-public class Person extends BizEntity {
+public class Person extends BizEntity implements HasComments, HasRelations {
 
     private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
     public static final Column COMPANY = Column.named("company");
 
     private final PersonData person = new PersonData();
     public static final Column PERSON = Column.named("person");
+
+    public static final Column UNIQUE_PATH = Column.named("uniquePath");
+    @Length(150)
+    private String uniquePath;
 
     @Autoloaded
     @NullAllowed
@@ -67,14 +75,40 @@ public class Person extends BizEntity {
     private final Commented comments = new Commented(this);
     public static final Column COMMENTS = Column.named("comments");
 
-    private boolean offline = false;
-    public static final Column OFFLINE = Column.named("offline");
+    private final Relations relations = new Relations(this);
+    public static final Column RELATIONS = Column.named("relations");
 
-    private final Mailed mailed = new Mailed(this);
-    public static final Column MAILED = Column.named("mailed");
+    private final Relateable relateable = new Relateable(this);
+    public static final Column RELATEABLE = Column.named("relateable");
+
+    public static final Column QUIT = Column.named("quit");
+    private boolean quit = false;
+
+    @Part
+    private static Sequences sequences;
+
+    protected void computeUniquePath() {
+        setUniquePath(encode(getCompany().getId()) + encode(sequences.generateId("persons-counter-"
+                                                                                 + getCompany().getValue()
+                                                                                               .getTenant()
+                                                                                               .getValue()
+                                                                                               .getIdAsString())));
+    }
+
+    private String encode(long id) {
+        String code = com.google.common.base.Strings.padStart(Long.toString(id, 36), 6, '0');
+        if (code.length() != 6) {
+            throw Exceptions.createHandled().withNLSKey("Person.cannotGenerateCode").handle();
+        }
+
+        return code;
+    }
 
     @BeforeSave
-    protected void verify() {
+    protected void onSave() {
+        if (Strings.isEmpty(uniquePath) && company.isFilled()) {
+            computeUniquePath();
+        }
         if (Strings.isEmpty(getLogin().getUsername())) {
             getLogin().setUsername(getContact().getEmail());
         }
@@ -87,20 +121,6 @@ public class Person extends BizEntity {
         } else {
             return super.toString();
         }
-    }
-
-
-    public String getLetterSalutation() {
-        String text = "Sehr geehrte";
-        if ("SIR".equals(this.getPerson().getSalutation())) {
-            text = text.concat("r");
-        }
-        return Formatter.create("[${text} ][${salutation} ][${title} ]${lastname},")
-                        .set("text", text)
-                        .set("salutation", this.getPerson().getTranslatedSalutation())
-                        .set("title", this.getPerson().getTitle())
-                        .set("lastname", this.getPerson().getLastname())
-                        .smartFormat();
     }
 
     public EntityRef<Company> getCompany() {
@@ -135,12 +155,13 @@ public class Person extends BizEntity {
         return tags;
     }
 
+    @Override
     public Commented getComments() {
         return comments;
     }
 
-    public boolean isOffline() {
-        return offline;
+    public Relateable getRelateable() {
+        return relateable;
     }
 
     public LocalDate getBirthday() {
@@ -151,7 +172,24 @@ public class Person extends BizEntity {
         this.birthday = birthday;
     }
 
-    public Mailed getMailed() {
-        return mailed;
+    @Override
+    public Relations getRelations() {
+        return relations;
+    }
+
+    public String getUniquePath() {
+        return uniquePath;
+    }
+
+    public void setUniquePath(String uniquePath) {
+        this.uniquePath = uniquePath;
+    }
+
+    public boolean isQuit() {
+        return quit;
+    }
+
+    public void setQuit(boolean quit) {
+        this.quit = quit;
     }
 }

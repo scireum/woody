@@ -875,11 +875,11 @@ public class PhoneCallImporterBean implements EveryMinute, Command {
 //						.eq(firstname, Employee.FIRSTNAME)
 //						.eq(lastname, Employee.LASTNAME)
 //						.eq(inaktiv, Employee.INAKTIV).first();
-                uac = oma.select(UserAccount.class)
-                         .eq(UserAccount.PERSON.inner(PersonData.FIRSTNAME), firstname)
-                         .eq(UserAccount.PERSON.inner(PersonData.LASTNAME), lastname)
-                         .eq(Employee.INAKTIV, inaktiv)
-                         .queryFirst();
+//                uac = oma.select(UserAccount.class)
+//                         .eq(UserAccount.PERSON.inner(PersonData.FIRSTNAME), firstname)
+//                         .eq(UserAccount.PERSON.inner(PersonData.LASTNAME), lastname)
+//                         .eq(Employee.INAKTIV, inaktiv)
+//                         .queryFirst();
             }
             if (uac != null) {
                 employee = uac.as(Employee.class);
@@ -1098,42 +1098,44 @@ public class PhoneCallImporterBean implements EveryMinute, Command {
      * @return shortname of the employee, e.g. aha
      */
     private String lookEmployee(String phonenumber, LocalDateTime startDateTime) {
-//		List<Employee> employeeList = oma.select(Employee.class)
-//										 .icontains(phonenumber, Employee.PBXID).list() ;
-        //ToDo testen ob hier .qu das .icontains ersetzt
-        LocalDate startDate = startDateTime.toLocalDate();
-        List<UserAccount> employeeList =
-                oma.select(UserAccount.class).eq(Column.named("Employee_" + Employee.PBXID), phonenumber).queryList();
-//		List<Employee> employeeList = oma.select(Employee.class).eq(Employee.PBXID, phonenumber).queryList();
-        if (employeeList.size() == 0) {
-            return "? " + phonenumber;
-        }
+////		List<Employee> employeeList = oma.select(Employee.class)
+////										 .icontains(phonenumber, Employee.PBXID).list() ;
+//        //ToDo testen ob hier .qu das .icontains ersetzt
+//        LocalDate startDate = startDateTime.toLocalDate();
+//        List<UserAccount> employeeList =
+//                oma.select(UserAccount.class).eq(Column.named("Employee_" + Employee.PBXID), phonenumber).queryList();
+////		List<Employee> employeeList = oma.select(Employee.class).eq(Employee.PBXID, phonenumber).queryList();
+//        if (employeeList.size() == 0) {
+//            return "? " + phonenumber;
+//        }
+//
+//        if (employeeList.size() == 1) {
+//            Employee employee = employeeList.get(0).as(Employee.class);
+//            return employee.getShortName();
+//        }
+//
+//        long bestDiff = Long.MAX_VALUE;
+//        Employee bestEmployee = null;
+//        long diff = 0;
+//        for (UserAccount ua : employeeList) {
+//            Employee employee = ua.as(Employee.class);
+//            LocalDate endDate = employee.getTerminationDate();
+//            if (endDate == null) {
+//                endDate = LocalDate.now();
+//            }
+//            diff = ChronoUnit.DAYS.between(startDate, endDate);
+//            if (diff > 0 && diff < bestDiff) {
+//                bestEmployee = employee;
+//                bestDiff = diff;
+//            }
+//        }
+//        if (bestEmployee != null) {
+//            return bestEmployee.getShortName();
+//        } else {
+//            return "?? " + phonenumber;
+//        }
 
-        if (employeeList.size() == 1) {
-            Employee employee = employeeList.get(0).as(Employee.class);
-            return employee.getShortName();
-        }
-
-        long bestDiff = Long.MAX_VALUE;
-        Employee bestEmployee = null;
-        long diff = 0;
-        for (UserAccount ua : employeeList) {
-            Employee employee = ua.as(Employee.class);
-            LocalDate endDate = employee.getTerminationDate();
-            if (endDate == null) {
-                endDate = LocalDate.now();
-            }
-            diff = ChronoUnit.DAYS.between(startDate, endDate);
-            if (diff > 0 && diff < bestDiff) {
-                bestEmployee = employee;
-                bestDiff = diff;
-            }
-        }
-        if (bestEmployee != null) {
-            return bestEmployee.getShortName();
-        } else {
-            return "?? " + phonenumber;
-        }
+        return null;
     }
 
     /**

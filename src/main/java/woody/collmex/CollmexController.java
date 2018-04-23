@@ -8,36 +8,23 @@
 
 package woody.collmex;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
-import sirius.kernel.commons.Context;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
 import sirius.web.controller.Routed;
-import sirius.web.http.MimeHelper;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
-import sirius.web.security.UserContext;
 import sirius.web.templates.Templates;
-import woody.core.tags.Tagged;
-import woody.offers.Offer;
-import woody.offers.OfferItem;
-import woody.offers.OfferItemState;
 import woody.offers.ServiceAccountingService;
 import woody.sales.SalesControllerService;
 import woody.xrm.Company;
 
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Created by gha on 30.10.2016.

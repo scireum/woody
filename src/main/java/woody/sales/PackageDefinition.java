@@ -118,7 +118,7 @@ public class PackageDefinition extends BizEntity {
         sas.checkValue(singlePrice, true, false, false, false, null, NLS.get("PackageDefinition.singlePrice"));
 
         // check te parameter-syntax
-        as.checkParameterSyntax(parameter);
+     //   as.checkParameterSyntax(parameter);
     }
 
     public EntityRef<Product> getProduct() {

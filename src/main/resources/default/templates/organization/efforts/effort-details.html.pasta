@@ -1,0 +1,44 @@
+<i:arg type="woody.organization.efforts.Effort" name="effort"/>
+<i:arg type="List" name="types"/>
+
+<i:invoke template="templates/organization/efforts/effort.html.pasta" effort="effort" page="details">
+    <w:editForm url="@apply('/effort/%s/edit', effort.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@effort.getName()" labelKey="Model.name" required="true" span="4"/>
+            <w:textfield name="code" value="@effort.getCode()" labelKey="Model.code" span="4"/>
+            <i:if test="effort.isNew()">
+                <w:singleSelect name="type" labelKey="Model.type" span="4">
+                    <i:for type="woody.organization.efforts.EffortType" var="type" items="types">
+                        <option value="@type.getId()" @if (effort.getType().is(type)) { selected="selected" }>
+                            @type.getName()
+                        </option>
+                    </i:for>
+                </w:singleSelect>
+                <i:else>
+                    <w:textfield name="type"
+                                 value="@effort.getType().getValue().as(woody.organization.efforts.EffortType.class).getName()"
+                                 labelKey="Model.type" readonly="true" span="4"/>
+                </i:else>
+            </i:if>
+        </div>
+        <div class="row">
+            <w:datefield name="startDate" value="@toUserString(effort.getStartDate())" labelKey="Effort.startDate" />
+            <w:datefield name="endDate" value="@toUserString(effort.getEndDate())" labelKey="Effort.endDate" />
+        </div>
+        <div class="row">
+            <w:autocompleteMultiSelect span="12" name="tags" labelKey="Tag.plural" serviceUri="/tags/EFFORT/autocomplete"
+                                       optional="true">
+                <i:for type="woody.core.tags.Tag" var="tag" items="effort.getTags().getTags()">
+                    <option value="@tag.getName()" selected>@tag.getName()</option>
+                </i:for>
+            </w:autocompleteMultiSelect>
+        </div>
+        <div class="row">
+            <w:textarea name="description" value="@effort.getDescription()" labelKey="Model.description" span="12" rows="4"/>
+        </div>
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@effort.getTrace()" />
+    </w:formBar>
+</i:invoke>

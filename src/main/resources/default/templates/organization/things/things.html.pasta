@@ -1,0 +1,72 @@
+<i:arg type="Page" name="things" />
+<i:arg type="woody.organization.categories.Category" name="category" />
+<i:arg type="List" name="types" />
+
+<w:page title="@category.getName()">
+    <i:block name="breadcrumbs">
+        <li><a href="/things/@category.getTechnicalName()">@category.getName()</a></li>
+    </i:block>
+
+    <w:pageHeader title="@category.getName()"/>
+
+    <div class="row">
+        <div class="col-md-3">
+            <w:filterbox page="things" baseUrl="@apply('/things/%s', category.getTechnicalName())"/>
+        </div>
+        <div class="col-md-9">
+            <w:taggedSearch page="things" baseUrl="@apply('/things/%s', category.getTechnicalName())" suggestionsName="THING">
+                <div class="btn-group">
+                    <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">
+                        @i18n("Model.create")
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <i:for type="woody.organization.things.ThingType" var="type" items="types">
+                            <li>
+                                <a href="@apply('/thing/new?type=%s', type.getIdAsString())">@type.getName()</a>
+                            </li>
+                        </i:for>
+                    </ul>
+                </div>
+            </w:taggedSearch>
+
+            <w:table data="things">
+                <thead>
+                <tr>
+                    <th>
+                        @i18n("Model.name") <span class="muted">(@i18n("Model.code"))</span><br>
+                        <span class="muted">@i18n("Model.type")</span>
+                    </th>
+                    <th>
+                        @i18n("Tag.plural")<br>
+                        <span class="muted">@i18n("Relation.plural")</span>
+                    </th>
+                    <th />
+                </tr>
+                </thead>
+                <tbody>
+                <i:for type="woody.organization.things.Thing" var="thing" items="things.getItems()">
+                    <tr>
+                        <td>
+                            <a class="link" href="/thing/@thing.getId()">@thing.getName()</a>
+                            <i:if test="isFilled(thing.getCode())"><span class="muted">(@thing.getCode())</span></i:if><br>
+                            <span class="muted"><small>@thing.getType().getValue()</small></span>
+                        </td>
+                        <td>
+                            <woody:listTags tagged="thing.getTags()" />
+                            <br>
+                            <woody:listRelations relations="thing.getRelations()" />
+                        </td>
+                        <td class="col-md-2 align-center">
+                            <w:deleteLink url="@apply('/thing/%s/%s/delete', category, thing.getId())" page="things"/>
+                        </td>
+                    </tr>
+                </i:for>
+                </tbody>
+            </w:table>
+
+            <w:pagination page="things" baseUrl="@apply('/things/%s', category.getTechnicalName())"/>
+        </div>
+    </div>
+
+</w:page>

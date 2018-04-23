@@ -1,0 +1,3 @@
+<i:arg type="java.lang.Object" name="object"/>
+
+<i:extensions name="templates-overview" object="object" inline="true" />

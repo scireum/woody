@@ -1,0 +1,40 @@
+<i:arg type="woody.organization.units.Unit" name="unit"/>
+<i:arg type="List" name="types"/>
+
+<i:invoke template="templates/organization/units/unit.html.pasta" unit="unit" page="details">
+    <w:editForm url="@apply('/unit/%s/edit', unit.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@unit.getName()" labelKey="Model.name" required="true" span="6"/>
+            <w:textfield name="code" value="@unit.getCode()" labelKey="Model.code" span="6"/>
+            <i:if test="unit.isNew()">
+                <w:singleSelect name="type" labelKey="Model.type" span="6">
+                    <i:for type="woody.organization.units.UnitType" var="type" items="types">
+                        <option value="@type.getId()" @if (unit.getType().is(type)) { selected="selected" }>
+                            @type.getName()
+                        </option>
+                    </i:for>
+                </w:singleSelect>
+                <w:autocompleteSingleSelect name="parent"
+                                            labelKey="Unit.parent"
+                                            serviceUri="@apply('/units/%s/autocomplete', unit.getType().getValue().as(woody.organization.units.UnitType.class).getCategory().getId())"
+                                            optional="true"
+                                            span="6"/>
+            </i:if>
+        </div>
+        <div class="row">
+            <w:autocompleteMultiSelect span="12" name="tags" labelKey="Tag.plural" serviceUri="/tags/UNIT/autocomplete"
+                                       optional="true">
+                <i:for type="woody.core.tags.Tag" var="tag" items="unit.getTags().getTags()">
+                    <option value="@tag.getName()" selected>@tag.getName()</option>
+                </i:for>
+            </w:autocompleteMultiSelect>
+        </div>
+        <div class="row">
+            <w:textarea name="description" value="@unit.getDescription()" labelKey="Model.description" span="12" rows="4"/>
+        </div>
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@unit.getTrace()"/>
+    </w:formBar>
+</i:invoke>

@@ -18,53 +18,53 @@ import sirius.kernel.di.std.Part
 class TaggedSpec extends BaseSpecification {
 
     @Part
-    private static OMA oma;
+    private static OMA oma
 
     def "ensure addTag adds a tag once"() {
         given:
-        TenantsHelper.installTestTenant();
+        TenantsHelper.installTestTenant()
         and:
-        TaggedTestEntity entity = new TaggedTestEntity();
+        TaggedTestEntity entity = new TaggedTestEntity()
         and:
-        oma.update(entity);
+        oma.update(entity)
         when:
-        entity.getTagged().addOrCreateTag("Test");
+        entity.getTagged().addOrCreateTag("Test")
         and:
-        entity.getTagged().addOrCreateTag("Test");
+        entity.getTagged().addOrCreateTag("Test")
         then:
-        oma.select(Tag.class).eq(Tag.TARGET_TYPE, entity.getTypeName()).eq(Tag.NAME, "Test").exists();
+        oma.select(Tag.class).eq(Tag.TARGET_TYPE, entity.getTypeName()).eq(Tag.NAME, "Test").exists()
         and:
         entity.getTagged().getTags().size() == 1
     }
 
     def "ensure updateTags works without autocreating tags"() {
         given:
-        TenantsHelper.installTestTenant();
+        TenantsHelper.installTestTenant()
         and:
-        TaggedTestEntity entity = new TaggedTestEntity();
+        TaggedTestEntity entity = new TaggedTestEntity()
         and:
-        oma.update(entity);
+        oma.update(entity)
         when:
         entity.getTagged().updateTagsToBe(entity.getTagged().parseTagsString("#Test #Test #This,#That"), false)
         then:
-        oma.select(Tag.class).eq(Tag.TARGET_TYPE, entity.getTypeName()).eq(Tag.NAME, "Test").exists();
+        oma.select(Tag.class).eq(Tag.TARGET_TYPE, entity.getTypeName()).eq(Tag.NAME, "Test").exists()
         and:
         entity.getTagged().getTags().size() == 1
     }
 
     def "ensure updateTags works with autocreating tags"() {
         given:
-        TenantsHelper.installTestTenant();
+        TenantsHelper.installTestTenant()
         and:
-        TaggedTestEntity entity = new TaggedTestEntity();
+        TaggedTestEntity entity = new TaggedTestEntity()
         and:
-        oma.update(entity);
+        oma.update(entity)
         when:
         entity.getTagged().updateTagsToBe(entity.getTagged().parseTagsString("#Test #Test #This,#That"), true)
         then:
-        oma.select(Tag.class).eq(Tag.TARGET_TYPE, entity.getTypeName()).eq(Tag.NAME, "This").exists();
+        oma.select(Tag.class).eq(Tag.TARGET_TYPE, entity.getTypeName()).eq(Tag.NAME, "This").exists()
         and:
-        oma.select(Tag.class).eq(Tag.TARGET_TYPE, entity.getTypeName()).eq(Tag.NAME, "That").exists();
+        oma.select(Tag.class).eq(Tag.TARGET_TYPE, entity.getTypeName()).eq(Tag.NAME, "That").exists()
         and:
         entity.getTagged().getTagsAsString() == "Test, That, This"
     }

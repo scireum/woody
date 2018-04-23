@@ -9,10 +9,8 @@
 package woody.sales;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.MagicSearch;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.Column;
-import sirius.db.mixing.SmartQuery;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
@@ -22,20 +20,16 @@ import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
-import woody.core.tags.Tagged;
 import woody.xrm.Company;
-import woody.xrm.Person;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 /**
  * Created by aha on 11.05.15.
  */
 @Framework("sales")
-@Register(name="companyContracts", classes = {Controller.class, SalesControllerService.class})
+@Register(name = "companyContracts", classes = {Controller.class, SalesControllerService.class})
 public class SalesController extends BizController implements SalesControllerService {
 
     private static final String MANAGE_XRM = "permission-manage-xrm";
@@ -100,8 +94,7 @@ public class SalesController extends BizController implements SalesControllerSer
                 oma.update(product);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix() + "/product/" + product.getId());
+                    ctx.respondWith().redirectTemporarily("/product/" + product.getId());
                     return product;
                 }
             } catch (Throwable e) {
@@ -123,9 +116,6 @@ public class SalesController extends BizController implements SalesControllerSer
         products(ctx);
     }
 
-
-
-
     @LoginRequired
     @Permission(MANAGE_XRM)
     @Routed("/company/:1/contract/:2")
@@ -144,11 +134,7 @@ public class SalesController extends BizController implements SalesControllerSer
                 showSavedMessage();
                 if (wasNew) {
                     ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix()
-                                            + "/company/"
-                                            + company.getId()
-                                            + "/contract/"
-                                            + contract.getId());
+                       .redirectTemporarily("/company/" + company.getId() + "/contract/" + contract.getId());
                     return;
                 }
             } catch (Throwable e) {
@@ -175,18 +161,18 @@ public class SalesController extends BizController implements SalesControllerSer
     @Permission(MANAGE_XRM)
     @Routed("/company/:1/contracts")
     public void companyContracts(WebContext ctx, String companyId) {
-        Company company = findForTenant(Company.class, companyId);
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Contract> query = oma.select(Contract.class)
-                                        .eq(Contract.COMPANY, company)
-                                        .orderAsc(Contract.ACCOUNTINGGROUP)
-                                        .orderAsc(Contract.STARTDATE);
-
-        Tagged.applyTagSuggestions(Contract.class, search, query);
-        PageHelper<Contract> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith()
-           .template("view/sales/company-contracts.html", company, ph.asPage(), search.getSuggestionsString());
+//        Company company = findForTenant(Company.class, companyId);
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<Contract> query = oma.select(Contract.class)
+//                                        .eq(Contract.COMPANY, company)
+//                                        .orderAsc(Contract.ACCOUNTINGGROUP)
+//                                        .orderAsc(Contract.STARTDATE);
+//
+//        Tagged.applyTagSuggestions(Contract.class, search, query);
+//        PageHelper<Contract> ph = PageHelper.withQuery(query);
+//        ph.withContext(ctx);
+//        ctx.respondWith()
+//           .template("view/sales/company-contracts.html", company, ph.asPage(), search.getSuggestionsString());
     }
 
     @LoginRequired
@@ -194,19 +180,18 @@ public class SalesController extends BizController implements SalesControllerSer
     @Routed("/contracts")
     // ToDo: Wofür ist dieser Code? - Analog zur Methode persons
     public void contracts(WebContext ctx) {
-        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-        SmartQuery<Contract> query = oma.select(Contract.class)
-                                        .fields(Contract.COMPANY.join(Company.ID))
-                                        .eq(Contract.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
-                                        .orderAsc(Contract.STARTDATE)
-                                        .orderAsc(Contract.ENDDATE);
-
-        Tagged.applyTagSuggestions(Contract.class, search, query);
-        PageHelper<Contract> ph = PageHelper.withQuery(query);
-        ph.withContext(ctx);
-        ctx.respondWith().template("view/sales/company-contracts.html", ph.asPage(), search.getSuggestionsString());
+//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
+//        SmartQuery<Contract> query = oma.select(Contract.class)
+//                                        .fields(Contract.COMPANY.join(Company.ID))
+//                                        .eq(Contract.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
+//                                        .orderAsc(Contract.STARTDATE)
+//                                        .orderAsc(Contract.ENDDATE);
+//
+//        Tagged.applyTagSuggestions(Contract.class, search, query);
+//        PageHelper<Contract> ph = PageHelper.withQuery(query);
+//        ph.withContext(ctx);
+//        ctx.respondWith().template("view/sales/company-contracts.html", ph.asPage(), search.getSuggestionsString());
     }
-
 
     private PackageDefinition packageDefinitionHandler(WebContext ctx,
                                                        String packageDefinitionId,
@@ -227,10 +212,7 @@ public class SalesController extends BizController implements SalesControllerSer
                 oma.update(packageDefinition);
                 showSavedMessage();
                 if (wasNew) {
-                    ctx.respondWith()
-                       .redirectTemporarily(WebContext.getContextPrefix()
-                                            + "/packageDefinition/"
-                                            + packageDefinition.getId());
+                    ctx.respondWith().redirectTemporarily("/packageDefinition/" + packageDefinition.getId());
                     return packageDefinition;
                 }
             } catch (Throwable e) {

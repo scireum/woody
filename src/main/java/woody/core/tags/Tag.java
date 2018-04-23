@@ -9,6 +9,7 @@
 package woody.core.tags;
 
 import sirius.biz.tenants.TenantAware;
+import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
@@ -16,35 +17,45 @@ import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.di.std.Part;
+import woody.core.colors.ColorData;
+import woody.core.colors.Colors;
 
 /**
  * Created by aha on 25.11.15.
  */
 public class Tag extends TenantAware {
 
+    public static final Column UNQIUE_NAME = Column.named("uniqueName");
     @Length(255)
     @Unique(within = {"tenant", "targetType"})
     private String uniqueName;
-    public static final Column UNQIUE_NAME = Column.named("uniqueName");
 
+    public static final Column NAME = Column.named("name");
     @Trim
     @Length(255)
+    @Autoloaded
     private String name;
-    public static final Column NAME = Column.named("name");
 
+    public static final Column TARGET_TYPE = Column.named("targetType");
     @Trim
     @Length(255)
     private String targetType;
-    public static final Column TARGET_TYPE = Column.named("targetType");
 
-    /**
-     * Column only for migration CRM --> woody
-     * This column contains the id of the industry-tag in the CRM.table
-     * */
-    @NullAllowed
-    private Long crmIndustryId = Long.valueOf(-1);
-    private static final Column CRMINDUSTRYID = Column.named("crmIndustryId");
+    public static final Column VIEW_IN_LIST = Column.named("viewInList");
+    @Autoloaded
+    private boolean viewInList;
 
+    public static final Column COLOR = Column.named("color");
+    private final ColorData color = new ColorData();
+
+    @Part
+    private static Colors colors;
+
+    public String getEffectiveColor() {
+        return colors.getColor(getColor().getColor())
+                     .orElseGet(() -> colors.getColorForType(TagQueryTagColorTypeProvider.TYPE));
+    }
 
     @BeforeSave
     protected void clearTagName() {
@@ -80,11 +91,16 @@ public class Tag extends TenantAware {
         this.targetType = targetType;
     }
 
-    public long getCrmIndustryId() {
-        return crmIndustryId;
+
+    public boolean isViewInList() {
+        return viewInList;
     }
 
-    public void setCrmIndustryId(long crmIndustryId) {
-        this.crmIndustryId = crmIndustryId;
+    public void setViewInList(boolean viewInList) {
+        this.viewInList = viewInList;
+    }
+
+    public ColorData getColor() {
+        return color;
     }
 }

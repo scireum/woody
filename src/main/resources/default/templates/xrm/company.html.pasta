@@ -1,0 +1,47 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="String" name="page"/>
+
+<w:page title="@company.toString()">
+    <i:block name="breadcrumbs">
+        <li><a href="/companies">@i18n("Company.plural")</a></li>
+        <li><a href="/company/@company.getId()">@company</a></li>
+        <i:render name="breadcrumbs" />
+    </i:block>
+
+    <w:pageHeader title="@company.toString()"/>
+
+    <div class="row">
+        <i:if test="!company.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('COMPANY')">
+                    <w:infoboxElement labelKey="Model.name" value="@company.getName()"/>
+                    <w:infoboxElement labelKey="AddressData.city" value="@company.getAddress().getCity()"/>
+                    <w:infoboxElement labelKey="Company.customerNumber" value="@company.getCustomerNumber()"/>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@company.getTags()" />
+                    </w:infoboxElement>
+
+                    <i:extensions name="templates-company-sidebar-infos" company="company" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-company-sidebar-additional" company="company" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/company/%s', company.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/company/%s/edit', company.getId())"
+                                  active="page == 'details'"/>
+                    <w:navboxLink labelKey="Person.plural" url="@apply('/company/%s/persons', company.getId())"
+                                  active="page == 'persons'"/>
+
+                    <i:extensions name="templates-company-sidebar-menu" company="company" page="page"/>
+                </w:navbox>
+
+                <a href="/companies" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (company.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

@@ -1,0 +1,55 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.xrm.Person" name="person"/>
+<i:arg type="String" name="page"/>
+
+<w:page title="@person.toString()">
+    <i:block name="breadcrumbs">
+        <li><a href="/companies">@i18n("Company.plural")</a></li>
+        <li><a href="/company/@company.getId()">@company.getName()</a></li>
+        <li><a href="/company/@company.getId()/persons">@i18n("Person.plural")</a></li>
+        <li><a href="/person/@person.getId()">@person</a></li>
+        <i:render name="breadcrumbs" />
+    </i:block>
+
+    <w:pageHeader title="@person.toString()"/>
+
+    <div class="row">
+        <i:if test="!person.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('PERSON')">
+                    <w:infoboxElement labelKey="Model.name" value="@person"/>
+                    <w:infoboxElement labelKey="Model.company" value="@company"/>
+                    <w:infoboxElement labelKey="ContactData.phone" value="@person.getContact().getPhone()"/>
+                    <i:if test="isFilled(person.getContact().getEmail())">
+                        <w:infoboxElement>
+                            <a href="mailto:@person.getContact().getEmail()">@person.getContact().getEmail()</a>
+                        </w:infoboxElement>
+                    </i:if>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@person.getTags()" />
+                    </w:infoboxElement>
+
+                    <i:extensions name="templates-person-sidebar-infos" company="person" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-person-sidebar-additional" company="person" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/company/%s/person/%s', person.getCompany().getId(), person.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/company/%s/person/%s/edit', person.getCompany().getId(), person.getId())"
+                                  active="page == 'details'"/>
+                    <w:navboxLink labelKey="Person.css" url="@apply('/company/%s/person/%s/css', person.getCompany().getId(), person.getId())"
+                                  active="page == 'css'"/>
+
+                    <i:extensions name="templates-person-sidebar-menu" company="person" page="page"/>
+                </w:navbox>
+
+                <a href="/company/@company.getId()/persons" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (person.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

@@ -1,0 +1,14 @@
+<w:menuItem titleKey="Company.plural" url="/companies" permission="permission-manage-xrm" />
+<w:menuItem titleKey="Person.plural" url="/persons" permission="permission-manage-xrm" />
+<w:menuItem titleKey="Task.plural" url="/tasks" permission="permission-manage-tasks" />
+
+<i:local name="categories" value="organization.getAccessibleCategories()" />
+
+<i:if test="!categories.isEmpty()">
+    <w:menuDropdown titleKey="Menu.organization">
+        <i:for type="Tuple" var="entry" items="categories">
+            <w:menuItem title="@entry.getSecond().as(String.class)" url="@entry.getFirst().as(String.class)" />
+        </i:for>
+    </w:menuDropdown>
+</i:if>
+

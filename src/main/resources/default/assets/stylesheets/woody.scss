@@ -1,0 +1,62 @@
+table.no-border {
+  border: none;
+
+  tbody > tr > td {
+    border-top:none;
+    border-bottom: none;
+  }
+
+  tbody > tr:nth-child(2n) > td {
+    border-top: 1px solid #ccc;
+  }
+}
+
+span.relation-block {
+  display: inline-block;
+}
+
+span.color-box {
+  display: inline-block;
+  line-height: 16px;
+  width: 16px;
+  margin-right: 8px;
+  border-radius: 2px;
+}
+
+span.relation-color-block {
+  display: inline-block;
+  line-height: 26px;
+  width: 8px;
+  border-radius: 2px 0 0 2px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+span.relation-info-block {
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  border-radius: 0 2px 2px 0;
+  padding-right: 8px;
+  margin-left: 0px;
+  padding-left: 4px;
+  line-height: 24px;
+  display: inline-block;
+  font-size: 12px;
+  border-left: none;
+  background-color: white;
+
+  .relation-info-type {
+    font-weight: bold;
+    padding-right: 4px;
+  }
+}
+
+span.list-tag {
+  display: inline-block;
+  margin-top: 8px;
+  border-radius: 2px;
+  color: white;
+  font-weight: normal;
+  padding: 5px 8px 4px 8px;
+
+}

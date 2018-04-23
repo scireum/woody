@@ -10,176 +10,111 @@ package woody.core.employees;
 
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
-import sirius.biz.model.PersonData;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
-import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.Mixable;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Mixin;
 import sirius.db.mixing.annotations.NullAllowed;
+import sirius.db.mixing.annotations.OnValidate;
 import sirius.db.mixing.annotations.Trim;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import woody.phoneCalls.Starface;
+import sirius.db.mixing.annotations.Unique;
+import sirius.kernel.commons.Strings;
+import sirius.kernel.health.Exceptions;
+import woody.core.relations.Relateable;
 
 import java.time.LocalDate;
+import java.util.function.Consumer;
 
 /**
- * Created by aha on 09.05.15.
+ * Extends a <tt>UserAccount</tt> with information related to an employee.
  */
 @Mixin(UserAccount.class)
 public class Employee extends Mixable {
 
+    /**
+     * Contains the employee number assigned to the user.
+     */
+    public static final Column EMPLOYEE_NUMBER = Column.named("employeeNumber");
+    @Unique(within = "tenant")
     @Trim
     @Length(30)
     @NullAllowed
     @Autoloaded
     private String employeeNumber;
-    public static final Column EMPLOYEE_NUMBER = Column.named("employeeNumber");
 
+    /**
+     * Contains the short name assigned to the user.
+     */
+    public static final Column SHORT_NAME = Column.named("shortName");
+    @Unique(within = "tenant")
     @Trim
-    @Length(6)
+    @Length(30)
     @NullAllowed
     @Autoloaded
     private String shortName;
-    public static final Column SHORTNAME = Column.named("shortName");
 
+    /**
+     * Contains the phone extension of the user.
+     */
+    public static final Column PHONE_EXTENSION = Column.named("phoneExtension");
+    @Trim
+    @Length(30)
     @NullAllowed
     @Autoloaded
-    private final EntityRef<UserAccount> mentor = EntityRef.on(UserAccount.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column MENTOR = Column.named("mentor");
+    private String phoneExtension;
 
-    @NullAllowed
-    @Autoloaded
-    private final EntityRef<Department> department = EntityRef.on(Department.class, EntityRef.OnDelete.REJECT);
-    public static final Column DEPARTMENT = Column.named("department");
-
+    /**
+     * Contains the date when the user joined the company.
+     */
+    public static final Column JOIN_DATE = Column.named("joinDate");
     @NullAllowed
     @Autoloaded
     private LocalDate joinDate;
-    public static final Column JOIN_DATE = Column.named("joinDate");
-
-    @NullAllowed
-    @Autoloaded
-    private LocalDate terminationDate = null;
-    public static final Column TERMINATION_DATE = Column.named("terminationDate");
-
-    @Autoloaded
-    private boolean inaktiv = false;
-    public static final Column INAKTIV = Column.named("inaktiv");
-
-    @NullAllowed
-    @Autoloaded
-    private LocalDate birthday;
-    public static final Column BIRTHDAY = Column.named("birthday");
 
     /**
-     * komplette Telefonnummer des Angestellten
-     * in lesbarer Schreibweise, z. B. +49 7151 90316-21
+     * Contains the date when the user left the company.
      */
+    public static final Column DISCHARGE_DATE = Column.named("dischargeDate");
     @NullAllowed
     @Autoloaded
-    @Length(150)
-    private String phoneNr;
-    public static final Column PHONENR = Column.named("phoneNr");
+    private LocalDate dischargeDate;
 
     /**
-     * Nebenstellen-Nummer, z. B. aha = 21
+     * Contains relations from other objects to this user.
      */
-    @NullAllowed
-    @Autoloaded
-    @Length(5)
-    private String pbxId;
-    public static final Column PBXID = Column.named("pbxId");
+    public static final Column RELATEABLE = Column.named("relateable");
+    private final Relateable relateable;
 
-    @NullAllowed
-    @Length(50)
-    private String pbxAccessToken;
-    public static final Column PBXACCESSTOKEN = Column.named("pbxAccessToken");
-
-    @NullAllowed
-    @Autoloaded
-    @Length(1000)
-    private String signature;
-    public static final Column SIGNATURE = Column.named("signature");
-
-    @NullAllowed
-    @Length(255)
-    private String collmex;
-    public static final Column COLLMEX = Column.named("collmex");
-
-    @NullAllowed
-    @Length(50)
-    private String emailPassword;
-    public static final Column EMAIL_PASSWORD = Column.named("emailPassword");
-
-
-    private final AddressData homeAddress = new AddressData(AddressData.Requirements.NONE, null);
-    public static final Column ADDRESS = Column.named("address");
-
-    private final ContactData homeContact = new ContactData(true);
-    public static final Column CONTACT = Column.named("contact");
-
-    @Part
-    private static Starface stf;
+    /**
+     * Represents the constructor which is used to properly initialize the <tt>Relateable</tt>.
+     *
+     * @param owner the entity for which this mixin was created.
+     */
+    public Employee(UserAccount owner) {
+        relateable = new Relateable(owner);
+    }
 
     @BeforeSave
     protected void checkIntegrity(UserAccount parent) {
-        if (getMentor().isFilled()) {
-            parent.assertSameTenant(() -> parent.getDescriptor()
-                                                .getProperty(Column.mixin(Employee.class).inner(MENTOR))
-                                                .getLabel(), getMentor().getValue());
-        }
-        if (getDepartment().isFilled()) {
-            parent.assertSameTenant(() -> parent.getDescriptor()
-                                                .getProperty(Column.mixin(Employee.class).inner(DEPARTMENT))
-                                                .getLabel(), getDepartment().getValue());
+        if (getDischargeDate() != null && !parent.getLogin().isAccountLocked()) {
+            throw Exceptions.createHandled().withNLSKey("Employee.cannotDischargeWithoutLock").handle();
         }
 
-        // build the pbxAccessToken
-        if(pbxId != null && Strings.isFilled(pbxId)) {
-            String pbxCleartextPassword = pbxId + pbxId + pbxId + pbxId;
-            pbxAccessToken = stf.buildMd5HexString(pbxId + "*" + pbxCleartextPassword);
-            pbxCleartextPassword = "";
-        } else {
-            pbxAccessToken = null;
-        }
+//        // build the pbxAccessToken
+//        if(pbxId != null && Strings.isFilled(pbxId)) {
+//            String pbxCleartextPassword = pbxId + pbxId + pbxId + pbxId;
+//            pbxAccessToken = stf.buildMd5HexString(pbxId + "*" + pbxCleartextPassword);
+//            pbxCleartextPassword = "";
+//        } else {
+//            pbxAccessToken = null;
+//        }
 
-    }
-
-    public LocalDate getTerminationDate() {
-        return terminationDate;
-    }
-
-    public void setTerminationDate(LocalDate terminationDate) {
-        this.terminationDate = terminationDate;
-    }
-
-    public boolean isInaktiv() {
-        return inaktiv;
-    }
-
-    public void setInaktiv(boolean inaktiv) {
-        this.inaktiv = inaktiv;
-    }
-
-    public String getPhoneNr() {
-        return phoneNr;
-    }
-
-    public void setPhoneNr(String phoneNr) {
-        this.phoneNr = phoneNr;
-    }
-
-    public String getPbxId() {
-        return pbxId;
-    }
-
-    public void setPbxId(String pbxId) {
-        this.pbxId = pbxId;
     }
 
     public String getEmployeeNumber() {
@@ -190,6 +125,14 @@ public class Employee extends Mixable {
         this.employeeNumber = employeeNumber;
     }
 
+    public String getPhoneExtension() {
+        return phoneExtension;
+    }
+
+    public void setPhoneExtension(String phoneExtension) {
+        this.phoneExtension = phoneExtension;
+    }
+
     public LocalDate getJoinDate() {
         return joinDate;
     }
@@ -198,20 +141,12 @@ public class Employee extends Mixable {
         this.joinDate = joinDate;
     }
 
-    public LocalDate getBirthday() {
-        return birthday;
+    public LocalDate getDischargeDate() {
+        return dischargeDate;
     }
 
-    public void setBirthday(LocalDate birthday) {
-        this.birthday = birthday;
-    }
-
-    public EntityRef<UserAccount> getMentor() {
-        return mentor;
-    }
-
-    public EntityRef<Department> getDepartment() {
-        return department;
+    public void setDischargeDate(LocalDate dischargeDate) {
+        this.dischargeDate = dischargeDate;
     }
 
     public String getShortName() {
@@ -220,45 +155,5 @@ public class Employee extends Mixable {
 
     public void setShortName(String shortName) {
         this.shortName = shortName;
-    }
-
-    public AddressData getHomeAddress() {
-        return homeAddress;
-    }
-
-    public ContactData getHomeContact() {
-        return homeContact;
-    }
-
-    public String getPbxAccessToken() {
-        return pbxAccessToken;
-    }
-
-    public void setPbxAccessToken(String pbxAccessToken) {
-        this.pbxAccessToken = pbxAccessToken;
-    }
-
-    public String getSignature() {
-        return signature;
-    }
-
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
-
-    public String getCollmex() {
-        return collmex;
-    }
-
-    public void setCollmex(String collmex) {
-        this.collmex = collmex;
-    }
-
-    public String getEmailPassword() {
-        return emailPassword;
-    }
-
-    public void setEmailPassword(String emailPassword) {
-        this.emailPassword = emailPassword;
     }
 }

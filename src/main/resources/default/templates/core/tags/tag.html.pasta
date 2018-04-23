@@ -1,0 +1,33 @@
+<i:arg type="woody.core.tags.Tag" name="tag" />
+<i:arg type="woody.core.tags.TagController" name="controller" />
+
+<w:page titleKey="Model.tag">
+    <i:block name="breadcrumbs">
+        <li><a href="/tags">@i18n("Tag.plural")</a></li>
+        <li><a href="/tag/@tag.getId()">@i18n("Model.tag")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Model.tag"/>
+
+    <w:editForm url="@apply('/tag/%s', tag.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@tag.getName()" labelKey="Model.name" required="true" />
+            <i:if test="tag.isNew()">
+                <w:singleSelect name="targetType" labelKey="Tag.targetType" optional="true">
+                    <i:for type="String" var="type" items="controller.getTargetTypes()">
+                        <option value="@type" @if (type.equals(tag.getTargetType())) { selected="selected" }>@controller.translateType(type)</option>
+                    </i:for>
+                </w:singleSelect>
+                <i:else>
+                    <w:textfield name="targetType" value="@controller.translateType(tag.getTargetType())" labelKey="Tag.targetType" readonly="true" />
+                </i:else>
+            </i:if>
+        </div>
+        <div class="row">
+            <woody:colorSelector colorData="@tag.getColor()" />
+            <w:checkbox name="viewInList" value="tag.isViewInList()" labelKey="Tag.viewInList" />
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/tags" />
+</w:page>

@@ -1,0 +1,29 @@
+<i:arg type="woody.core.relations.Relateable" name="relateable"/>
+<i:arg type="woody.organization.categories.Category" name="category"/>
+
+<i:local name="things" value="organization.queryRelatedThings(relateable, category)"/>
+<i:if test="!things.isEmpty()">
+    <w:infobox title="@category.getName()" color="@category.getEffectiveColor()">
+        <table class="table">
+            <i:for type="woody.organization.things.Thing" var="thing" items="things">
+                <tr>
+                    <td class="col-md-4">
+                        <a class="link" href="/thing/@thing.getId()">@thing.getName()</a>
+                        <i:if test="isFilled(thing.getCode())"><span class="muted">(@thing.getCode())</span></i:if>
+                    </td>
+                    <td>
+                        <span class="muted"><small>@thing.getType().getValue()</small></span>
+                    </td>
+                </tr>
+            </i:for>
+        </table>
+
+        <div class="align-right">
+            <a class="link pointer" onclick="$('#myHiddenFormId').submit()"><small><i class="fa fa-search"></i> @i18n('overview.showAll')</small></a>
+        </div>
+
+        <form id="myHiddenFormId" action="/things/@category.getTechnicalName()" method="post">
+            <input type="hidden" name="query" value="@relateable.createShowRelatedQuery()">
+        </form>
+    </w:infobox>
+</i:if>

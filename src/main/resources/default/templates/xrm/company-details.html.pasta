@@ -1,0 +1,67 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:invoke template="templates/xrm/company.html.pasta" company="company" page="details">
+    <w:editForm url="@apply('/company/%s/edit', company.getIdAsString())">
+        <div class="row">
+            <w:textfield name="name" value="@company.getName()" labelKey="Company.name" required="true" />
+            <w:textfield name="customerNumber" value="@company.getCustomerNumber()" labelKey="Company.customerNumber" span="3" />
+            <w:textfield name="correlationId" value="company.getCorrelationId()" labelKey="Company.matchcode" span="3" />
+        </div>
+
+        <div class="row">
+            <w:textfield name="name2" value="@company.getName2()" labelKey="Company.name2" />
+            <w:textfield name="website" value="@company.getWebsite()" labelKey="Company.website" />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <w:subHeading labelKey="Company.address" />
+                <div class="row">
+                    <w:textfield name="address_street" value="@company.getAddress().getStreet()" labelKey="AddressData.street" span="12" />
+                    <w:textfield name="address_zip" value="@company.getAddress().getZip()" labelKey="AddressData.zip" span="4" />
+                    <w:textfield name="address_city" value="@company.getAddress().getCity()" labelKey="AddressData.city" span="8" />
+                    <w:codelistSelect name="address_country"
+                                      value="@company.getAddress().getCountry()"
+                                      list="countries"
+                                      optional="true"
+                                      labelKey="InternationalAddressData.country"
+                                      span="12" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <w:subHeading labelKey="Company.postboxAddress" />
+                <div class="row">
+                    <w:textfield name="postboxAddress_street" value="@company.getPostboxAddress().getStreet()" labelKey="AddressData.street" span="12" />
+                    <w:textfield name="postboxAddress_zip" value="@company.getPostboxAddress().getZip()" labelKey="AddressData.zip" span="4" />
+                    <w:textfield name="postboxAddress_city" value="@company.getPostboxAddress().getCity()" labelKey="AddressData.city" span="8" />
+                    <w:codelistSelect name="postboxAddress_country"
+                                      value="@company.getPostboxAddress().getCountry()"
+                                      list="countries"
+                                      optional="true"
+                                      labelKey="InternationalAddressData.country"
+                                      span="12" />
+                </div>
+            </div>
+        </div>
+
+        <w:subHeading labelKey="Company.contact" />
+        <div class="row">
+            <w:textfield name="contact_email" value="@company.getContact().getEmail()" labelKey="ContactData.email" span="6" />
+            <w:textfield name="contact_fax" value="@company.getContact().getFax()" labelKey="ContactData.fax" span="6" />
+            <w:textfield name="contact_phone" value="@company.getContact().getPhone()" labelKey="ContactData.phone" span="6" />
+            <w:textfield name="contact_mobile" value="@company.getContact().getMobile()" labelKey="ContactData.mobile" span="6" />
+        </div>
+        <div class="row">
+            <w:autocompleteMultiSelect span="12" name="tags" labelKey="Tag.plural" serviceUri="/tags/COMPANY/autocomplete"
+                                       optional="true">
+                <i:for type="woody.core.tags.Tag" var="tag" items="company.getTags().getTags()">
+                    <option value="@tag.getName()" selected>@tag.getName()</option>
+                </i:for>
+            </w:autocompleteMultiSelect>
+        </div>
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@company.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

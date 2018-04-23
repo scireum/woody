@@ -1,0 +1,4 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:invoke template="templates/xrm/company.html.pasta" company="company" page="overview">
+    <woody:overview object="@company"/>
+</i:invoke>

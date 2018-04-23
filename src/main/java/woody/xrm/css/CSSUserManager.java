@@ -21,6 +21,8 @@ import sirius.kernel.di.std.Register;
 
 import sirius.kernel.health.Exceptions;
 
+import sirius.kernel.health.Exceptions;
+import sirius.kernel.settings.Extension;
 import sirius.web.http.WebContext;
 import sirius.web.security.GenericUserManager;
 import sirius.web.security.ScopeInfo;
@@ -87,7 +89,7 @@ public class CSSUserManager {//extends GenericUserManager {
                                    .withTenantName(person.getCompany().getValue().getName())
                                    .withEmail(person.getContact().getEmail())
                                    .withPermissions(computeRoles(null, String.valueOf(person.getId())))
-                                   .withConfigSupplier(ui -> getScopeConfig())
+                                   .withSettingsSupplier(ui -> getScopeSettings())
                                    .withUserSupplier(this::getUserObject)
                                    .build();
         } else {

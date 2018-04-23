@@ -1,0 +1,30 @@
+<i:arg type="woody.core.relations.Relateable" name="relateable"/>
+<i:arg type="woody.organization.categories.Category" name="category"/>
+
+<i:local name="units" value="organization.queryRelatedUnits(relateable, category)"/>
+<i:if test="!units.isEmpty()">
+    <w:infobox title="@category.getName()" color="@category.getEffectiveColor()">
+        <table class="table">
+            <i:for type="woody.organization.units.Unit" var="unit" items="units">
+                <tr>
+                    <td class="col-md-4">
+                        <a class="link" href="/unit/@unit.getId()">@unit.getName()</a>
+                        <i:if test="isFilled(unit.getCode())"><span class="muted">(@unit.getCode())</span></i:if>
+                    </td>
+                    <td>
+                        <span class="muted"><small>@unit.getType().getValue()</small></span>
+                    </td>
+                </tr>
+            </i:for>
+        </table>
+
+        <i:local name="formId" value="@apply('showAllForm-%s', call.generateLocalId())" />
+        <div class="align-right">
+            <a class="link pointer" onclick="$('#@formId').submit()"><small><i class="fa fa-search"></i> @i18n('overview.showAll')</small></a>
+        </div>
+
+        <form id="@formId" action="/units/@category.getTechnicalName()" method="post">
+            <input type="hidden" name="query" value="@relateable.createShowRelatedQuery()">
+        </form>
+    </w:infobox>
+</i:if>

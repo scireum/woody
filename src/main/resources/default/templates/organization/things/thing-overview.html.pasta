@@ -1,0 +1,14 @@
+<i:arg type="woody.organization.things.Thing" name="thing"/>
+<i:invoke template="templates/organization/things/thing.html.pasta" thing="thing" page="overview">
+    <i:if test="isFilled(thing.getDescription())">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="well">
+                    @thing.getDescription()
+                </div>
+            </div>
+        </div>
+    </i:if>
+
+    <woody:overview object="@thing"/>
+</i:invoke>

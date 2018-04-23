@@ -1,0 +1,23 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.xrm.Person" name="person"/>
+<i:invoke template="templates/xrm/person.html.pasta" company="company" person="person" page="css">
+    <w:editForm url="@apply('/person/%s/css', person.getIdAsString())">
+        <div class="row">
+            <w:textfield name="login_username" value="@person.getLogin().getUsername()" labelKey="LoginData.username"/>
+            <w:textfield name="login_generatedPassword" value="@person.getLogin().getGeneratedPassword()"
+                         labelKey="LoginData.generatedPassword" readonly="true"/>
+            <w:textfield name="login_numberOfLogins" value="@toUserString(person.getLogin().getNumberOfLogins())"
+                         labelKey="LoginData.numberOfLogins" readonly="true"/>
+            <w:textfield name="login_lastLogin" value="@toUserString(person.getLogin().getLastLogin())" labelKey="LoginData.lastLogin"
+                         readonly="true"/>
+            <w:checkbox name="login_accountLocked" value="@person.getLogin().isAccountLocked()"
+                        labelKey="LoginData.accountLocked"/>
+        </div>
+    </w:editForm>
+
+    <w:formBar/>
+
+
+</i:invoke>
+
+

@@ -8,37 +8,31 @@
 
 package woody.core.comments;
 
-import sirius.biz.tenants.UserAccount;
 import sirius.db.mixing.Composite;
 import sirius.db.mixing.Entity;
-import sirius.db.mixing.OMA;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
-import sirius.db.mixing.constraints.FieldOperator;
-import sirius.db.mixing.constraints.Or;
 import sirius.kernel.commons.Strings;
-import sirius.kernel.di.std.Part;
-
-import sirius.web.security.UserContext;
-import sirius.web.security.UserInfo;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Created by aha on 25.11.15.
+ * Provides the comment facility which is embedded into an entity as composite.
+ * <p>
+ * This way comments are automatically deleted once the entity itself is deleted.
  */
 public class Commented extends Composite {
 
     @Transient
     protected final Entity owner;
 
+    /**
+     * Creates a new comments facility for the given entity.
+     */
     public Commented(Entity owner) {
         this.owner = owner;
     }
-
-    @Part
-    private static OMA oma;
 
     @BeforeDelete
     protected void onDelete() {
@@ -47,23 +41,54 @@ public class Commented extends Composite {
         }
     }
 
+    public String getReferenceId() {
+        return owner.getUniqueName();
+    }
+
+    /**
+     * Returns all comments available for this entity.
+     *
+     * @return a list of all comments for this entity
+     */
     public List<Comment> getAllComments() {
         return oma.select(Comment.class)
                   .orderDesc(Comment.TOD)
+                  .eq(Comment.DELETED, false)
                   .eq(Comment.TARGET_ENTITY, owner.getUniqueName())
                   .queryList();
     }
 
+    /**
+     * Returns all public visible comments for this entity
+     *
+     * @return a list of all public visible comments for this entity
+     */
     public List<Comment> getPublicComments() {
         return oma.select(Comment.class)
                   .orderDesc(Comment.TOD)
+                  .eq(Comment.DELETED, false)
                   .eq(Comment.TARGET_ENTITY, owner.getUniqueName())
-                  .where(Or.of(FieldOperator.on(Comment.PERSON_ENTITY).eq(UserContext.getCurrentUser().getUserId()),
-                               FieldOperator.on(Comment.PUBLIC_VISIBLE).eq(true)))
+                  .eq(Comment.PUBLIC_VISIBLE, true)
                   .queryList();
-
     }
 
+    /**
+     * Computes the autorisation hash required to use the REST API provided by {@link CommentsController}.
+     *
+     * @return the autorisation hash for this entity to use the rest api
+     */
+    public String getAuthHash() {
+        return CommentsController.computeAuthHash(owner.getUniqueName());
+    }
+
+    /**
+     * Adds a new comment to this entity.
+     *
+     * @param personName    the name of the person which created the comment
+     * @param personEntity  the unique name of the person which created the comment
+     * @param comment       the comment itself
+     * @param publicVisible determines if the comment is public visible
+     */
     public void addComment(String personName, String personEntity, String comment, boolean publicVisible) {
         if (Strings.isEmpty(comment)) {
             return;
@@ -81,21 +106,5 @@ public class Commented extends Composite {
         commentEntity.setTextContent(comment);
         commentEntity.setPublicVisible(publicVisible);
         oma.update(commentEntity);
-    }
-
-    public void addCommentAsCurrentUser(String comment) {
-        UserInfo currentUser = UserContext.getCurrentUser();
-        addComment(currentUser.getUserObject(UserAccount.class).getPerson().toString(),
-                   currentUser.getUserId(),
-                   comment,
-                   false);
-    }
-
-    public void addPublicCommentAsCurrentUser(String comment) {
-        UserInfo currentUser = UserContext.getCurrentUser();
-               addComment(currentUser.getUserObject(UserAccount.class).getPerson().toString(),
-                   currentUser.getUserId(),
-                   comment,
-                   true);
     }
 }

@@ -1,0 +1,56 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.xrm.Person" name="person"/>
+<i:invoke template="templates/xrm/person.html.pasta" company="company" person="person" page="details">
+    <w:editForm url="@apply('/person/%s/edit', person.getIdAsString())">
+        <div class="row">
+            <w:codelistSelect name="person_salutation"
+                              value="@person.getPerson().getSalutation()"
+                              list="salutations"
+                              optional="true"
+                              labelKey="PersonData.salutation"
+                              span="2" />
+            <w:textfield name="person_title" value="@person.getPerson().getTitle()" labelKey="PersonData.title" span="2" />
+            <w:textfield name="person_firstname" value="@person.getPerson().getFirstname()" labelKey="PersonData.firstname" span="4" />
+            <w:textfield name="person_lastname" value="@person.getPerson().getLastname()" labelKey="PersonData.lastname" span="4" required="true" />
+        </div>
+        <div class="row">
+            <w:autocompleteMultiSelect span="12" name="tags" labelKey="Tag.plural" serviceUri="/tags/COMPANY/autocomplete"
+                                       optional="true">
+                <i:for type="woody.core.tags.Tag" var="tag" items="person.getTags().getTags()">
+                    <option value="@tag.getName()" selected>@tag.getName()</option>
+                </i:for>
+            </w:autocompleteMultiSelect>
+        </div>
+
+        <w:subHeading labelKey="Person.contact" />
+        <div class="row">
+            <w:textfield name="contact_phone" value="@person.getContact().getPhone()" labelKey="ContactData.phone" />
+            <w:textfield name="contact_email" value="@person.getContact().getEmail()" labelKey="ContactData.email" />
+            <w:textfield name="contact_mobile" value="@person.getContact().getMobile()" labelKey="ContactData.mobile" />
+            <w:textfield name="contact_fax" value="@person.getContact().getFax()" labelKey="ContactData.fax" />
+        </div>
+
+        <w:subHeading labelKey="Model.address" />
+        <div class="row">
+            <w:textfield name="address_street" value="@person.getAddress().getStreet()" labelKey="AddressData.street" span="12" />
+            <w:textfield name="address_zip" value="@person.getAddress().getZip()" labelKey="AddressData.zip" span="4" />
+            <w:textfield name="address_city" value="@person.getAddress().getCity()" labelKey="AddressData.city" span="8" />
+            <w:codelistSelect name="address_country"
+                              value="@person.getAddress().getCountry()"
+                              list="countries"
+                              optional="true"
+                              labelKey="InternationalAddressData.country"
+                              span="12" />
+        </div>
+
+        <w:subHeading labelKey="Model.other" />
+        <div class="row">
+            <w:textfield name="birthday" value="@toUserString(person.getBirthday())" labelKey="Person.birthday" span="4" />
+        </div>
+
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@person.getTrace()" />
+    </w:formBar>
+</i:invoke>

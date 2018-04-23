@@ -323,15 +323,15 @@ public class OfferItem extends BizEntity {
                 if (isService()) {
                     if (singlePrice.isZeroOrNull()) {
                         //  is a price for this company present? -> take the company-price
-                        CompanyAccountingData companyAccountingData = company.getCompanyAccountingData();
-                        if(companyAccountingData != null && companyAccountingData.getPtPrice() != null) {
-                                singlePrice = companyAccountingData.getPtPrice();
-                                priceBase = "Firma";
-                        } else {
-                                // is a Package-price present? --> take the package-price
-                                singlePrice = packageDefinition.getValue().getUnitPrice();
-                                priceBase = "Paket";
-                        }
+//                        CompanyAccountingData companyAccountingData = company.getCompanyAccountingData();
+//                        if(companyAccountingData != null && companyAccountingData.getPtPrice() != null) {
+//                                singlePrice = companyAccountingData.getPtPrice();
+//                                priceBase = "Firma";
+//                        } else {
+//                                // is a Package-price present? --> take the package-price
+//                                singlePrice = packageDefinition.getValue().getUnitPrice();
+//                                priceBase = "Paket";
+//                        }
                     }
                     // check the singlePrice of a service (e.g. 800 EUR/day)
                     if (singlePrice.isZeroOrNull()) {

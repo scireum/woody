@@ -216,7 +216,7 @@ public class Contract extends BizEntity {
         }
 
         // check the parameter-syntax
-        asb.checkParameterSyntax(this.getParameter());
+      //  asb.checkParameterSyntax(this.getParameter());
 
         // check the customerNr of the company, because the customerNr is needed to account the contract
         checkCustomerNr(getCompany().getValue());
@@ -261,7 +261,7 @@ public class Contract extends BizEntity {
         }
 
         //check the singlePriceState
-        asb.checkContractSinglePriceState(this);
+    //    asb.checkContractSinglePriceState(this);
 
         // check the start and end-date in relation to now. A warning is generated if the duration is > 180 days
         if (getStartDate() != null && (LocalDate.now().minusDays(180).isAfter(getStartDate()) || LocalDate.now()
@@ -400,7 +400,7 @@ public class Contract extends BizEntity {
      * checks the customerNr
      */
     private void checkCustomerNr(Company company) {
-        String customerNr = company.getCustomerNr();
+        String customerNr = company.getCustomerNumber();
         if (Strings.isEmpty(customerNr)) {
             throw Exceptions.createHandled()
                             .withNLSKey("woody.xrm.Contract.customerNrMissing")

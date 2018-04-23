@@ -1,0 +1,76 @@
+<i:arg type="java.lang.Object" name="object"/>
+
+<i:if test="object.is(woody.core.relations.HasRelations.class)">
+    <i:local name="relations" value="object.as(woody.core.relations.HasRelations.class).getRelations()" />
+    <w:infobox titleKey="Relation.plural" color="@colors.getColorForType('RELATIONS')">
+
+        <i:local name="relationList" value="relations.getRelations()"/>
+        <i:if test="!relationList.isEmpty()">
+            <table class="table no-border">
+                <i:for type="woody.core.relations.Relation" var="relation" items="relationList">
+                    <tr>
+                        <td>
+                            <span class="relation-color-block" style="background-color: @relation.getColor()">&nbsp;
+                            </span><span class="relation-info-block">
+                                <span class="relation-info-type">@relation.getRelationType()</span>
+                                <span class="relation-info-target">
+                                    <i:local name="nameAndUri" value="relations.getTargetNameAndUri(relation)"/>
+                                    <i:if test="nameAndUri != null">
+                                        <i:if test="nameAndUri.getSecond() != null">
+                                            <a href="@nameAndUri.getSecond()" target="_blank">@nameAndUri.getFirst()</a>
+                                            <i:else>
+                                                @nameAndUri.getFirst()
+                                            </i:else>
+                                        </i:if>
+                                    </i:if>
+                                </span>
+                            </span>
+                        </td>
+                        <td class="align-right">
+                            <i class="fa fa-trash"></i>
+                            <a class="link link-danger" href="javascript:deleteRelation('@relation.getId()')">
+                                @i18n("NLS.delete")
+                            </a>
+                        </td>
+                    </tr>
+                </i:for>
+            </table>
+        </i:if>
+
+        <div class="row">
+            <w:autocompleteSingleSelect id="relationId" span="12" name="relationId"
+                                        labelKey="Relations.add"
+                                        serviceUri="@apply('/relations/autocomplete/%s', relations.getTargetsString())"/>
+        </div>
+
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('#relationId').on('change', function() {
+                    $.getJSON('/relations/add/@relations.getSourceString()', {
+                        authHash: '@relations.getAuthHash()',
+                        relationId: $('#relationId').val()
+                    }, function (json) {
+                        if (json.error) {
+                            addErrorMessage(json.message);
+                        } else if (json.refresh) {
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+
+            function deleteRelation(id) {
+                $.getJSON('/relations/delete/' + id, {
+                    authHash: '@relations.getAuthHash()'
+                }, function (json) {
+                    if (json.error) {
+                        addErrorMessage(json.message);
+                    } else if (json.refresh) {
+                        window.location.reload();
+                    }
+                });
+            }
+        </script>
+    </w:infobox>
+</i:if>

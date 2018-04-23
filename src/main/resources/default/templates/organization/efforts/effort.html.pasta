@@ -1,0 +1,51 @@
+<i:arg type="woody.organization.efforts.Effort" name="effort"/>
+<i:arg type="String" name="page"/>
+<i:local name="type"
+         value="@effort.getType().getValue().as(woody.organization.efforts.EffortType.class)"/>
+<i:local name="category"
+         value="@type.getCategory().getValue().as(woody.organization.categories.Category.class)"/>
+
+<w:page title="@effort.toString()">
+    <i:block name="breadcrumbs">
+        <li><a href="/efforts/@category.getTechnicalName()">@category.getName()</a></li>
+        <li><a href="/effort/@effort.getId()">@effort</a></li>
+        <i:render name="breadcrumbs"/>
+    </i:block>
+
+    <w:pageHeader title="@effort.toString()"/>
+
+    <div class="row">
+        <i:if test="!effort.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@effort.getColor()">
+                    <w:infoboxElement labelKey="Model.type" value="@effort.getType().getValue()"/>
+                    <w:infoboxElement labelKey="Model.code" value="@effort.getCode()"/>
+                    <w:infoboxElement labelKey="Model.name" value="@effort.getName()"/>
+                    <w:infoboxElement labelKey="Effort.startDate" value="@effort.getStartDate()"/>
+                    <w:infoboxElement labelKey="Effort.endDate" value="@effort.getEndDate()"/>
+                    <w:infoboxElement>
+                        <woody:tags tagged="@effort.getTags()" />
+                    </w:infoboxElement>
+
+                    <i:extensions name="templates-effort-sidebar-infos" company="effort" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-effort-sidebar-additional" company="effort" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/effort/%s', effort.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/effort/%s/edit', effort.getId())"
+                                  active="page == 'details'"/>
+
+                    <i:extensions name="templates-effort-sidebar-menu" company="effort" page="page"/>
+                </w:navbox>
+
+                <a href="/efforts/@category.getTechnicalName()" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (effort.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

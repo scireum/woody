@@ -1,0 +1,12 @@
+<i:arg type="String" name="name" default="color_color" />
+<i:arg type="woody.core.colors.ColorData" name="colorData" default="" />
+<i:arg type="sirius.db.mixing.EntityRef" name="colorRef" default="colorData.getColor()" />
+<i:arg type="int" name="span" default="6" />
+
+<w:singleSelect name="@name" labelKey="Model.color" optional="true" span="@span">
+    <i:for type="woody.core.colors.ColorDefinition" var="color" items="colors.getColorDefinitions()">
+        <option value="@color.getIdAsString()" @if (colorRef.is(color)) { selected="selected" }>
+            &lt;span style="display: inline-block; line-height: 16px; height: 16px; width: 16px; background-color: @color.getHexCode(); margin-right: 8px; border-radius: 2px"&gt;&amp;nbsp;&lt;/span&gt; @color.getName()
+        </option>
+    </i:for>
+</w:singleSelect>

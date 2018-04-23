@@ -1,0 +1,4 @@
+<i:arg type="sirius.biz.tenants.UserAccount" name="account" />
+<i:arg type="String" name="page" />
+
+<w:navboxLink labelKey="Model.employee" url="@apply('/user-account/%s/employee', account.getId())" active="page == 'employee'"/>
