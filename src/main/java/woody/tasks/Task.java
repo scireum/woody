@@ -36,7 +36,6 @@ public class Task extends TenantAware {
      * The creator of the task.
      */
     public static final Column REPORTER = Column.named("reporter");
-    @NullAllowed
     @Autoloaded
     private final EntityRef<UserAccount> reporter = EntityRef.on(UserAccount.class, EntityRef.OnDelete.SET_NULL);
 
