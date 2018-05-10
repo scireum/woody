@@ -34,17 +34,11 @@ public class TasksController extends BizController {
     @Permission(MANAGE_TASKS)
     @Routed("/tasks")
     public void tasks(WebContext ctx) {
-//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-//        SmartQuery<Task> query = oma.select(Task.class).orderAsc(Task.ID);
-//        search.applyQueries(query,
-//                            Task.DESCRIPTION,
-//                            Task.PERSON.join(Person.PERSON).inner(PersonData.LASTNAME),
-//                            Task.COMPANY.join(Company.NAME),
-//                            Task.PROJECT.join(Project.DESCRIPTION));
-//        Tagged.applyTagSuggestions(Task.class, search, query);
-        PageHelper<Task> ph = PageHelper.withQuery(oma.select(Task.class).orderAsc(Task.ID)).forCurrentTenant();
-        ph.withContext(ctx);
-        ctx.respondWith().template("view/tasks/tasks.html", ph.asPage());
+        PageHelper<Task> pageHelper = PageHelper.withQuery(oma.select(Task.class).orderAsc(Task.ID)).forCurrentTenant();
+        pageHelper.withContext(ctx);
+
+        pageHelper.withSearchFields(Task.ASSIGNEE, Task.TAGS);
+        ctx.respondWith().template("templates/tasks/tasks.html.pasta", pageHelper.asPage());
     }
 
 //    @LoginRequired

@@ -1,0 +1,57 @@
+<i:arg type="Page" name="tasks" />
+
+<w:page titleKey="Task.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/task">@i18n("Task.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Task.plural" />
+
+    <w:tableSearchHeader page="@tasks" baseUrl="@call.getRequestedURI()">
+        <a class="btn btn-primary" href="/task/new">@i18n("Model.create")</a>
+    </w:tableSearchHeader>
+
+    <w:table data="@tasks">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.id")<br>
+                <small class="muted">@i18n("Task.age")</small>
+            </th>
+            <th>
+                @i18n("Task.description")<br>
+                <small class="muted">@i18n("Tag.plural")</small>
+            </th>
+            <th>
+                @i18n("Task.person")<br>
+                <small class="muted">@i18n("Task.project")</small>
+            </th>
+            <th>
+                @i18n("Task.reporter")<br>
+                <small class="muted">@i18n("Task.assigned")</small>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.tasks.Task" var="task" items="tasks.getItems()">
+            <tr>
+                <td>
+                    @task.getId()<br>
+                    <span title="@toUserString(task.getTrace().getCreatedAt())">@task.getAge()</span>
+                </td>
+                <td>
+                    <a class="link" href="/task/@task.getId()">@task.getDescription()</a><br>
+                    <i><small>@task.getTags().getTagsAsString()</small></i>
+                </td>
+                <td>
+
+                </td>
+                <td>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="@tasks" baseUrl="@call.getRequestedURI()" />
+</w:page>
