@@ -9,75 +9,105 @@
 package woody.tasks;
 
 import sirius.biz.tenants.TenantAware;
-import sirius.biz.tenants.Tenants;
 import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
-import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
-import sirius.kernel.di.std.Part;
+import sirius.kernel.commons.Strings;
+import sirius.kernel.nls.NLS;
 import woody.core.comments.Commented;
 import woody.core.tags.Tagged;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 /**
- * Created by aha on 18.08.15.
+ * Holds basic information about a task to be done.
+ * <p>
+ * This includes information about the reporter, assignee, description and more.
  */
+@SuppressWarnings({"squid:S1845", "squid:S2160", "squid:MaximumInheritanceDepth"})
 public class Task extends TenantAware {
 
-    @Length(1024)
-    @Autoloaded
-    private String description;
-    public static final Column DESCRIPTION = Column.named("description");
-
+    /**
+     * The creator of the task.
+     */
+    public static final Column REPORTER = Column.named("reporter");
     @NullAllowed
     @Autoloaded
     private final EntityRef<UserAccount> reporter = EntityRef.on(UserAccount.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column REPORTER = Column.named("reporter");
 
+    /**
+     * The currently assigned {@link UserAccount user} who works on the task.
+     */
+    public static final Column ASSIGNEE = Column.named("assignee");
     @NullAllowed
     @Autoloaded
     private final EntityRef<UserAccount> assignee = EntityRef.on(UserAccount.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column ASSIGNEE = Column.named("assignee");
 
+    public static final Column TITLE = Column.named("title");
     @Autoloaded
-    private boolean hidden;
-    public static final Column HIDDEN = Column.named("hidden");
+    @Length(255)
+    private String title;
 
+    public static final Column DESCRIPTION = Column.named("description");
+    @Length(2048)
     @Autoloaded
-    private boolean done;
-    public static final Column DONE = Column.named("done");
+    private String description;
 
+    /**
+     * The {@link LocalDate} defining the last possible day the task needs to be finished.
+     */
+    public static final Column DEADLINE = Column.named("deadline");
     @NullAllowed
     @Autoloaded
     private LocalDate deadline;
-    public static final Column DEADLINE = Column.named("deadline");
+
+    /**
+     * The actual {@link LocalDateTime} the task is finished.
+     */
+    public static final Column CLOSED = Column.named("closed");
+    @NullAllowed
+    private LocalDateTime closed;
+
+    /**
+     * Provides information about the current state of this task.
+     */
+    public static final Column STATE = Column.named("state");
+    @Autoloaded
+    private TaskState state;
 
     private final Tagged tags = new Tagged(this);
-    public static final Column TAGS = Column.named("tags");
 
     private final Commented comments = new Commented(this);
-    public static final Column COMMENTS = Column.named("comments");
 
-    @Part
-    private Tenants tenants;
-
-    @BeforeSave
-    protected void verify() {
-        if (getReporter().isEmpty()) {
-            getReporter().setValue(tenants.getRequiredUser());
-        }
-        if (isHidden()) {
-            getAssignee().setValue(tenants.getRequiredUser());
-        }
-    }
 
     public String getAge() {
         return String.valueOf(ChronoUnit.DAYS.between(getTrace().getCreatedAt().toLocalDate(), LocalDate.now()));
+    }
+
+    @Override
+    public String toString() {
+        return isNew() ? NLS.get("Task.new") : Strings.apply("%s %s", NLS.get("Model.task"), id);
+    }
+
+    public EntityRef<UserAccount> getReporter() {
+        return reporter;
+    }
+
+    public EntityRef<UserAccount> getAssignee() {
+        return assignee;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getDescription() {
@@ -88,30 +118,6 @@ public class Task extends TenantAware {
         this.description = description;
     }
 
-    public EntityRef<UserAccount> getAssignee() {
-        return assignee;
-    }
-
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public void setHidden(boolean hidden) {
-        this.hidden = hidden;
-    }
-
-    public EntityRef<UserAccount> getReporter() {
-        return reporter;
-    }
-
-    public boolean isDone() {
-        return done;
-    }
-
-    public void setDone(boolean done) {
-        this.done = done;
-    }
-
     public LocalDate getDeadline() {
         return deadline;
     }
@@ -120,11 +126,27 @@ public class Task extends TenantAware {
         this.deadline = deadline;
     }
 
+    public LocalDateTime getClosed() {
+        return closed;
+    }
+
+    public void setClosed(LocalDateTime closed) {
+        this.closed = closed;
+    }
+
     public Tagged getTags() {
         return tags;
     }
 
     public Commented getComments() {
         return comments;
+    }
+
+    public TaskState getState() {
+        return state;
+    }
+
+    public void setState(TaskState state) {
+        this.state = state;
     }
 }
