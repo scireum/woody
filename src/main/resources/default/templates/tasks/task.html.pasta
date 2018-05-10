@@ -1,0 +1,36 @@
+<i:arg type="woody.tasks.Task" name="task" />
+
+<w:page title="@task.toString()">
+    <i:block name="breadcrumbs">
+        <li>
+            <a href="/tasks">@i18n("Task.plural")</a>
+        </li>
+        <li>
+            <a href="@call.getRequestedURI()">@task</a>
+        </li>
+    </i:block>
+
+    <w:pageHeader title="@task.toString()" />
+
+    <w:editForm url="@call.getRequestedURI()">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row">
+                    <w:textfield labelKey="Task.title" name="title" value="@task.getTitle()" span="12" />
+                    <w:textarea rows="8" labelKey="Task.description" name="description"
+                                value="@task.getDescription()" span="12" />
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="row">
+                    <w:datefield labelKey="Task.deadline" name="deadline" value="@toUserString(task.getDeadline())" />
+                    <w:textfield labelKey="Task.state" name="" value="@task.getState().toString()" readonly="true" />
+                </div>
+            </div>
+
+        </div>
+    </w:editForm>
+
+    <w:formBar backUrl="/tasks" />
+</w:page>

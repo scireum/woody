@@ -8,6 +8,7 @@
 
 package woody.tasks;
 
+import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.kernel.di.std.Register;
@@ -19,76 +20,72 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 
-import java.util.Optional;
-
 /**
- * Created by aha on 18.08.15.
+ * Provides methods to handle {@link Task tasks}.
  */
 @Register(classes = Controller.class)
 public class TasksController extends BizController {
 
     private static final String MANAGE_TASKS = "permission-manage-tasks";
 
+    /**
+     * Provides a default tasks overview.
+     *
+     * @param ctx the current request
+     */
     @DefaultRoute
     @LoginRequired
     @Permission(MANAGE_TASKS)
     @Routed("/tasks")
     public void tasks(WebContext ctx) {
-//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-//        SmartQuery<Task> query = oma.select(Task.class).orderAsc(Task.ID);
-//        search.applyQueries(query,
-//                            Task.DESCRIPTION,
-//                            Task.PERSON.join(Person.PERSON).inner(PersonData.LASTNAME),
-//                            Task.COMPANY.join(Company.NAME),
-//                            Task.PROJECT.join(Project.DESCRIPTION));
-//        Tagged.applyTagSuggestions(Task.class, search, query);
-        PageHelper<Task> ph = PageHelper.withQuery(oma.select(Task.class).orderAsc(Task.ID)).forCurrentTenant();
-        ph.withContext(ctx);
-        ctx.respondWith().template("view/tasks/tasks.html", ph.asPage());
+        PageHelper<Task> pageHelper = PageHelper.withQuery(oma.select(Task.class).orderAsc(Task.ID)).forCurrentTenant();
+        pageHelper.withContext(ctx);
+
+        pageHelper.withSearchFields(Task.ASSIGNEE, Task.TITLE);
+        ctx.respondWith().template("templates/tasks/tasks.html.pasta", pageHelper.asPage());
     }
 
-//    @LoginRequired
-//    @Permission(MANAGE_TASKS)
-//    @Routed(value = "/tasks/suggest", jsonCall = true)
-//    public void companiesSuggest(WebContext ctx, JSONStructuredOutput out) {
-//        MagicSearch.generateSuggestions(ctx, (q, c) -> Tagged.computeSuggestions(Task.class, q, c));
-//    }
-
-    @LoginRequired
-    @Permission(MANAGE_TASKS)
-    @Routed("/tasks/:1/delete")
-    public void deleteTasks(WebContext ctx, String id) {
-        Optional<Task> cl = tryFindForTenant(Task.class, id);
-        if (cl.isPresent()) {
-            oma.delete(cl.get());
-            showDeletedMessage();
-        }
-        tasks(ctx);
-    }
-
+    /**
+     * Provides an edit view for a currently selected {@link Task}.
+     *
+     * @param ctx    the current request
+     * @param taskId the id of the current {@link Task}
+     */
     @LoginRequired
     @Permission(MANAGE_TASKS)
     @Routed("/task/:1")
     public void task(WebContext ctx, String taskId) {
-        Task tasks = findForTenant(Task.class, taskId);
-        if (ctx.isPOST()) {
-            try {
-                boolean wasNew = tasks.isNew();
-                if (tasks.isNew()) {
-                    tasks.getTenant().setValue(tenants.getRequiredTenant());
-                }
-                load(ctx, tasks);
-                oma.update(tasks);
-                tasks.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
-                showSavedMessage();
-                if (wasNew) {
-                    ctx.respondWith().redirectTemporarily( "/task/" + tasks.getId());
-                    return;
-                }
-            } catch (Throwable e) {
-                UserContext.handle(e);
-            }
+        Task task = findForTenant(Task.class, taskId);
+
+        if (task.isNew()) {
+            task.getReporter().setValue(UserContext.getCurrentUser().as(UserAccount.class));
+            task.setState(TaskState.OPEN);
         }
-        ctx.respondWith().template("view/tasks/task.html", tasks);
+
+
+        boolean requestHandled = prepareSave(ctx).withAfterCreateURI("/task/${id}")
+                .withAfterSaveURI(ctx.getRequestedURI())
+                .saveEntity(task);
+
+        if (!requestHandled) {
+            ctx.respondWith().template("templates/tasks/task.html.pasta", task);
+        }
+    }
+
+    /**
+     * Provides a route to delete a task
+     *
+     * @param ctx the current request
+     * @param id  the id of the task to delete
+     */
+    @LoginRequired
+    @Permission(MANAGE_TASKS)
+    @Routed("/tasks/:1/delete")
+    public void deleteTasks(WebContext ctx, String id) {
+        Task task = findForTenant(Task.class, id);
+        oma.delete(task);
+        showDeletedMessage();
+
+        tasks(ctx);
     }
 }
