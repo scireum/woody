@@ -9,8 +9,9 @@
 package woody.organization.things;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
 import sirius.web.controller.Controller;
@@ -36,19 +37,18 @@ public class ThingTypeController extends BizController {
     @Permission(PERMISSION_MANAGE_THING_TYPES)
     @Routed("/things/types")
     public void types(WebContext ctx) {
-        PageHelper<ThingType> ph = PageHelper.withQuery(oma.select(ThingType.class)
-                                                           .fields(ThingType.ID,
-                                                                   ThingType.NAME,
-                                                                   ThingType.DESCRIPTION,
-                                                                   ThingType.CATEGORY.join(Category.ID),
-                                                                   ThingType.CATEGORY.join(Category.NAME),
-                                                                   ThingType.COLOR.inner(ColorData.COLOR)
-                                                                                  .join(ColorDefinition.NAME),
-                                                                   ThingType.COLOR.inner(ColorData.COLOR)
-                                                                                  .join(ColorDefinition.HEX_CODE))
-                                                           .orderAsc(ThingType.NAME));
+        SmartQuery<ThingType> query = oma.select(ThingType.class)
+                                         .fields(ThingType.ID,
+                                                 ThingType.NAME,
+                                                 ThingType.DESCRIPTION,
+                                                 ThingType.CATEGORY.join(Category.ID),
+                                                 ThingType.CATEGORY.join(Category.NAME),
+                                                 ThingType.COLOR.inner(ColorData.COLOR).join(ColorDefinition.NAME),
+                                                 ThingType.COLOR.inner(ColorData.COLOR).join(ColorDefinition.HEX_CODE))
+                                         .orderAsc(ThingType.NAME);
+        SQLPageHelper<ThingType> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
         ph.withContext(ctx);
-        ph.withSearchFields(ThingType.NAME, ThingType.DESCRIPTION).forCurrentTenant();
+        ph.withSearchFields(QueryField.contains(ThingType.NAME), QueryField.contains(ThingType.DESCRIPTION));
 
         ph.addQueryFacet(BasicType.CATEGORY.getName(),
                          NLS.get("BasicType.category"),
@@ -60,7 +60,7 @@ public class ThingTypeController extends BizController {
     protected SmartQuery<Category> queryCategories() {
         return oma.select(Category.class)
                   .fields(Category.ID, Category.NAME)
-                  .eq(Category.TENANT, currentTenant())
+                  .eq(Category.TENANT, tenants.getRequiredTenant())
                   .eq(Category.TYPE, ThingCategoryTypeProvider.TYPE_NAME)
                   .orderAsc(Category.NAME);
     }

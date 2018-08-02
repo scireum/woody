@@ -72,7 +72,7 @@ Comments, Ende
 Mails, Beginn:<br>
 
 
-@for(woody.core.mails.Mail mail : person.getMailed().getAllMails()) {
+@for(woody.xrm.tracking.mails.Mail mail : person.getMailed().getAllMails()) {
 <div class="mail">
     <table>
         <tr><td>@mail.getEmployeeEntity().getValue().toString() (@mail.getSenderAddress()) an @mail.getPersonEntity().getValue().toString() (@mail.getReceiverAddress()) am @NLS.toUserString(mail.getSendDate()) Uhr</td></tr>

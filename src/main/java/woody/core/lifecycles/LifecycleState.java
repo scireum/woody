@@ -8,12 +8,12 @@
 
 package woody.core.lifecycles;
 
-import sirius.biz.tenants.TenantAware;
-import sirius.db.mixing.Column;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
+import sirius.db.mixing.Mapping;
 
-public class LifecycleState extends TenantAware {
+public class LifecycleState extends SQLTenantAware {
 
-    public Column STAGE = Column.named("stage");
+    public Mapping STAGE = Mapping.named("stage");
     private Stage stage = Stage.ACTIVE;
 
     public Stage getStage() {

@@ -8,8 +8,8 @@
 
 package woody.core.relations;
 
+import sirius.db.jdbc.SQLEntity;
 import sirius.db.mixing.Composite;
-import sirius.db.mixing.Entity;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
 import sirius.kernel.commons.ComparableTuple;
@@ -24,7 +24,7 @@ import java.util.List;
 public class Relations extends Composite {
 
     @Transient
-    protected final Entity owner;
+    protected final SQLEntity owner;
 
     @Part
     private static GlobalContext context;
@@ -32,7 +32,7 @@ public class Relations extends Composite {
     @Part
     private static RelationHelper helper;
 
-    public Relations(Entity owner) {
+    public Relations(SQLEntity owner) {
         this.owner = owner;
     }
 

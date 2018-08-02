@@ -8,9 +8,9 @@
 
 package woody.organization.categories;
 
-import sirius.biz.tenants.TenantAware;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
@@ -26,42 +26,42 @@ import woody.organization.OrganizationHelper;
 /**
  * Created by aha on 11.01.17.
  */
-public class Category extends TenantAware {
+public class Category extends SQLTenantAware {
 
-    public static final Column NAME = Column.named("name");
+    public static final Mapping NAME = Mapping.named("name");
     @Length(100)
     @Autoloaded
     private String name;
 
-    public static final Column TYPE = Column.named("type");
+    public static final Mapping TYPE = Mapping.named("type");
     @Length(50)
     private String type;
 
-    public static final Column TECHNICAL_NAME = Column.named("technicalName");
+    public static final Mapping TECHNICAL_NAME = Mapping.named("technicalName");
     @Unique(within = {"tenant", "type"})
     @Length(100)
     @Autoloaded
     private String technicalName;
 
-    public static final Column VIEW_ROLE = Column.named("viewRole");
+    public static final Mapping VIEW_ROLE = Mapping.named("viewRole");
     @Length(100)
     @Autoloaded
     @NullAllowed
     private String viewRole;
 
-    public static final Column EDIT_ROLE = Column.named("editRole");
+    public static final Mapping EDIT_ROLE = Mapping.named("editRole");
     @Length(100)
     @Autoloaded
     @NullAllowed
     private String editRole;
 
-    public static final Column DESCRIPTION = Column.named("description");
+    public static final Mapping DESCRIPTION = Mapping.named("description");
     @Length(1024)
     @Autoloaded
     @NullAllowed
     private String description;
 
-    public static final Column COLOR = Column.named("color");
+    public static final Mapping COLOR = Mapping.named("color");
     private final ColorData color = new ColorData();
 
     @Part

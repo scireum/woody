@@ -10,11 +10,11 @@ package woody.core.relations;
 
 import sirius.biz.protocol.JournalData;
 import sirius.biz.protocol.Journaled;
-import sirius.db.mixing.Column;
-import sirius.db.mixing.Entity;
-import sirius.db.mixing.EntityRef;
-import sirius.db.mixing.OMA;
-import sirius.db.mixing.Schema;
+import sirius.db.jdbc.OMA;
+import sirius.db.jdbc.SQLEntity;
+import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.jdbc.schema.Schema;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Index;
@@ -35,7 +35,7 @@ import woody.core.colors.Colors;
  */
 @Index(name = "owner_lookup", columns = {"ownerType", "ownerId", "target"})
 @Index(name = "target_lookup", columns = {"target", "ownerType", "ownerId"})
-public class Relation extends Entity {
+public class Relation extends SQLEntity {
 
     /**
      * Contains the type name of the source of the relation.
@@ -43,7 +43,7 @@ public class Relation extends Entity {
      * The <tt>unique object name</tt> of the source (owner) is split into two fields to support effective joins within
      * SQL queries.
      */
-    public static final Column OWNER_TYPE = Column.named("ownerType");
+    public static final Mapping OWNER_TYPE = Mapping.named("ownerType");
     @Length(100)
     private String ownerType;
 
@@ -52,21 +52,21 @@ public class Relation extends Entity {
      *
      * @see #OWNER_TYPE
      */
-    public static final Column OWNER_ID = Column.named("ownerId");
+    public static final Mapping OWNER_ID = Mapping.named("ownerId");
     private long ownerId;
 
     /**
      * Contains the unique object name of the destination of the relation.
      */
-    public static final Column TARGET = Column.named("target");
+    public static final Mapping TARGET = Mapping.named("target");
     @Length(255)
     private String target;
 
     /**
      * Contains the type of the relations.
      */
-    public static final Column TYPE = Column.named("type");
-    private final EntityRef<RelationType> type = EntityRef.on(RelationType.class, EntityRef.OnDelete.CASCADE);
+    public static final Mapping TYPE = Mapping.named("type");
+    private final SQLEntityRef<RelationType> type = SQLEntityRef.on(RelationType.class, SQLEntityRef.OnDelete.CASCADE);
 
     @Part
     private static OMA oma;
@@ -87,7 +87,7 @@ public class Relation extends Entity {
     @BeforeSave
     protected void onSave() {
         String uniqueOwnerName = ownerType + "-" + ownerId;
-        Entity owner = oma.resolve(uniqueOwnerName).orElse(null);
+        SQLEntity owner = oma.resolve(uniqueOwnerName).orElse(null);
         if (owner instanceof Journaled) {
             JournalData.addJournalEntry(owner,
                                         Strings.apply("The relationship '%s' to '%s' was added",
@@ -99,7 +99,7 @@ public class Relation extends Entity {
     @BeforeDelete
     protected void onDelete() {
         String uniqueOwnerName = ownerType + "-" + ownerId;
-        Entity owner = oma.resolve(uniqueOwnerName).orElse(null);
+        SQLEntity owner = oma.resolve(uniqueOwnerName).orElse(null);
         if (owner instanceof Journaled) {
             JournalData.addJournalEntry(owner,
                                         Strings.apply("The relationship '%s' to '%s' was deleted",
@@ -141,7 +141,7 @@ public class Relation extends Entity {
         this.target = target;
     }
 
-    public EntityRef<RelationType> getType() {
+    public SQLEntityRef<RelationType> getType() {
         return type;
     }
 

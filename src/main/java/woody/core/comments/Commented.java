@@ -8,8 +8,8 @@
 
 package woody.core.comments;
 
+import sirius.db.jdbc.SQLEntity;
 import sirius.db.mixing.Composite;
-import sirius.db.mixing.Entity;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
 import sirius.kernel.commons.Strings;
@@ -25,12 +25,12 @@ import java.util.List;
 public class Commented extends Composite {
 
     @Transient
-    protected final Entity owner;
+    protected final SQLEntity owner;
 
     /**
      * Creates a new comments facility for the given entity.
      */
-    public Commented(Entity owner) {
+    public Commented(SQLEntity owner) {
         this.owner = owner;
     }
 

@@ -8,8 +8,9 @@
 
 package woody.core.comments;
 
-import sirius.db.mixing.Column;
-import sirius.db.mixing.Entity;
+import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.db.jdbc.SQLEntity;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Index;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Lob;
@@ -28,7 +29,7 @@ import java.time.LocalDateTime;
  * of the <tt>Commented</tt> composite.
  */
 @Index(name = "target_lookup", columns = "targetEntity")
-public class Comment extends Entity {
+public class Comment extends SQLEntity {
 
     /**
      * Users having this permission can edit all comments, not just their own.
@@ -38,56 +39,56 @@ public class Comment extends Entity {
     /**
      * Contains the unique object name of the entity to which this comment belongs.
      *
-     * @see Entity#getUniqueName()
+     * @see SQLEntity#getUniqueName()
      */
-    public static final Column TARGET_ENTITY = Column.named("targetEntity");
+    public static final Mapping TARGET_ENTITY = Mapping.named("targetEntity");
     @Length(255)
     private String targetEntity;
 
     /**
      * Contains the name of the person that created the comment.
      */
-    public static final Column PERSON_NAME = Column.named("personName");
+    public static final Mapping PERSON_NAME = Mapping.named("personName");
     @Length(255)
     private String personName;
 
     /**
      * Contains the unique name of the person which created the comment which is probably either a {@link
-     * sirius.biz.tenants.UserAccount} or {@link woody.xrm.Person}.
+     * UserAccount} or {@link woody.xrm.Person}.
      */
-    public static final Column PERSON_ENTITY = Column.named("personEntity");
+    public static final Mapping PERSON_ENTITY = Mapping.named("personEntity");
     @Length(255)
     private String personEntity;
 
     /**
      * Contains the timestamp when the comment was written.
      */
-    public static final Column TOD = Column.named("tod");
+    public static final Mapping TOD = Mapping.named("tod");
     private LocalDateTime tod;
 
     /**
      * Contains the comment itself
      */
-    public static final Column TEXT_CONTENT = Column.named("textContent");
+    public static final Mapping TEXT_CONTENT = Mapping.named("textContent");
     @Lob
     private String textContent;
 
     /**
      * Determines if the comment is public visible (i.e. to the customer in self-service areas).
      */
-    public static final Column PUBLIC_VISIBLE = Column.named("publicVisible");
+    public static final Mapping PUBLIC_VISIBLE = Mapping.named("publicVisible");
     private boolean publicVisible;
 
     /**
      * Determines if the comment has been deleted.
      */
-    public static final Column DELETED = Column.named("deleted");
+    public static final Mapping DELETED = Mapping.named("deleted");
     private boolean deleted;
 
     /**
      * Determines if the comment has been edited.
      */
-    public static final Column EDITED = Column.named("edited");
+    public static final Mapping EDITED = Mapping.named("edited");
     private boolean edited;
 
     /**

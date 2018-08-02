@@ -8,24 +8,17 @@
 
 package woody.core.employees;
 
-import sirius.biz.model.AddressData;
-import sirius.biz.model.ContactData;
-import sirius.biz.tenants.UserAccount;
+import sirius.biz.jdbc.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.Mixable;
-import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Mixin;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.OnValidate;
 import sirius.db.mixing.annotations.Trim;
-import sirius.kernel.commons.Strings;
-import sirius.kernel.di.std.Part;
-import woody.phoneCalls.Starface;
 import sirius.db.mixing.annotations.Unique;
-import sirius.kernel.commons.Strings;
-import sirius.kernel.health.Exceptions;
+import sirius.kernel.nls.NLS;
 import woody.core.relations.Relateable;
 
 import java.time.LocalDate;
@@ -40,7 +33,7 @@ public class Employee extends Mixable {
     /**
      * Contains the employee number assigned to the user.
      */
-    public static final Column EMPLOYEE_NUMBER = Column.named("employeeNumber");
+    public static final Mapping EMPLOYEE_NUMBER = Mapping.named("employeeNumber");
     @Unique(within = "tenant")
     @Trim
     @Length(30)
@@ -51,7 +44,7 @@ public class Employee extends Mixable {
     /**
      * Contains the short name assigned to the user.
      */
-    public static final Column SHORT_NAME = Column.named("shortName");
+    public static final Mapping SHORT_NAME = Mapping.named("shortName");
     @Unique(within = "tenant")
     @Trim
     @Length(30)
@@ -62,7 +55,7 @@ public class Employee extends Mixable {
     /**
      * Contains the phone extension of the user.
      */
-    public static final Column PHONE_EXTENSION = Column.named("phoneExtension");
+    public static final Mapping PHONE_EXTENSION = Mapping.named("phoneExtension");
     @Trim
     @Length(30)
     @NullAllowed
@@ -72,7 +65,7 @@ public class Employee extends Mixable {
     /**
      * Contains the date when the user joined the company.
      */
-    public static final Column JOIN_DATE = Column.named("joinDate");
+    public static final Mapping JOIN_DATE = Mapping.named("joinDate");
     @NullAllowed
     @Autoloaded
     private LocalDate joinDate;
@@ -80,7 +73,7 @@ public class Employee extends Mixable {
     /**
      * Contains the date when the user left the company.
      */
-    public static final Column DISCHARGE_DATE = Column.named("dischargeDate");
+    public static final Mapping DISCHARGE_DATE = Mapping.named("dischargeDate");
     @NullAllowed
     @Autoloaded
     private LocalDate dischargeDate;
@@ -88,7 +81,7 @@ public class Employee extends Mixable {
     /**
      * Contains relations from other objects to this user.
      */
-    public static final Column RELATEABLE = Column.named("relateable");
+    public static final Mapping RELATEABLE = Mapping.named("relateable");
     private final Relateable relateable;
 
     /**
@@ -100,21 +93,11 @@ public class Employee extends Mixable {
         relateable = new Relateable(owner);
     }
 
-    @BeforeSave
-    protected void checkIntegrity(UserAccount parent) {
+    @OnValidate
+    protected void checkIntegrity(UserAccount parent, Consumer<String> problemConsumer) {
         if (getDischargeDate() != null && !parent.getLogin().isAccountLocked()) {
-            throw Exceptions.createHandled().withNLSKey("Employee.cannotDischargeWithoutLock").handle();
+            problemConsumer.accept(NLS.get("Employee.cannotDischargeWithoutLock"));
         }
-
-//        // build the pbxAccessToken
-//        if(pbxId != null && Strings.isFilled(pbxId)) {
-//            String pbxCleartextPassword = pbxId + pbxId + pbxId + pbxId;
-//            pbxAccessToken = stf.buildMd5HexString(pbxId + "*" + pbxCleartextPassword);
-//            pbxCleartextPassword = "";
-//        } else {
-//            pbxAccessToken = null;
-//        }
-
     }
 
     public String getEmployeeNumber() {

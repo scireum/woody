@@ -1,6 +1,6 @@
 <i:arg type="String" name="name" default="color_color" />
 <i:arg type="woody.core.colors.ColorData" name="colorData" default="" />
-<i:arg type="sirius.db.mixing.EntityRef" name="colorRef" default="colorData.getColor()" />
+<i:arg type="sirius.db.jdbc.SQLEntityRef" name="colorRef" default="colorData.getColor()" />
 <i:arg type="int" name="span" default="6" />
 
 <w:singleSelect name="@name" labelKey="Model.color" optional="true" span="@span">

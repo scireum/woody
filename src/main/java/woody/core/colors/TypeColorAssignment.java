@@ -8,24 +8,25 @@
 
 package woody.core.colors;
 
-import sirius.biz.tenants.TenantAware;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
-import sirius.db.mixing.EntityRef;
+import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.kernel.di.std.Part;
 
-public class TypeColorAssignment extends TenantAware {
+public class TypeColorAssignment extends SQLTenantAware {
 
-    public static final Column TYPE = Column.named("type");
+    public static final Mapping TYPE = Mapping.named("type");
     @Length(100)
     private String type;
 
-    public static final Column COLOR = Column.named("color");
+    public static final Mapping COLOR = Mapping.named("color");
     @Autoloaded
-    private final EntityRef<ColorDefinition> color = EntityRef.on(ColorDefinition.class, EntityRef.OnDelete.REJECT);
+    private final SQLEntityRef<ColorDefinition> color =
+            SQLEntityRef.on(ColorDefinition.class, SQLEntityRef.OnDelete.REJECT);
 
     @Part
     private static Colors colors;
@@ -44,7 +45,7 @@ public class TypeColorAssignment extends TenantAware {
         this.type = type;
     }
 
-    public EntityRef<ColorDefinition> getColor() {
+    public SQLEntityRef<ColorDefinition> getColor() {
         return color;
     }
 }

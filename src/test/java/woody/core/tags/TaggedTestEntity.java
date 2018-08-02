@@ -8,8 +8,8 @@
 
 package woody.core.tags;
 
-import sirius.biz.model.BizEntity;
-import sirius.db.mixing.Column;
+import sirius.biz.jdbc.model.BizEntity;
+import sirius.db.mixing.Mapping;
 
 /**
  * Created by aha on 29.11.15.
@@ -17,7 +17,7 @@ import sirius.db.mixing.Column;
 public class TaggedTestEntity extends BizEntity {
 
     private final Tagged tagged = new Tagged(this);
-    public static final Column TAGGED = Column.named("tagged");
+    public static final Mapping TAGGED = Mapping.named("tagged");
 
     public Tagged getTagged() {
         return tagged;

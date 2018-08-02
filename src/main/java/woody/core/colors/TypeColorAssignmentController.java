@@ -33,7 +33,7 @@ public class TypeColorAssignmentController extends BizController {
     @Routed("/colors/assignments")
     public void assignments(WebContext ctx) {
         Map<String, TypeColorAssignment> assignments = oma.select(TypeColorAssignment.class)
-                                                          .eq(TypeColorAssignment.TENANT, currentTenant())
+                                                          .eq(TypeColorAssignment.TENANT, tenants.getRequiredTenant())
                                                           .queryList()
                                                           .stream()
                                                           .collect(Collectors.toMap(TypeColorAssignment::getType,
@@ -46,7 +46,7 @@ public class TypeColorAssignmentController extends BizController {
     @Routed("/colors/assignment/:1/delete")
     public void delete(WebContext ctx, String type) {
         Optional<TypeColorAssignment> assignment = oma.select(TypeColorAssignment.class)
-                                                      .eq(TypeColorAssignment.TENANT, currentTenant())
+                                                      .eq(TypeColorAssignment.TENANT, tenants.getRequiredTenant())
                                                       .eq(TypeColorAssignment.TYPE, type)
                                                       .first();
         if (assignment.isPresent()) {
@@ -61,12 +61,12 @@ public class TypeColorAssignmentController extends BizController {
     @Routed("/colors/assignment/:1")
     public void assignment(WebContext ctx, String type) {
         TypeColorAssignment assignment = oma.select(TypeColorAssignment.class)
-                                            .eq(TypeColorAssignment.TENANT, currentTenant())
+                                            .eq(TypeColorAssignment.TENANT, tenants.getRequiredTenant())
                                             .eq(TypeColorAssignment.TYPE, type)
                                             .queryFirst();
         if (assignment == null) {
             assignment = new TypeColorAssignment();
-            assignment.getTenant().setValue(currentTenant());
+            assignment.getTenant().setValue(tenants.getRequiredTenant());
             assignment.setType(type);
         }
 

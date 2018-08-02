@@ -8,8 +8,8 @@
 
 package woody.xrm
 
-import sirius.biz.tenants.Tenants
-import sirius.db.mixing.OMA
+import sirius.biz.jdbc.tenants.Tenants
+import sirius.db.jdbc.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.commons.Amount
 import sirius.kernel.di.std.Part

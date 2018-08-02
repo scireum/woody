@@ -8,7 +8,7 @@
 
 package woody.core.tags
 
-import sirius.db.mixing.OMA
+import sirius.db.jdbc.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.di.std.Part
 

@@ -9,11 +9,10 @@
 package woody.core.tags;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
 import sirius.db.mixing.EntityDescriptor;
-import sirius.db.mixing.Schema;
-import sirius.db.mixing.constraints.Like;
-import sirius.kernel.di.std.Part;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
 import sirius.web.controller.AutocompleteHelper;
@@ -42,15 +41,12 @@ public class TagController extends BizController {
     private Map<String, String> typeMap;
     private List<String> targetTypes;
 
-    @Part
-    private Schema schema;
-
     public List<String> getTargetTypes() {
         if (targetTypes == null) {
-            targetTypes = schema.getDesciptors()
+            targetTypes = mixing.getDesciptors()
                                 .stream()
                                 .filter(descriptor -> descriptor.hasComposite(Tagged.class))
-                                .map(descriptor -> Schema.getNameForType(descriptor.getType()))
+                                .map(descriptor -> mixing.getNameForType(descriptor.getType()))
                                 .collect(Collectors.toList());
             targetTypes.sort(String::compareTo);
         }
@@ -59,10 +55,10 @@ public class TagController extends BizController {
 
     public String translateType(String targetType) {
         if (typeMap == null) {
-            typeMap = schema.getDesciptors()
+            typeMap = mixing.getDesciptors()
                             .stream()
                             .filter(descriptor -> descriptor.hasComposite(Tagged.class))
-                            .collect(Collectors.toMap(descriptor -> Schema.getNameForType(descriptor.getType()),
+                            .collect(Collectors.toMap(descriptor -> mixing.getNameForType(descriptor.getType()),
                                                       EntityDescriptor::getPluralLabel));
         }
         return typeMap.get(targetType);
@@ -73,16 +69,17 @@ public class TagController extends BizController {
     @Permission(MANAGE_TAGS)
     @Routed("/tags")
     public void tags(WebContext ctx) {
-        PageHelper<Tag> ph = PageHelper.withQuery(oma.select(Tag.class)
-                                                     .fields(Tag.ID,
-                                                             Tag.NAME,
-                                                             Tag.TARGET_TYPE,
-                                                             Tag.COLOR.inner(ColorData.COLOR),
-                                                             Tag.VIEW_IN_LIST)
-                                                     .orderAsc(Tag.TARGET_TYPE)
-                                                     .orderAsc(Tag.NAME));
+        SmartQuery<Tag> query = oma.select(Tag.class)
+                                   .fields(Tag.ID,
+                                           Tag.NAME,
+                                           Tag.TARGET_TYPE,
+                                           Tag.COLOR.inner(ColorData.COLOR),
+                                           Tag.VIEW_IN_LIST)
+                                   .orderAsc(Tag.TARGET_TYPE)
+                                   .orderAsc(Tag.NAME);
+        SQLPageHelper<Tag> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
         ph.withContext(ctx);
-        ph.withSearchFields(Tag.NAME).forCurrentTenant();
+        ph.withSearchFields(QueryField.contains(Tag.NAME));
         Facet typeFilter = new Facet(NLS.get("Tag.targetType"),
                                      Tag.TARGET_TYPE.getName(),
                                      ctx.get(Tag.TARGET_TYPE.getName()).asString(),
@@ -131,12 +128,9 @@ public class TagController extends BizController {
         AutocompleteHelper.handle(ctx,
                                   (query, result) -> oma.select(Tag.class)
                                                         .eq(Tag.TARGET_TYPE, type)
-                                                        .eq(Tag.TENANT, currentTenant())
+                                                        .eq(Tag.TENANT, tenants.getRequiredTenant())
                                                         .orderAsc(Tag.NAME)
-                                                        .where(Like.on(Tag.NAME)
-                                                                   .ignoreCase()
-                                                                   .ignoreEmpty()
-                                                                   .contains(query))
+                                                        .queryString(query, QueryField.contains(Tag.NAME))
                                                         .iterateAll(t -> result.accept(new AutocompleteHelper.Completion(
                                                                 t.getName(),
                                                                 t.getName(),

@@ -8,29 +8,22 @@
 
 package woody.core.mails;
 
-
-import sirius.biz.tenants.UserAccount;
-import sirius.db.mixing.OMA;
+import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.db.jdbc.OMA;
 import sirius.kernel.commons.Context;
-
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
-
 import sirius.kernel.nls.NLS;
 import sirius.web.http.MimeHelper;
 import sirius.web.mails.Mails;
 import sirius.web.templates.Templates;
-
-import woody.offers.Offer;
-import woody.offers.OfferItem;
-
-import woody.offers.OfferItemState;
-import woody.offers.ServiceAccountingService;
-import woody.sales.Contract;
+import woody.sales.accounting.ServiceAccountingService;
+import woody.sales.quotes.Offer;
+import woody.sales.quotes.OfferItem;
 import woody.xrm.Person;
+import woody.xrm.tracking.mails.Mail;
 
 import javax.activation.DataSource;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,14 +32,13 @@ import java.io.OutputStream;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by gerhardhaufler on 26.10.17.
  */
-@Register(classes=SendMailService.class)
+@Register(classes = SendMailService.class)
 public class SendMailServiceBean implements SendMailService {
 
     @Part
@@ -72,22 +64,20 @@ public class SendMailServiceBean implements SendMailService {
         LocalDateTime sendTime = null;
         String plainText = mail.getText();
         Person person = mail.getPersonEntity().getValue();
-        String subject  = mail.getSubject();
+        String subject = mail.getSubject();
         UserAccount uac = mail.getEmployeeEntity().getValue();
         String senderName = uac.getPerson().getAddressableName();
-        String text0 =  "Mail mit Id: {0} an {1} wurde versendet";
+        String text0 = "Mail mit Id: {0} an {1} wurde versendet";
         String text = "";
         switch (function) {
 
             case ServiceAccountingService.OFFER:
             case ServiceAccountingService.SALES_CONFIRMATION:
-                context = sas.prepareContext(offer, mail.getFunction()) ;
+                context = sas.prepareContext(offer, mail.getFunction());
 // ToDo auf pasta umstellen
 //        File fileAttachment = sas.createPdfFromContext(context, "templates/offer.pdf.pasta");
                 File fileAttachment = sas.createPdfFromContext(context, "templates/offer.pdf.vm");
                 context.set("fileAttachment", fileAttachment);
-
-
 
                 String filenamePDF = (String) context.get("filenamePDF");
                 DataSource dataSource = new DataSource() {
@@ -125,17 +115,20 @@ public class SendMailServiceBean implements SendMailService {
                 sendTime = LocalDateTime.now();
                 mail.setSendDate(sendTime);
 
-                text = MessageFormat.format(
-                        text0, mail.getId(), mail.getReceiverAddress());
+                text = MessageFormat.format(text0, mail.getId(), mail.getReceiverAddress());
                 messageList.add(text);
 
                 if (context.get("buyerMail") != null) {
-                    sendMail((String) context.get("employeeMail"), senderName,
-                             (String) context.get("buyerMail"), (String) context.get("buyerName"),
-                             subject, plainText, dataSource, filenamePDF);
+                    sendMail((String) context.get("employeeMail"),
+                             senderName,
+                             (String) context.get("buyerMail"),
+                             (String) context.get("buyerName"),
+                             subject,
+                             plainText,
+                             dataSource,
+                             filenamePDF);
                     mail.setCcAddress((String) context.get("buyerMail"));
-                    text = MessageFormat.format(
-                            text0, mail.getId(), (String) context.get("buyerMail"));
+                    text = MessageFormat.format(text0, mail.getId(), (String) context.get("buyerMail"));
                     messageList.add(text);
                 }
 
@@ -151,8 +144,7 @@ public class SendMailServiceBean implements SendMailService {
                          null);
                 sendTime = LocalDateTime.now();
                 mail.setSendDate(sendTime);
-                text = MessageFormat.format(
-                        text0, mail.getId(), mail.getSenderAddress());
+                text = MessageFormat.format(text0, mail.getId(), mail.getSenderAddress());
                 messageList.add(text);
 
                 break;
@@ -160,64 +152,67 @@ public class SendMailServiceBean implements SendMailService {
 
         // algorithm see MailImporter / private boolean importMessageInMail(Message message), line 186
         mail.setMessageId(sas.buildMd5HexString(mail.getSubject()
-             + NLS.toMachineString(mail.getReceivingDate() == null? mail.getReceivingDate() : mail.getSendDate())
-             + mail.getPersonEntity().getId()));
+                                                + NLS.toMachineString(mail.getReceivingDate()
+                                                                      == null ?
+                                                                      mail.getReceivingDate() :
+                                                                      mail.getSendDate())
+                                                + mail.getPersonEntity().getId()));
         oma.update(mail);
 
         switch (function) {
-            case ServiceAccountingService.SALES_CONFIRMATION :
+            case ServiceAccountingService.SALES_CONFIRMATION:
                 // set the salesConfirmationDate = now and the state = CONFIRMED
                 LocalDate confirmationDate = LocalDate.now();
-                List<OfferItem> confirmationList = (List<OfferItem>)context.get("offerItemList");
+                List<OfferItem> confirmationList = (List<OfferItem>) context.get("offerItemList");
 
                 for (OfferItem oi : confirmationList) {
-                    if(oi.getSalesConfirmationDate() == null) {
-                        oi.setSalesConfirmationDate(confirmationDate);
-                        oi.setState(OfferItemState.CONFIRMED);
-                        oma.update(oi);
-                    }
+//                    if (oi.getSalesConfirmationDate() == null) {
+//                        oi.setSalesConfirmationDate(confirmationDate);
+//                        oi.setState(OfferItemState.CONFIRMED);
+//                        oma.update(oi);
+//                    }
                     // Ggfs. Verträge aus den Auftragsbestätigungen anlegen
-                        messageList.add(sas.createContractFromOfferItem(oi));
-
+                    messageList.add(sas.createContractFromOfferItem(oi));
                 }
                 break;
-
 
             default:
                 break;
         }
 
         return messageList;
-
     }
 
     // send-Button was clicked
-        @Override
-        public void sendMail(String senderAddress, String senderName, String receiverAddress, String receiverName,
-                             String subject, String mailText, DataSource attachment, String attachmentName) {
+    @Override
+    public void sendMail(String senderAddress,
+                         String senderName,
+                         String receiverAddress,
+                         String receiverName,
+                         String subject,
+                         String mailText,
+                         DataSource attachment,
+                         String attachmentName) {
 
-
-            if (attachmentName != null) {
-                List<DataSource> listDataSource = new ArrayList<DataSource>();
-                listDataSource.add(attachment);
-                 // send the mail with attachment
-                mail.createEmail()
-                    .from(senderAddress, senderName)
-                    .subject(subject)
-                    .to(receiverAddress, receiverName)
-                    .textContent(mailText)
-                    .addAttachment(attachment)
-                    .send();
-            } else {
-                mail.createEmail()
-                    .from(senderAddress, senderName)
-                    .subject(subject)
-                    .to(receiverAddress, receiverName)
-                    .textContent(mailText)
-                    .send();
-            }
-
-
+        if (attachmentName != null) {
+            List<DataSource> listDataSource = new ArrayList<DataSource>();
+            listDataSource.add(attachment);
+            // send the mail with attachment
+            mail.createEmail()
+                .from(senderAddress, senderName)
+                .subject(subject)
+                .to(receiverAddress, receiverName)
+                .textContent(mailText)
+                .addAttachment(attachment)
+                .send();
+        } else {
+            mail.createEmail()
+                .from(senderAddress, senderName)
+                .subject(subject)
+                .to(receiverAddress, receiverName)
+                .textContent(mailText)
+                .send();
+        }
 
 //
 //            // store a mail-attachment as 'attachment' to the mail
@@ -267,11 +262,7 @@ public class SendMailServiceBean implements SendMailService {
 //            person = OMA.saveEntity(Realm.BACKEND, personFill);
 //
 
-        }
-
-
-
-
+    }
 
 //    public SendMailView(Person person, Context context) {
 //        super();
@@ -492,6 +483,4 @@ public class SendMailServiceBean implements SendMailService {
 //            ApplicationController.handle(e);
 //        }
 //    }
-
-
 }

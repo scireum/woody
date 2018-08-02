@@ -8,12 +8,11 @@
 
 package woody.core.tags;
 
-import sirius.biz.tenants.TenantAware;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
-import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
 import sirius.db.mixing.annotations.Unique;
 import sirius.kernel.commons.Strings;
@@ -24,29 +23,29 @@ import woody.core.colors.Colors;
 /**
  * Created by aha on 25.11.15.
  */
-public class Tag extends TenantAware {
+public class Tag extends SQLTenantAware {
 
-    public static final Column UNQIUE_NAME = Column.named("uniqueName");
+    public static final Mapping UNQIUE_NAME = Mapping.named("uniqueName");
     @Length(255)
     @Unique(within = {"tenant", "targetType"})
     private String uniqueName;
 
-    public static final Column NAME = Column.named("name");
+    public static final Mapping NAME = Mapping.named("name");
     @Trim
     @Length(255)
     @Autoloaded
     private String name;
 
-    public static final Column TARGET_TYPE = Column.named("targetType");
+    public static final Mapping TARGET_TYPE = Mapping.named("targetType");
     @Trim
     @Length(255)
     private String targetType;
 
-    public static final Column VIEW_IN_LIST = Column.named("viewInList");
+    public static final Mapping VIEW_IN_LIST = Mapping.named("viewInList");
     @Autoloaded
     private boolean viewInList;
 
-    public static final Column COLOR = Column.named("color");
+    public static final Mapping COLOR = Mapping.named("color");
     private final ColorData color = new ColorData();
 
     @Part
@@ -90,7 +89,6 @@ public class Tag extends TenantAware {
     public void setTargetType(String targetType) {
         this.targetType = targetType;
     }
-
 
     public boolean isViewInList() {
         return viewInList;

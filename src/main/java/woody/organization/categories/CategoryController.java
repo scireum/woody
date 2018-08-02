@@ -9,7 +9,9 @@
 package woody.organization.categories;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.ConfigValue;
@@ -47,19 +49,18 @@ public class CategoryController extends BizController {
     @Permission(PERMISSION_MANAGE_CATEGORIES)
     @Routed("/categories")
     public void categories(WebContext ctx) {
-        PageHelper<Category> ph = PageHelper.withQuery(oma.select(Category.class)
-                                                          .fields(Category.ID,
-                                                                  Category.NAME,
-                                                                  Category.TYPE,
-                                                                  Category.TECHNICAL_NAME,
-                                                                  Category.DESCRIPTION,
-                                                                  Category.COLOR.inner(ColorData.COLOR)
-                                                                                .join(ColorDefinition.NAME),
-                                                                  Category.COLOR.inner(ColorData.COLOR)
-                                                                                .join(ColorDefinition.HEX_CODE))
-                                                          .orderAsc(Category.NAME));
+        SmartQuery<Category> query = oma.select(Category.class)
+                                        .fields(Category.ID,
+                                                Category.NAME,
+                                                Category.TYPE,
+                                                Category.TECHNICAL_NAME,
+                                                Category.DESCRIPTION,
+                                                Category.COLOR.inner(ColorData.COLOR).join(ColorDefinition.NAME),
+                                                Category.COLOR.inner(ColorData.COLOR).join(ColorDefinition.HEX_CODE))
+                                        .orderAsc(Category.NAME);
+        SQLPageHelper<Category> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
         ph.withContext(ctx);
-        ph.withSearchFields(Category.NAME).forCurrentTenant();
+        ph.withSearchFields(QueryField.contains(Category.NAME));
         Facet typeFacet = new Facet(NLS.get("Category.type"),
                                     Category.TYPE.getName(),
                                     ctx.get(Category.TYPE.getName()).asString(),

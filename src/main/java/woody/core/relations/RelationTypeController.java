@@ -11,8 +11,9 @@ package woody.core.relations;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.Schema;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.GlobalContext;
 import sirius.kernel.di.std.Part;
@@ -40,9 +41,6 @@ import java.util.Optional;
 public class RelationTypeController extends BizController {
 
     private static final String PERMISSION_MANAGE_RELATION_TYPES = "permission-manage-relation-types";
-
-    @Part
-    private Schema schema;
 
     @Part
     private GlobalContext context;
@@ -110,21 +108,22 @@ public class RelationTypeController extends BizController {
     @Permission(PERMISSION_MANAGE_RELATION_TYPES)
     @Routed("/relations/types")
     public void relationTypes(WebContext ctx) {
-        PageHelper<RelationType> ph = PageHelper.withQuery(oma.select(RelationType.class)
-                                                              .fields(RelationType.ID,
-                                                                      RelationType.NAME,
-                                                                      RelationType.SOURCE_TYPE,
-                                                                      RelationType.TARGET_TYPE,
-                                                                      RelationType.VIEW_IN_LIST,
-                                                                      RelationType.MULTIPLE,
-                                                                      RelationType.LIST_REVERSE,
-                                                                      RelationType.COLOR.inner(ColorData.COLOR)
-                                                                                        .join(ColorDefinition.HEX_CODE))
-                                                              .orderAsc(RelationType.SOURCE_TYPE)
-                                                              .orderAsc(RelationType.TARGET_TYPE)
-                                                              .orderAsc(RelationType.NAME));
+        SmartQuery<RelationType> query = oma.select(RelationType.class)
+                                            .fields(RelationType.ID,
+                                                    RelationType.NAME,
+                                                    RelationType.SOURCE_TYPE,
+                                                    RelationType.TARGET_TYPE,
+                                                    RelationType.VIEW_IN_LIST,
+                                                    RelationType.MULTIPLE,
+                                                    RelationType.LIST_REVERSE,
+                                                    RelationType.COLOR.inner(ColorData.COLOR)
+                                                                      .join(ColorDefinition.HEX_CODE))
+                                            .orderAsc(RelationType.SOURCE_TYPE)
+                                            .orderAsc(RelationType.TARGET_TYPE)
+                                            .orderAsc(RelationType.NAME);
+        SQLPageHelper<RelationType> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
         ph.withContext(ctx);
-        ph.withSearchFields(RelationType.NAME).forCurrentTenant();
+        ph.withSearchFields(QueryField.contains(RelationType.NAME));
         Facet sourceTypeFilter = new Facet(NLS.get("RelationType.sourceType"),
                                            RelationType.SOURCE_TYPE.getName(),
                                            ctx.get(RelationType.SOURCE_TYPE.getName()).asString(),

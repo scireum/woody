@@ -8,11 +8,11 @@
 
 package woody.core.relations;
 
+import sirius.db.jdbc.SQLEntity;
+import sirius.db.jdbc.constraints.Exists;
 import sirius.db.mixing.Composite;
-import sirius.db.mixing.Entity;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
-import sirius.db.mixing.constraints.Exists;
 
 /**
  * Embedded into an entity to make it eligible for incoming relations.
@@ -20,14 +20,14 @@ import sirius.db.mixing.constraints.Exists;
 public class Relateable extends Composite {
 
     @Transient
-    protected final Entity owner;
+    protected final SQLEntity owner;
 
     /**
      * Creates and initializes the composite for the given entity.
      *
      * @param owner the entity which is the target for relations
      */
-    public Relateable(Entity owner) {
+    public Relateable(SQLEntity owner) {
         this.owner = owner;
     }
 
@@ -47,7 +47,7 @@ public class Relateable extends Composite {
         }
     }
 
-    public Exists generateRelationExistsConstraint(Class<? extends Entity> sourceType) {
+    public Exists generateRelationExistsConstraint(Class<? extends SQLEntity> sourceType) {
         return RelationQueryTagHandler.generateRelationExistsConstraint(sourceType, getTargetName());
     }
 

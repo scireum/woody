@@ -8,7 +8,7 @@
 
 package woody.organization.things;
 
-import sirius.db.mixing.EntityRef;
+import sirius.db.jdbc.SQLEntityRef;
 import woody.organization.BasicElement;
 
 /**
@@ -17,7 +17,7 @@ import woody.organization.BasicElement;
 public class Thing extends BasicElement<ThingType> {
 
     @Override
-    protected EntityRef<ThingType> initializeTypeRef() {
-        return EntityRef.on(ThingType.class, EntityRef.OnDelete.REJECT);
+    protected SQLEntityRef<ThingType> initializeTypeRef() {
+        return SQLEntityRef.on(ThingType.class, SQLEntityRef.OnDelete.REJECT);
     }
 }

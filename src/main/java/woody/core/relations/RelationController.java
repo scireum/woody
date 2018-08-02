@@ -11,11 +11,9 @@ package woody.core.relations;
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
 import sirius.biz.web.BizController;
-import sirius.db.mixing.Constraint;
-import sirius.db.mixing.Entity;
-import sirius.db.mixing.Schema;
-import sirius.db.mixing.constraints.FieldOperator;
-import sirius.db.mixing.constraints.Or;
+import sirius.db.jdbc.OMA;
+import sirius.db.jdbc.SQLEntity;
+import sirius.db.jdbc.constraints.SQLConstraint;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.GlobalContext;
@@ -40,9 +38,6 @@ import java.util.concurrent.TimeUnit;
 public class RelationController extends BizController {
 
     @Part
-    private Schema schema;
-
-    @Part
     private GlobalContext context;
 
     private static String relationsSecret;
@@ -59,8 +54,6 @@ public class RelationController extends BizController {
                       .toString();
     }
 
-
-
     @LoginRequired
     @Routed("/relations/autocomplete/:1")
     public void relationsAutocomplete(final WebContext ctx, String type) {
@@ -70,7 +63,7 @@ public class RelationController extends BizController {
             }
             oma.select(RelationType.class)
                .eq(RelationType.TENANT, tenants.getRequiredTenant())
-               .where(Or.of(parseSourceTypeConstraints(type)))
+               .where(OMA.FILTERS.or(parseSourceTypeConstraints(type)))
                .orderAsc(RelationType.SOURCE_TYPE)
                .orderAsc(RelationType.TARGET_TYPE)
                .iterateAll(relationType -> {
@@ -107,12 +100,12 @@ public class RelationController extends BizController {
         });
     }
 
-    private List<Constraint> parseSourceTypeConstraints(String typeExpression) {
-        List<Constraint> result = new ArrayList<>(3);
-        result.add(FieldOperator.on(RelationType.SOURCE_TYPE).eq(null));
+    private List<SQLConstraint> parseSourceTypeConstraints(String typeExpression) {
+        List<SQLConstraint> result = new ArrayList<>(3);
+        result.add(OMA.FILTERS.eq(RelationType.SOURCE_TYPE, null));
         for (String type : typeExpression.split(",")) {
             type = type.trim();
-            result.add(FieldOperator.on(RelationType.SOURCE_TYPE).eq(type));
+            result.add(OMA.FILTERS.eq(RelationType.SOURCE_TYPE, type));
         }
 
         return result;
@@ -120,7 +113,7 @@ public class RelationController extends BizController {
 
     @Routed(value = "/relations/add/:1", jsonCall = true)
     public void addRelation(final WebContext ctx, JSONStructuredOutput out, String objectId) {
-        Entity owner = oma.resolveOrFail(objectId);
+        SQLEntity owner = oma.resolveOrFail(objectId);
         if (!Strings.areEqual(ctx.get("authHash").asString(), computeAuthHash(objectId))) {
             throw Exceptions.createHandled().withSystemErrorMessage("Security hash does not match!").handle();
         }
@@ -146,7 +139,7 @@ public class RelationController extends BizController {
                .eq(Relation.OWNER_ID, owner.getId())
                .eq(Relation.OWNER_TYPE, owner.getTypeName())
                .eq(Relation.TYPE, type)
-               .where(FieldOperator.on(Relation.ID).notEqual(relation.getId()))
+               .where(OMA.FILTERS.ne(Relation.ID, relation.getId()))
                .delete();
         }
 

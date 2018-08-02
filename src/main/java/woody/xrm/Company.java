@@ -8,13 +8,13 @@
 
 package woody.xrm;
 
-import sirius.biz.codelists.CodeLists;
-import sirius.biz.model.AddressData;
-import sirius.biz.model.ContactData;
-import sirius.biz.model.InternationalAddressData;
-import sirius.biz.tenants.TenantAware;
+import sirius.biz.jdbc.codelists.CodeLists;
+import sirius.biz.jdbc.model.AddressData;
+import sirius.biz.jdbc.model.ContactData;
+import sirius.biz.jdbc.model.InternationalAddressData;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -32,74 +32,71 @@ import woody.core.tags.Tagged;
 /**
  * Created by aha on 06.10.15.
  */
-public class Company extends TenantAware implements HasComments, HasRelations {
+public class Company extends SQLTenantAware implements HasComments, HasRelations {
 
-    public static final int MIN_CUSTOMERNR = 10001;
-    public static final int MAX_CUSTOMERNR = 19999;
     public static final String COUNTRY_CODELIST = "country";
 
+    public static final Mapping NAME = Mapping.named("name");
     @Trim
     @Autoloaded
     @Length(255)
     private String name;
-    public static final Column NAME = Column.named("name");
 
+    public static final Mapping NAME2 = Mapping.named("name2");
     @NullAllowed
     @Autoloaded
     @Length(255)
     @Trim
     private String name2;
-    public static final Column NAME2 = Column.named("name2");
 
-    /* the customerNr is set by the sequence.generateId */
+    public static final Mapping CUSTOMER_NUMBER = Mapping.named("customerNumber");
     @NullAllowed
     @Length(50)
     private String customerNumber;
-    public static final Column CUSTOMER_NUMBER = Column.named("customerNumber");
 
+    public static final Mapping WEBSITE = Mapping.named("website");
     @NullAllowed
     @Autoloaded
     @Length(255)
     @Trim
     private String website;
-    public static final Column WEBSITE = Column.named("website");
 
+    public static final Mapping MATCHCODE = Mapping.named("matchcode");
     @NullAllowed
     @Autoloaded
     @Length(255)
     @Trim
     private String matchcode;
-    public static final Column MATCHCODE = Column.named("matchcode");
 
+    public static final Mapping IMAGE = Mapping.named("image");
     @NullAllowed
     @Autoloaded
     @Length(255)
     @Trim
     private String image;
-    public static final Column IMAGE = Column.named("image");
 
-    public static final Column ADDRESS = Column.named("address");
+    public static final Mapping ADDRESS = Mapping.named("address");
     private final InternationalAddressData address =
             new InternationalAddressData(AddressData.Requirements.NOT_PARTIAL, null);
 
-    public static final Column POSTBOX_ADDRESS = Column.named("postboxAddress");
+    public static final Mapping POSTBOX_ADDRESS = Mapping.named("postboxAddress");
     private final InternationalAddressData postboxAddress =
             new InternationalAddressData(InternationalAddressData.Requirements.NOT_PARTIAL,
                                          NLS.get("Company.postboxAddress"));
 
+    public static final Mapping CONTACT = Mapping.named("contact");
     private final ContactData contact = new ContactData(true);
-    public static final Column CONTACT = Column.named("contact");
 
+    public static final Mapping TAGS = Mapping.named("tags");
     private final Tagged tags = new Tagged(this);
-    public static final Column TAGS = Column.named("tags");
 
+    public static final Mapping COMMENTS = Mapping.named("comments");
     private final Commented comments = new Commented(this);
-    public static final Column COMMENTS = Column.named("comments");
 
-    public static final Column RELATIONS = Column.named("relations");
+    public static final Mapping RELATIONS = Mapping.named("relations");
     private final Relations relations = new Relations(this);
 
-    public static final Column RELATEABLE = Column.named("relateable");
+    public static final Mapping RELATEABLE = Mapping.named("relateable");
     private final Relateable relateable = new Relateable(this);
 
     @Override

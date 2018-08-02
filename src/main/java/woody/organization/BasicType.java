@@ -8,10 +8,10 @@
 
 package woody.organization;
 
-import sirius.biz.tenants.TenantAware;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
-import sirius.db.mixing.EntityRef;
+import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
@@ -22,29 +22,29 @@ import woody.core.colors.ColorData;
 import woody.core.relations.RelationTypeController;
 import woody.organization.categories.Category;
 
-public abstract class BasicType extends TenantAware {
+public abstract class BasicType extends SQLTenantAware {
 
-    public static final Column NAME = Column.named("name");
+    public static final Mapping NAME = Mapping.named("name");
     @Length(100)
     @Autoloaded
     private String name;
 
-    public static final Column CATEGORY = Column.named("category");
-    private final EntityRef<Category> category = EntityRef.on(Category.class, EntityRef.OnDelete.REJECT);
+    public static final Mapping CATEGORY = Mapping.named("category");
+    private final SQLEntityRef<Category> category = SQLEntityRef.on(Category.class, SQLEntityRef.OnDelete.REJECT);
 
-    public static final Column DESCRIPTION = Column.named("description");
+    public static final Mapping DESCRIPTION = Mapping.named("description");
     @Length(1024)
     @Autoloaded
     @NullAllowed
     private String description;
 
-    public static final Column CODE_PREFIX = Column.named("codePrefix");
+    public static final Mapping CODE_PREFIX = Mapping.named("codePrefix");
     @Length(20)
     @Autoloaded
     @NullAllowed
     private String codePrefix;
 
-    public static final Column COLOR = Column.named("color");
+    public static final Mapping COLOR = Mapping.named("color");
     private final ColorData color = new ColorData();
 
     @Part
@@ -79,7 +79,7 @@ public abstract class BasicType extends TenantAware {
         this.name = name;
     }
 
-    public EntityRef<Category> getCategory() {
+    public SQLEntityRef<Category> getCategory() {
         return category;
     }
 

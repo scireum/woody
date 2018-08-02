@@ -8,11 +8,12 @@
 
 package woody.xrm;
 
-import sirius.biz.model.AddressData;
-import sirius.biz.model.PersonData;
+import sirius.biz.jdbc.model.AddressData;
+import sirius.biz.jdbc.model.PersonData;
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
@@ -42,15 +43,14 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/companies")
     public void companies(WebContext ctx) {
-        PageHelper<Company> ph =
-                PageHelper.withQuery(oma.select(Company.class).orderAsc(Company.NAME)).forCurrentTenant();
-        ph.withSearchFields(Company.NAME,
-                            Company.ADDRESS.inner(AddressData.CITY),
-                            Company.CUSTOMER_NUMBER,
-                            Company.MATCHCODE);
+        SQLPageHelper<Company> ph =
+                SQLPageHelper.withQuery(tenants.forCurrentTenant(oma.select(Company.class).orderAsc(Company.NAME)));
+        ph.withSearchFields(QueryField.contains(Company.NAME),
+                            QueryField.contains(Company.ADDRESS.inner(AddressData.CITY)),
+                            QueryField.contains(Company.CUSTOMER_NUMBER),
+                            QueryField.contains(Company.MATCHCODE));
 
         ph.withContext(ctx);
-        ph.enableAdvancedSearch();
         ctx.respondWith().template("templates/xrm/companies.html.pasta", ph.asPage());
     }
 
@@ -114,10 +114,10 @@ public class XRMController extends BizController {
                                       .eq(Person.COMPANY, company)
                                       .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                                       .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME));
-        PageHelper<Person> ph = PageHelper.withQuery(query);
+        SQLPageHelper<Person> ph = SQLPageHelper.withQuery(query);
         ph.withContext(ctx);
-        ph.withSearchFields(Person.PERSON.inner(PersonData.FIRSTNAME), Person.PERSON.inner(PersonData.LASTNAME));
-        ph.enableAdvancedSearch();
+        ph.withSearchFields(QueryField.contains(Person.PERSON.inner(PersonData.FIRSTNAME)),
+                            QueryField.contains(Person.PERSON.inner(PersonData.LASTNAME)));
         ctx.respondWith().template("templates/xrm/company-persons.html.pasta", company, ph.asPage());
     }
 
@@ -134,18 +134,17 @@ public class XRMController extends BizController {
                                               Person.COMPANY.join(Company.ID),
                                               Person.COMPANY.join(Company.CUSTOMER_NUMBER),
                                               Person.COMPANY.join(Company.NAME))
-                                      .eq(Person.COMPANY.join(Company.TENANT), currentTenant())
+                                      .eq(Person.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
                                       .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                                       .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME));
-        PageHelper<Person> ph = PageHelper.withQuery(query);
-        ph.withSearchFields(Person.PERSON.inner(PersonData.TITLE),
-                            Person.PERSON.inner(PersonData.FIRSTNAME),
-                            Person.PERSON.inner(PersonData.LASTNAME),
-                            Person.COMPANY.join(Company.ID),
-                            Person.COMPANY.join(Company.CUSTOMER_NUMBER),
-                            Person.COMPANY.join(Company.NAME));
+        SQLPageHelper<Person> ph = SQLPageHelper.withQuery(query);
+        ph.withSearchFields(QueryField.contains(Person.PERSON.inner(PersonData.TITLE)),
+                            QueryField.contains(Person.PERSON.inner(PersonData.FIRSTNAME)),
+                            QueryField.contains(Person.PERSON.inner(PersonData.LASTNAME)),
+                            QueryField.contains(Person.COMPANY.join(Company.ID)),
+                            QueryField.contains(Person.COMPANY.join(Company.CUSTOMER_NUMBER)),
+                            QueryField.contains(Person.COMPANY.join(Company.NAME)));
         ph.withContext(ctx);
-        ph.enableAdvancedSearch();
         ctx.respondWith().template("templates/xrm/persons.html.pasta", ph.asPage());
     }
 
@@ -183,7 +182,7 @@ public class XRMController extends BizController {
         assertNotNew(company);
         setOrVerify(person, person.getCompany(), company);
 
-        if (ctx.isPOST()) {
+        if (ctx.ensureSafePOST()) {
             try {
                 boolean wasNew = person.isNew();
                 load(ctx, person);
@@ -194,7 +193,7 @@ public class XRMController extends BizController {
                     ctx.respondWith().redirectTemporarily("/company/" + company.getId() + "/person/" + person.getId());
                     return;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 UserContext.handle(e);
             }
         }
@@ -208,12 +207,12 @@ public class XRMController extends BizController {
         Person person = find(Person.class, personId);
         assertNotNew(person);
         assertTenant(person.getCompany().getValue());
-        if (ctx.isPOST()) {
+        if (ctx.ensureSafePOST()) {
             try {
                 load(ctx, person);
                 oma.update(person);
                 showSavedMessage();
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 UserContext.handle(e);
             }
         }

@@ -9,7 +9,8 @@
 package woody.core.colors;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.Sirius;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
@@ -31,10 +32,13 @@ public class ColorDefinitionController extends BizController {
     @Permission(PERMISSION_MANAGE_COLORS)
     @Routed("/colors/definitions")
     public void colors(WebContext ctx) {
-        PageHelper<ColorDefinition> ph =
-                PageHelper.withQuery(oma.select(ColorDefinition.class).orderAsc(ColorDefinition.NAME));
+        SQLPageHelper<ColorDefinition> ph =
+                SQLPageHelper.withQuery(tenants.forCurrentTenant(oma.select(ColorDefinition.class)
+                                                                    .orderAsc(ColorDefinition.NAME)));
         ph.withContext(ctx);
-        ph.withSearchFields(ColorDefinition.NAME, ColorDefinition.HEX_CODE, ColorDefinition.PALETTE).forCurrentTenant();
+        ph.withSearchFields(QueryField.contains(ColorDefinition.NAME),
+                            QueryField.contains(ColorDefinition.HEX_CODE),
+                            QueryField.contains(ColorDefinition.PALETTE));
 
         ctx.respondWith().template("/templates/core/colors/definitions.html.pasta", ph.asPage());
     }
@@ -57,13 +61,13 @@ public class ColorDefinitionController extends BizController {
     private void importColor(String palette, String name, String hexCode) {
         try {
             ColorDefinition color = oma.select(ColorDefinition.class)
-                                       .eq(ColorDefinition.TENANT, currentTenant())
+                                       .eq(ColorDefinition.TENANT, tenants.getRequiredTenant())
                                        .eq(ColorDefinition.PALETTE, palette)
                                        .eq(ColorDefinition.NAME, name)
                                        .queryFirst();
             if (color == null) {
                 color = new ColorDefinition();
-                color.getTenant().setValue(currentTenant());
+                color.getTenant().setValue(tenants.getRequiredTenant());
                 color.setName(name);
                 color.setPalette(palette);
             }

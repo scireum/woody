@@ -8,16 +8,16 @@
 
 package woody.xrm;
 
-import sirius.biz.model.AddressData;
-import sirius.biz.model.BizEntity;
-import sirius.biz.model.ContactData;
-import sirius.biz.model.InternationalAddressData;
-import sirius.biz.model.LoginData;
-import sirius.biz.model.PersonData;
+import sirius.biz.jdbc.model.AddressData;
+import sirius.biz.jdbc.model.BizEntity;
+import sirius.biz.jdbc.model.ContactData;
+import sirius.biz.jdbc.model.InternationalAddressData;
+import sirius.biz.jdbc.model.LoginData;
+import sirius.biz.jdbc.model.PersonData;
 import sirius.biz.sequences.Sequences;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
-import sirius.db.mixing.EntityRef;
+import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -39,49 +39,49 @@ import java.time.LocalDate;
  */
 public class Person extends BizEntity implements HasComments, HasRelations {
 
-    private final EntityRef<Company> company = EntityRef.on(Company.class, EntityRef.OnDelete.CASCADE);
-    public static final Column COMPANY = Column.named("company");
+    private final SQLEntityRef<Company> company = SQLEntityRef.on(Company.class, SQLEntityRef.OnDelete.CASCADE);
+    public static final Mapping COMPANY = Mapping.named("company");
 
     private final PersonData person = new PersonData();
-    public static final Column PERSON = Column.named("person");
+    public static final Mapping PERSON = Mapping.named("person");
 
-    public static final Column UNIQUE_PATH = Column.named("uniquePath");
+    public static final Mapping UNIQUE_PATH = Mapping.named("uniquePath");
     @Length(150)
     private String uniquePath;
 
     @Autoloaded
     @NullAllowed
     private LocalDate birthday;
-    public static final Column BIRTHDAY = Column.named("birthday");
+    public static final Mapping BIRTHDAY = Mapping.named("birthday");
 
     private final InternationalAddressData address = new InternationalAddressData(AddressData.Requirements.NONE, null);
-    public static final Column ADDRESS = Column.named("address");
+    public static final Mapping ADDRESS = Mapping.named("address");
 
     private final ContactData contact = new ContactData(true);
-    public static final Column CONTACT = Column.named("contact");
+    public static final Mapping CONTACT = Mapping.named("contact");
 
     private final LoginData login = new LoginData();
-    public static final Column LOGIN = Column.named("login");
+    public static final Mapping LOGIN = Mapping.named("login");
 
     @Trim
     @Length(100)
     @NullAllowed
     private String position;
-    public static final Column POSITION = Column.named("position");
+    public static final Mapping POSITION = Mapping.named("position");
 
     private final Tagged tags = new Tagged(this);
-    public static final Column TAGS = Column.named("tags");
+    public static final Mapping TAGS = Mapping.named("tags");
 
     private final Commented comments = new Commented(this);
-    public static final Column COMMENTS = Column.named("comments");
+    public static final Mapping COMMENTS = Mapping.named("comments");
 
     private final Relations relations = new Relations(this);
-    public static final Column RELATIONS = Column.named("relations");
+    public static final Mapping RELATIONS = Mapping.named("relations");
 
     private final Relateable relateable = new Relateable(this);
-    public static final Column RELATEABLE = Column.named("relateable");
+    public static final Mapping RELATEABLE = Mapping.named("relateable");
 
-    public static final Column QUIT = Column.named("quit");
+    public static final Mapping QUIT = Mapping.named("quit");
     private boolean quit = false;
 
     @Part
@@ -123,7 +123,7 @@ public class Person extends BizEntity implements HasComments, HasRelations {
         }
     }
 
-    public EntityRef<Company> getCompany() {
+    public SQLEntityRef<Company> getCompany() {
         return company;
     }
 

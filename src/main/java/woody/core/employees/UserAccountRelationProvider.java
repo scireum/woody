@@ -8,14 +8,14 @@
 
 package woody.core.employees;
 
-import sirius.biz.model.LoginData;
-import sirius.biz.model.PersonData;
-import sirius.biz.tenants.Tenants;
-import sirius.biz.tenants.UserAccount;
-import sirius.db.mixing.Column;
-import sirius.db.mixing.OMA;
-import sirius.db.mixing.Schema;
-import sirius.db.mixing.constraints.Like;
+import sirius.biz.jdbc.model.LoginData;
+import sirius.biz.jdbc.model.PersonData;
+import sirius.biz.jdbc.tenants.Tenants;
+import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.db.jdbc.OMA;
+import sirius.db.mixing.Mapping;
+import sirius.db.mixing.Mixing;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.ComparableTuple;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
@@ -41,12 +41,15 @@ public class UserAccountRelationProvider implements RelationProvider {
     private OMA oma;
 
     @Part
+    private Mixing mixing;
+
+    @Part
     protected Tenants tenants;
 
     @Nonnull
     @Override
     public String getName() {
-        return Schema.getNameForType(UserAccount.class);
+        return UserAccount.class.getSimpleName().toUpperCase();
     }
 
     @Override
@@ -54,16 +57,16 @@ public class UserAccountRelationProvider implements RelationProvider {
         oma.select(UserAccount.class)
            .fields(UserAccount.ID,
                    UserAccount.LOGIN.inner(LoginData.USERNAME),
-                   Column.mixin(Employee.class).inner(Employee.SHORT_NAME),
+                   Mapping.mixin(Employee.class).inner(Employee.SHORT_NAME),
                    UserAccount.PERSON.inner(PersonData.FIRSTNAME),
                    UserAccount.PERSON.inner(PersonData.LASTNAME))
            .eq(UserAccount.TENANT, tenants.getRequiredTenant())
-           .where(Like.allWordsInAnyField(query,
-                                          UserAccount.LOGIN.inner(LoginData.USERNAME),
-                                          Column.mixin(Employee.class).inner(Employee.SHORT_NAME),
-                                          UserAccount.PERSON.inner(PersonData.LASTNAME),
-                                          UserAccount.PERSON.inner(PersonData.FIRSTNAME)))
-           .orderAsc(Column.mixin(Employee.class).inner(Employee.SHORT_NAME))
+           .queryString(query,
+                        QueryField.contains(UserAccount.LOGIN.inner(LoginData.USERNAME)),
+                        QueryField.contains(Mapping.mixin(Employee.class).inner(Employee.SHORT_NAME)),
+                        QueryField.contains(UserAccount.PERSON.inner(PersonData.LASTNAME)),
+                        QueryField.contains(UserAccount.PERSON.inner(PersonData.FIRSTNAME)))
+           .orderAsc(Mapping.mixin(Employee.class).inner(Employee.SHORT_NAME))
            .orderAsc(UserAccount.LOGIN.inner(LoginData.USERNAME))
            .orderAsc(UserAccount.PERSON.inner(PersonData.LASTNAME))
            .orderAsc(UserAccount.PERSON.inner(PersonData.FIRSTNAME))
@@ -80,11 +83,11 @@ public class UserAccountRelationProvider implements RelationProvider {
 
     @Override
     public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
-        Tuple<String, Long> typeAndId = Schema.parseUniqueName(uniqueObjectName);
+        Tuple<String, String> typeAndId = Mixing.splitUniqueName(uniqueObjectName);
         return oma.select(UserAccount.class)
                   .fields(UserAccount.ID,
                           UserAccount.LOGIN.inner(LoginData.USERNAME),
-                          Column.mixin(Employee.class).inner(Employee.SHORT_NAME),
+                          Mapping.mixin(Employee.class).inner(Employee.SHORT_NAME),
                           UserAccount.PERSON.inner(PersonData.FIRSTNAME),
                           UserAccount.PERSON.inner(PersonData.LASTNAME))
                   .eq(UserAccount.ID, typeAndId.getSecond())

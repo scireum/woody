@@ -8,14 +8,13 @@
 
 package woody.organization;
 
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.protocol.JournalData;
 import sirius.biz.protocol.Journaled;
 import sirius.biz.sequences.Sequences;
-import sirius.biz.tenants.TenantAware;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
-import sirius.db.mixing.EntityRef;
-import sirius.db.mixing.Schema;
+import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -37,26 +36,26 @@ import woody.core.tags.Tagged;
 /**
  * Created by aha on 13.01.17.
  */
-public abstract class BasicElement<T extends BasicType> extends TenantAware
+public abstract class BasicElement<T extends BasicType> extends SQLTenantAware
         implements HasComments, HasRelations, IsRelateable, HasLifecycle, Journaled {
 
-    public static final Column TYPE = Column.named("type");
-    private final EntityRef<T> type;
+    public static final Mapping TYPE = Mapping.named("type");
+    private final SQLEntityRef<T> type;
 
-    public static final Column NAME = Column.named("name");
+    public static final Mapping NAME = Mapping.named("name");
     @Length(100)
     @Trim
     @Autoloaded
     private String name;
 
-    public static final Column CODE = Column.named("code");
+    public static final Mapping CODE = Mapping.named("code");
     @Length(100)
     @Trim
     @NullAllowed
     @Autoloaded
     private String code;
 
-    public static final Column DESCRIPTION = Column.named("description");
+    public static final Mapping DESCRIPTION = Mapping.named("description");
     @Length(1024)
     @Trim
     @NullAllowed
@@ -64,21 +63,21 @@ public abstract class BasicElement<T extends BasicType> extends TenantAware
     private String description;
 
     private final Tagged tags = new Tagged(this);
-    public static final Column TAGS = Column.named("tags");
+    public static final Mapping TAGS = Mapping.named("tags");
 
     private final Commented comments = new Commented(this);
-    public static final Column COMMENTS = Column.named("comments");
+    public static final Mapping COMMENTS = Mapping.named("comments");
 
-    public static final Column RELATIONS = Column.named("relations");
+    public static final Mapping RELATIONS = Mapping.named("relations");
     private final Relations relations = new Relations(this);
 
-    public static final Column RELATEABLE = Column.named("relateable");
+    public static final Mapping RELATEABLE = Mapping.named("relateable");
     private final Relateable relateable = new Relateable(this);
 
-    public static final Column JOURNAL = Column.named("journal");
+    public static final Mapping JOURNAL = Mapping.named("journal");
     private final JournalData journal = new JournalData(this);
 
-    public static final Column LIFECYCLE = Column.named("lifecycle");
+    public static final Mapping LIFECYCLE = Mapping.named("lifecycle");
     private final LifecycleData lifecycle = new LifecycleData(this, LIFECYCLE);
 
     @Part
@@ -102,7 +101,7 @@ public abstract class BasicElement<T extends BasicType> extends TenantAware
     }
 
     private long generateCode() {
-        return sequences.generateId(Schema.getNameForType(getType().getValue().getClass())
+        return sequences.generateId(mixing.getNameForType(getType().getValue().getClass())
                                     + "-"
                                     + getType().getId()
                                     + "-"
@@ -139,9 +138,9 @@ public abstract class BasicElement<T extends BasicType> extends TenantAware
         return getName();
     }
 
-    protected abstract EntityRef<T> initializeTypeRef();
+    protected abstract SQLEntityRef<T> initializeTypeRef();
 
-    public EntityRef<T> getType() {
+    public SQLEntityRef<T> getType() {
         return type;
     }
 

@@ -8,12 +8,15 @@
 
 package woody.sales
 
-import sirius.biz.tenants.Tenants
-//import sirius.biz.tenants.TenantsHelper
-import sirius.db.mixing.OMA
+import sirius.biz.jdbc.tenants.Tenants
+import sirius.db.jdbc.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.commons.Amount
 import sirius.kernel.di.std.Part
+import woody.sales.accounting.AccountingIntervalType
+import woody.sales.accounting.Contract
+import woody.sales.accounting.PackageDefinition
+import woody.sales.accounting.Product
 import woody.xrm.Company
 import woody.xrm.Person
 

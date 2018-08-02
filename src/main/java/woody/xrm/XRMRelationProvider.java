@@ -9,11 +9,11 @@
 package woody.xrm;
 
 import com.google.common.collect.Lists;
-import sirius.biz.model.AddressData;
-import sirius.biz.model.PersonData;
-import sirius.biz.tenants.Tenants;
-import sirius.db.mixing.OMA;
-import sirius.db.mixing.constraints.Like;
+import sirius.biz.jdbc.model.AddressData;
+import sirius.biz.jdbc.model.PersonData;
+import sirius.biz.jdbc.tenants.Tenants;
+import sirius.db.jdbc.OMA;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.ComparableTuple;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
@@ -73,9 +73,9 @@ public class XRMRelationProvider implements RelationProvider {
                        Person.PERSON.inner(PersonData.LASTNAME),
                        Person.PERSON.inner(PersonData.SALUTATION))
                .eq(Person.COMPANY.join(Company.TENANT), tenants.getRequiredTenant())
-               .where(Like.allWordsInAnyField(query,
-                                              Person.PERSON.inner(PersonData.LASTNAME),
-                                              Person.PERSON.inner(PersonData.FIRSTNAME)))
+               .queryString(query,
+                            QueryField.contains(Person.PERSON.inner(PersonData.LASTNAME)),
+                            QueryField.contains(Person.PERSON.inner(PersonData.FIRSTNAME)))
                .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
                .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
                .iterateAll(person -> {
@@ -91,11 +91,11 @@ public class XRMRelationProvider implements RelationProvider {
             oma.select(Company.class)
                .fields(Company.ID, Company.NAME)
                .eq(Company.TENANT, tenants.getRequiredTenant())
-               .where(Like.allWordsInAnyField(query,
-                                              Company.CUSTOMER_NUMBER,
-                                              Company.NAME,
-                                              Company.NAME2,
-                                              Company.ADDRESS.inner(AddressData.CITY)))
+               .queryString(query,
+                            QueryField.contains(Company.CUSTOMER_NUMBER),
+                            QueryField.contains(Company.NAME),
+                            QueryField.contains(Company.NAME2),
+                            QueryField.contains(Company.ADDRESS.inner(AddressData.CITY)))
                .orderAsc(Company.NAME)
                .iterateAll(company -> {
                    String id = "XRM-" + company.getUniquePath();

@@ -8,8 +8,8 @@
 
 package woody.core.employees;
 
-import sirius.biz.tenants.UserAccount;
-import sirius.biz.tenants.UserAccountController;
+import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.biz.jdbc.tenants.UserAccountController;
 import sirius.biz.web.BizController;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;

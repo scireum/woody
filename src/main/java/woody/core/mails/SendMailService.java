@@ -8,8 +8,8 @@
 
 package woody.core.mails;
 
-import sirius.kernel.commons.Context;
-import woody.offers.Offer;
+import woody.sales.quotes.Offer;
+import woody.xrm.tracking.mails.Mail;
 
 import javax.activation.DataSource;
 import java.util.List;

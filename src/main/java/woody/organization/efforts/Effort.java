@@ -9,8 +9,8 @@
 package woody.organization.efforts;
 
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
-import sirius.db.mixing.EntityRef;
+import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.kernel.health.Exceptions;
@@ -23,12 +23,12 @@ import java.time.LocalDate;
  */
 public class Effort extends BasicElement<EffortType> {
 
-    public static final Column START_DATE = Column.named("startDate");
+    public static final Mapping START_DATE = Mapping.named("startDate");
     @NullAllowed
     @Autoloaded
     private LocalDate startDate;
 
-    public static final Column END_DATE = Column.named("endDate");
+    public static final Mapping END_DATE = Mapping.named("endDate");
     @NullAllowed
     @Autoloaded
     private LocalDate endDate;
@@ -45,8 +45,8 @@ public class Effort extends BasicElement<EffortType> {
     }
 
     @Override
-    protected EntityRef<EffortType> initializeTypeRef() {
-        return EntityRef.on(EffortType.class, EntityRef.OnDelete.REJECT);
+    protected SQLEntityRef<EffortType> initializeTypeRef() {
+        return SQLEntityRef.on(EffortType.class, SQLEntityRef.OnDelete.REJECT);
     }
 
     public LocalDate getStartDate() {

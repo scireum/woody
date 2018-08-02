@@ -9,8 +9,9 @@
 package woody.organization.efforts;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
 import sirius.web.controller.Controller;
@@ -23,7 +24,6 @@ import woody.core.colors.ColorData;
 import woody.core.colors.ColorDefinition;
 import woody.organization.BasicType;
 import woody.organization.categories.Category;
-import woody.organization.things.ThingType;
 
 import java.util.Optional;
 
@@ -37,19 +37,19 @@ public class EffortTypeController extends BizController {
     @Permission(PERMISSION_MANAGE_EFFORT_TYPES)
     @Routed("/efforts/types")
     public void types(WebContext ctx) {
-        PageHelper<EffortType> ph = PageHelper.withQuery(oma.select(EffortType.class)
-                                                            .fields(EffortType.ID,
-                                                                    EffortType.NAME,
-                                                                    EffortType.DESCRIPTION,
-                                                                    EffortType.CATEGORY.join(Category.ID),
-                                                                    EffortType.CATEGORY.join(Category.NAME),
-                                                                    EffortType.COLOR.inner(ColorData.COLOR)
-                                                                                   .join(ColorDefinition.NAME),
-                                                                    EffortType.COLOR.inner(ColorData.COLOR)
-                                                                                   .join(ColorDefinition.HEX_CODE))
-                                                            .orderAsc(EffortType.NAME));
+        SmartQuery<EffortType> query = oma.select(EffortType.class)
+                                          .fields(EffortType.ID,
+                                                  EffortType.NAME,
+                                                  EffortType.DESCRIPTION,
+                                                  EffortType.CATEGORY.join(Category.ID),
+                                                  EffortType.CATEGORY.join(Category.NAME),
+                                                  EffortType.COLOR.inner(ColorData.COLOR).join(ColorDefinition.NAME),
+                                                  EffortType.COLOR.inner(ColorData.COLOR)
+                                                                  .join(ColorDefinition.HEX_CODE))
+                                          .orderAsc(EffortType.NAME);
+        SQLPageHelper<EffortType> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
         ph.withContext(ctx);
-        ph.withSearchFields(EffortType.NAME, EffortType.DESCRIPTION).forCurrentTenant();
+        ph.withSearchFields(QueryField.contains(EffortType.NAME), QueryField.contains(EffortType.DESCRIPTION));
 
         ph.addQueryFacet(BasicType.CATEGORY.getName(),
                          NLS.get("BasicType.category"),
@@ -61,7 +61,7 @@ public class EffortTypeController extends BizController {
     protected SmartQuery<Category> queryCategories() {
         return oma.select(Category.class)
                   .fields(Category.ID, Category.NAME)
-                  .eq(Category.TENANT, currentTenant())
+                  .eq(Category.TENANT, tenants.getRequiredTenant())
                   .eq(Category.TYPE, EffortCategoryTypeProvider.TYPE_NAME)
                   .orderAsc(Category.NAME);
     }

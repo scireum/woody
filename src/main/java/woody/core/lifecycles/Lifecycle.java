@@ -8,7 +8,7 @@
 
 package woody.core.lifecycles;
 
-import sirius.biz.tenants.TenantAware;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 
-public class Lifecycle extends TenantAware {
+public class Lifecycle extends SQLTenantAware {
 }

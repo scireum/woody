@@ -9,8 +9,9 @@
 package woody.organization.efforts;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
 import sirius.web.controller.Controller;
@@ -32,19 +33,17 @@ public class EffortController extends BizController {
     @LoginRequired
     public void efforts(WebContext ctx, String categoryName) {
         Category category = oma.select(Category.class)
-                               .eq(Category.TENANT, currentTenant())
+                               .eq(Category.TENANT, tenants.getRequiredTenant())
                                .eq(Category.TECHNICAL_NAME, categoryName)
                                .eq(Category.TYPE, EffortCategoryTypeProvider.TYPE_NAME)
                                .queryFirst();
-        PageHelper<Effort> ph = PageHelper.withQuery(oma.select(Effort.class)
-                                                       .eq(Effort.TYPE.join(EffortType.CATEGORY), category)
-                                                       .fields(Effort.ID,
-                                                               Effort.NAME,
-                                                               Effort.CODE,
-                                                               Effort.TYPE.join(EffortType.NAME))
-                                                       .orderAsc(Effort.CODE)
-                                                       .orderAsc(Effort.NAME)).forCurrentTenant();
-        ph.withContext(ctx).withSearchFields(Effort.NAME, Effort.CODE).enableAdvancedSearch();
+        SmartQuery<Effort> query = oma.select(Effort.class)
+                                      .eq(Effort.TYPE.join(EffortType.CATEGORY), category)
+                                      .fields(Effort.ID, Effort.NAME, Effort.CODE, Effort.TYPE.join(EffortType.NAME))
+                                      .orderAsc(Effort.CODE)
+                                      .orderAsc(Effort.NAME);
+        SQLPageHelper<Effort> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
+        ph.withContext(ctx).withSearchFields(QueryField.contains(Effort.NAME), QueryField.contains(Effort.CODE));
 
         ph.addQueryFacet(BasicElement.TYPE.getName(),
                          NLS.get("BasicElement.type"),
@@ -60,7 +59,7 @@ public class EffortController extends BizController {
     protected SmartQuery<EffortType> queryTypes(Category category) {
         return oma.select(EffortType.class)
                   .fields(EffortType.ID, EffortType.NAME)
-                  .eq(EffortType.TENANT, currentTenant())
+                  .eq(EffortType.TENANT, tenants.getRequiredTenant())
                   .eq(EffortType.CATEGORY, category)
                   .orderAsc(EffortType.NAME);
     }

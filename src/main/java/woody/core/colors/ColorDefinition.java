@@ -8,9 +8,9 @@
 
 package woody.core.colors;
 
-import sirius.biz.tenants.TenantAware;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
@@ -21,20 +21,20 @@ import sirius.kernel.health.Exceptions;
 
 import java.util.regex.Pattern;
 
-public class ColorDefinition extends TenantAware {
+public class ColorDefinition extends SQLTenantAware {
 
-    public static final Column NAME = Column.named("name");
+    public static final Mapping NAME = Mapping.named("name");
     @Length(50)
     @Autoloaded
     private String name;
 
-    public static final Column PALETTE = Column.named("palette");
+    public static final Mapping PALETTE = Mapping.named("palette");
     @Length(50)
     @Autoloaded
     @NullAllowed
     private String palette;
 
-    public static final Column HEX_CODE = Column.named("hexCode");
+    public static final Mapping HEX_CODE = Mapping.named("hexCode");
     @Length(7)
     @Autoloaded
     private String hexCode;

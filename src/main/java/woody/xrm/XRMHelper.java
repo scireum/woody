@@ -8,8 +8,8 @@
 
 package woody.xrm;
 
-import sirius.biz.model.PersonData;
-import sirius.db.mixing.OMA;
+import sirius.biz.jdbc.model.PersonData;
+import sirius.db.jdbc.OMA;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.web.security.HelperFactory;
@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class XRMHelper {
+
     @Register
     public static class XRMHelperFactory implements HelperFactory<XRMHelper> {
 

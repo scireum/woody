@@ -11,9 +11,9 @@ package woody.organization.units;
 import com.google.common.base.Strings;
 import sirius.biz.sequences.Sequences;
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
-import sirius.db.mixing.constraints.Like;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
@@ -45,17 +45,18 @@ public class UnitController extends BizController {
     @LoginRequired
     public void units(WebContext ctx, String categoryName) {
         Category category = resolveCategory(categoryName);
-        PageHelper<Unit> ph = PageHelper.withQuery(oma.select(Unit.class)
-                                                      .eq(Unit.TYPE.join(EffortType.CATEGORY), category)
-                                                      .fields(Unit.ID,
-                                                              Unit.NAME,
-                                                              Unit.CODE,
-                                                              Unit.TYPE.join(UnitType.NAME),
-                                                              Unit.PARENT.join(Unit.NAME),
-                                                              Unit.PARENT.join(Unit.TYPE).join(UnitType.NAME))
-                                                      .orderAsc(Unit.CODE)
-                                                      .orderAsc(Unit.NAME)).forCurrentTenant();
-        ph.withContext(ctx).withSearchFields(Unit.NAME, Unit.CODE).enableAdvancedSearch();
+        SmartQuery<Unit> query = oma.select(Unit.class)
+                                    .eq(Unit.TYPE.join(EffortType.CATEGORY), category)
+                                    .fields(Unit.ID,
+                                            Unit.NAME,
+                                            Unit.CODE,
+                                            Unit.TYPE.join(UnitType.NAME),
+                                            Unit.PARENT.join(Unit.NAME),
+                                            Unit.PARENT.join(Unit.TYPE).join(UnitType.NAME))
+                                    .orderAsc(Unit.CODE)
+                                    .orderAsc(Unit.NAME);
+        SQLPageHelper<Unit> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
+        ph.withContext(ctx).withSearchFields(QueryField.contains(Unit.NAME), QueryField.contains(Unit.CODE));
 
         ph.addQueryFacet(BasicElement.TYPE.getName(),
                          NLS.get("BasicElement.type"),
@@ -70,7 +71,7 @@ public class UnitController extends BizController {
 
     protected Category resolveCategory(String categoryName) {
         return oma.select(Category.class)
-                  .eq(Category.TENANT, currentTenant())
+                  .eq(Category.TENANT, tenants.getRequiredTenant())
                   .eq(Category.TECHNICAL_NAME, categoryName)
                   .eq(Category.TYPE, UnitCategoryTypeProvider.TYPE_NAME)
                   .queryFirst();
@@ -79,7 +80,7 @@ public class UnitController extends BizController {
     protected SmartQuery<UnitType> queryTypes(Category category) {
         return oma.select(UnitType.class)
                   .fields(UnitType.ID, UnitType.NAME)
-                  .eq(UnitType.TENANT, currentTenant())
+                  .eq(UnitType.TENANT, tenants.getRequiredTenant())
                   .eq(UnitType.CATEGORY, category)
                   .orderAsc(UnitType.NAME);
     }
@@ -91,12 +92,12 @@ public class UnitController extends BizController {
         Category category = findForTenant(Category.class, categoryId);
         AutocompleteHelper.handle(ctx,
                                   (query, result) -> oma.select(Unit.class)
-                                                        .eq(Unit.TENANT, currentTenant())
+                                                        .eq(Unit.TENANT, tenants.getRequiredTenant())
                                                         .eq(Unit.TYPE.join(UnitType.CATEGORY), category)
-                                                        .where(Like.allWordsInAnyField(query,
-                                                                                       Unit.CODE,
-                                                                                       Unit.NAME,
-                                                                                       Unit.TYPE.join(UnitType.NAME)))
+                                                        .queryString(query,
+                                                                     QueryField.contains(Unit.CODE),
+                                                                     QueryField.contains(Unit.NAME),
+                                                                     QueryField.contains(Unit.TYPE.join(UnitType.NAME)))
                                                         .orderAsc(Unit.NAME)
                                                         .iterateAll(unit -> result.accept(new AutocompleteHelper.Completion(
                                                                 unit.getIdAsString(),

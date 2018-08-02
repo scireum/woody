@@ -8,15 +8,12 @@
 
 package woody.core.relations;
 
-import sirius.biz.tenants.Tenants;
-import sirius.biz.web.QueryTag;
+import sirius.biz.jdbc.tenants.Tenants;
 import sirius.biz.web.QueryTagSuggester;
-import sirius.db.mixing.Entity;
-import sirius.db.mixing.OMA;
-import sirius.db.mixing.Schema;
-import sirius.db.mixing.constraints.FieldOperator;
-import sirius.db.mixing.constraints.Like;
-import sirius.db.mixing.constraints.Or;
+import sirius.db.jdbc.OMA;
+import sirius.db.mixing.BaseEntity;
+import sirius.db.mixing.Mixing;
+import sirius.db.mixing.query.QueryTag;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.GlobalContext;
@@ -44,6 +41,9 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
     @Part
     private OMA oma;
 
+    @Part
+    private Mixing mixing;
+
     @Parts(RelationProvider.class)
     private Collection<RelationProvider> relationProviders;
 
@@ -55,7 +55,7 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
 
     @Override
     public void computeQueryTags(@Nonnull String type,
-                                 @Nullable Class<? extends Entity> entityType,
+                                 @Nullable Class<? extends BaseEntity<?>> entityType,
                                  @Nonnull String searchTerm,
                                  @Nonnull Consumer<QueryTag> consumer) {
         if (!searchTerm.startsWith("!:") && !searchTerm.startsWith(":")) {
@@ -66,7 +66,7 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
         }
         boolean inverted = searchTerm.startsWith("!:");
         String effectiveQuery = searchTerm.substring(inverted ? 2 : 1);
-        String sourceTypeName = Schema.getNameForType(entityType);
+        String sourceTypeName = mixing.getNameForType(entityType);
 
         oma.select(RelationType.class)
            .fields(RelationType.ID,
@@ -77,8 +77,8 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
                    RelationType.MULTIPLE,
                    RelationType.COLOR.inner(ColorData.COLOR).join(ColorDefinition.HEX_CODE))
            .eq(RelationType.TENANT, tenants.getRequiredTenant())
-           .where(Or.of(FieldOperator.on(RelationType.SOURCE_TYPE).eq(sourceTypeName),
-                        Like.on(RelationType.SOURCE_TYPE).matches(sourceTypeName + "-*")))
+           .where(OMA.FILTERS.or(OMA.FILTERS.eq(RelationType.SOURCE_TYPE, sourceTypeName),
+                                 OMA.FILTERS.like(RelationType.SOURCE_TYPE).matches(sourceTypeName + "-*").build()))
            .orderAsc(RelationType.SOURCE_TYPE)
            .orderAsc(RelationType.TARGET_TYPE)
            .iterateAll(relationType -> {

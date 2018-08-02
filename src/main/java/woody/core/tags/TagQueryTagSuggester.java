@@ -8,12 +8,12 @@
 
 package woody.core.tags;
 
-import sirius.biz.web.QueryTag;
 import sirius.biz.web.QueryTagSuggester;
-import sirius.db.mixing.Entity;
-import sirius.db.mixing.OMA;
-import sirius.db.mixing.Schema;
-import sirius.db.mixing.constraints.Like;
+import sirius.db.jdbc.OMA;
+import sirius.db.mixing.BaseEntity;
+import sirius.db.mixing.Mixing;
+import sirius.db.mixing.query.QueryField;
+import sirius.db.mixing.query.QueryTag;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 
@@ -30,9 +30,12 @@ public class TagQueryTagSuggester implements QueryTagSuggester {
     @Part
     private OMA oma;
 
+    @Part
+    private Mixing mixing;
+
     @Override
     public void computeQueryTags(@Nonnull String type,
-                                 @Nullable Class<? extends Entity> entityType,
+                                 @Nullable Class<? extends BaseEntity<?>> entityType,
                                  @Nonnull String searchTerm,
                                  @Nonnull Consumer<QueryTag> consumer) {
         if (entityType == null) {
@@ -42,10 +45,11 @@ public class TagQueryTagSuggester implements QueryTagSuggester {
         if (inverted) {
             searchTerm = searchTerm.substring(1);
         }
+
         oma.select(Tag.class)
-           .eq(Tag.TARGET_TYPE, Schema.getNameForType(entityType))
+           .eq(Tag.TARGET_TYPE, mixing.getNameForType(entityType))
            .orderAsc(Tag.NAME)
-           .where(Like.on(Tag.NAME).ignoreCase().ignoreEmpty().contains(searchTerm))
+           .queryString(searchTerm, QueryField.contains(Tag.NAME))
            .iterateAll(t -> {
                if (inverted) {
                    consumer.accept(new QueryTag(NotTagQueryTagHandler.TYPE_NOT_TAG,

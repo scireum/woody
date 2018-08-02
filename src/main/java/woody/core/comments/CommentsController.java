@@ -10,9 +10,9 @@ package woody.core.comments;
 
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
-import sirius.biz.tenants.UserAccount;
+import sirius.biz.jdbc.tenants.UserAccount;
 import sirius.biz.web.BizController;
-import sirius.db.mixing.Entity;
+import sirius.db.jdbc.SQLEntity;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
@@ -68,7 +68,7 @@ public class CommentsController extends BizController {
             throw Exceptions.createHandled().withSystemErrorMessage("Security hash does not match!").handle();
         }
 
-        Entity target = oma.resolveOrFail(object);
+        SQLEntity target = oma.resolveOrFail(object);
         if (target instanceof HasComments) {
             ((HasComments) target).getComments()
                                   .addComment(getUser().getUserObject(UserAccount.class).getPerson().toString(),

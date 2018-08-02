@@ -8,10 +8,10 @@
 
 package woody.core.lifecycles;
 
-import sirius.db.mixing.Column;
+import sirius.db.jdbc.SQLEntity;
+import sirius.db.jdbc.SQLEntityRef;
 import sirius.db.mixing.Composite;
-import sirius.db.mixing.Entity;
-import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Transient;
@@ -20,15 +20,16 @@ import java.time.LocalDateTime;
 
 public class LifecycleData extends Composite {
 
-    public static final Column LIFECYCLE = Column.named("lifecycle");
+    public static final Mapping LIFECYCLE = Mapping.named("lifecycle");
     @NullAllowed
-    private final EntityRef<Lifecycle> lifecycle = EntityRef.on(Lifecycle.class, EntityRef.OnDelete.SET_NULL);
+    private final SQLEntityRef<Lifecycle> lifecycle = SQLEntityRef.on(Lifecycle.class, SQLEntityRef.OnDelete.SET_NULL);
 
-    public static final Column STATE = Column.named("state");
+    public static final Mapping STATE = Mapping.named("state");
     @NullAllowed
-    private final EntityRef<LifecycleState> state = EntityRef.on(LifecycleState.class, EntityRef.OnDelete.SET_NULL);
+    private final SQLEntityRef<LifecycleState> state =
+            SQLEntityRef.on(LifecycleState.class, SQLEntityRef.OnDelete.SET_NULL);
 
-    public static final Column STAGE = Column.named("stage");
+    public static final Mapping STAGE = Mapping.named("stage");
     private Stage stage = Stage.ACTIVE;
 
     private LocalDateTime lastStateChange = LocalDateTime.now();
@@ -36,19 +37,19 @@ public class LifecycleData extends Composite {
     private LocalDateTime lastStageChange = LocalDateTime.now();
 
     @Transient
-    private Entity owner;
+    private SQLEntity owner;
 
     @Transient
-    private Column parentColumn;
+    private Mapping parentColumn;
 
-    public LifecycleData(Entity owner, Column parentColumn) {
+    public LifecycleData(SQLEntity owner, Mapping parentColumn) {
         this.owner = owner;
         this.parentColumn = parentColumn;
     }
 
     @BeforeSave
     protected void onModify() {
-        if (owner.isColumnChanged(parentColumn.inner(STATE))) {
+        if (owner.isChanged(parentColumn.inner(STATE))) {
             if (getState().isEmpty()) {
                 stage = Stage.ACTIVE;
             } else {
@@ -58,16 +59,16 @@ public class LifecycleData extends Composite {
             lastStateChange = LocalDateTime.now();
         }
 
-        if (owner.isColumnChanged(parentColumn.inner(STAGE))) {
+        if (owner.isChanged(parentColumn.inner(STAGE))) {
             lastStageChange = LocalDateTime.now();
         }
     }
 
-    public EntityRef<Lifecycle> getLifecycle() {
+    public SQLEntityRef<Lifecycle> getLifecycle() {
         return lifecycle;
     }
 
-    public EntityRef<LifecycleState> getState() {
+    public SQLEntityRef<LifecycleState> getState() {
         return state;
     }
 

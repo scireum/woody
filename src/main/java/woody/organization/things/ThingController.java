@@ -9,8 +9,9 @@
 package woody.organization.things;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
@@ -37,18 +38,16 @@ public class ThingController extends BizController {
     @LoginRequired
     public void things(WebContext ctx, String categoryName) {
         Category category = oma.select(Category.class)
-                               .eq(Category.TENANT, currentTenant())
+                               .eq(Category.TENANT, tenants.getRequiredTenant())
                                .eq(Category.TECHNICAL_NAME, categoryName)
                                .eq(Category.TYPE, ThingCategoryTypeProvider.TYPE_NAME)
                                .queryFirst();
-        PageHelper<Thing> ph = PageHelper.withQuery(oma.select(Thing.class)
-                                                       .fields(Thing.ID,
-                                                               Thing.NAME,
-                                                               Thing.CODE,
-                                                               Thing.TYPE.join(ThingType.NAME))
-                                                       .orderAsc(Thing.CODE)
-                                                       .orderAsc(Thing.NAME)).forCurrentTenant();
-        ph.withContext(ctx).withSearchFields(Thing.NAME, Thing.CODE).enableAdvancedSearch();
+        SmartQuery<Thing> query = oma.select(Thing.class)
+                                     .fields(Thing.ID, Thing.NAME, Thing.CODE, Thing.TYPE.join(ThingType.NAME))
+                                     .orderAsc(Thing.CODE)
+                                     .orderAsc(Thing.NAME);
+        SQLPageHelper<Thing> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
+        ph.withContext(ctx).withSearchFields(QueryField.contains(Thing.NAME), QueryField.contains(Thing.CODE));
 
         ph.addQueryFacet(BasicElement.TYPE.getName(),
                          NLS.get("BasicElement.type"),
@@ -64,7 +63,7 @@ public class ThingController extends BizController {
     protected SmartQuery<ThingType> queryTypes(Category category) {
         return oma.select(ThingType.class)
                   .fields(ThingType.ID, ThingType.NAME)
-                  .eq(ThingType.TENANT, currentTenant())
+                  .eq(ThingType.TENANT, tenants.getRequiredTenant())
                   .eq(ThingType.CATEGORY, category)
                   .orderAsc(ThingType.NAME);
     }

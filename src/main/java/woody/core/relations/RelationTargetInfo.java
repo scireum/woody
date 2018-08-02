@@ -8,8 +8,8 @@
 
 package woody.core.relations;
 
-import sirius.db.mixing.Column;
-import sirius.db.mixing.Entity;
+import sirius.db.jdbc.SQLEntity;
+import sirius.db.mixing.Mapping;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,15 +18,14 @@ import java.util.List;
 /**
  * Created by aha on 12.01.17.
  */
-public interface RelationTargetInfo<E extends Entity> {
+public interface RelationTargetInfo<E extends SQLEntity> {
 
     @Nonnull
-    List<Column> getFetchColumns();
+    List<Mapping> getFetchColumns();
 
     @Nonnull
     String transformToString(@Nonnull E entity);
 
     @Nullable
     String transformToUrl(@Nonnull E entity);
-
 }

@@ -8,8 +8,8 @@
 
 package woody.core.colors;
 
-import sirius.db.mixing.EntityRef;
-import sirius.db.mixing.OMA;
+import sirius.db.jdbc.OMA;
+import sirius.db.jdbc.SQLEntityRef;
 import sirius.kernel.cache.Cache;
 import sirius.kernel.cache.CacheManager;
 import sirius.kernel.commons.Strings;
@@ -91,7 +91,7 @@ public class Colors {
         return String.valueOf(assignment.getColor().getId());
     }
 
-    public Optional<String> getColor(EntityRef<ColorDefinition> definition) {
+    public Optional<String> getColor(SQLEntityRef<ColorDefinition> definition) {
         if (definition.isFilled()) {
             return Optional.of(colorCache.get(String.valueOf(definition.getId()), this::loadColorDefinition));
         }

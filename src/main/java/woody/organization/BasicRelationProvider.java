@@ -10,10 +10,10 @@ package woody.organization;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import sirius.biz.tenants.Tenants;
-import sirius.db.mixing.OMA;
-import sirius.db.mixing.Schema;
-import sirius.db.mixing.constraints.Like;
+import sirius.biz.jdbc.tenants.Tenants;
+import sirius.db.jdbc.OMA;
+import sirius.db.mixing.Mixing;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.ComparableTuple;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Part;
@@ -37,7 +37,7 @@ public abstract class BasicRelationProvider implements RelationProvider {
     private OMA oma;
 
     @Part
-    private Schema schema;
+    private Mixing mixing;
 
     @Part
     protected Tenants tenants;
@@ -57,7 +57,7 @@ public abstract class BasicRelationProvider implements RelationProvider {
     @Nonnull
     @Override
     public String getName() {
-        return Schema.getNameForType(getType());
+        return Mixing.getNameForType(getType());
     }
 
     @Override
@@ -78,7 +78,7 @@ public abstract class BasicRelationProvider implements RelationProvider {
            .eqIgnoreNull(BasicElement.TYPE, typeFilterId)
            .eqIgnoreNull(BasicElement.TYPE.join(BasicType.CATEGORY), categoryFilterId)
            .eq(BasicElement.TENANT, tenants.getRequiredTenant())
-           .where(Like.allWordsInAnyField(query, BasicElement.NAME, BasicElement.CODE))
+           .queryString(query, QueryField.contains(BasicElement.NAME), QueryField.contains(BasicElement.CODE))
            .orderAsc(BasicElement.CODE)
            .orderAsc(BasicElement.NAME)
            .iterateAll(element -> {
@@ -93,7 +93,7 @@ public abstract class BasicRelationProvider implements RelationProvider {
 
     @Override
     public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
-        Tuple<String, Long> typeAndId = Schema.parseUniqueName(uniqueObjectName);
+        Tuple<String, String> typeAndId = Mixing.splitUniqueName(uniqueObjectName);
         return oma.select(getType())
                   .fields(BasicElement.ID, BasicElement.NAME)
                   .eq(BasicElement.ID, typeAndId.getSecond())
@@ -114,12 +114,12 @@ public abstract class BasicRelationProvider implements RelationProvider {
     }
 
     protected void addGeneralType(List<Tuple<String, String>> result) {
-        result.add(Tuple.create(Schema.getNameForType(getType()), schema.getDescriptor(getType()).getPluralLabel()));
+        result.add(Tuple.create(Mixing.getNameForType(getType()), mixing.getDescriptor(getType()).getPluralLabel()));
     }
 
     protected void addCategoryTypes(List<Tuple<String, String>> result) {
-        String prefix = Schema.getNameForType(getType()) + "-";
-        String typeNameSuffix = " (" + schema.getDescriptor(getType()).getPluralLabel() + ")";
+        String prefix = Mixing.getNameForType(getType()) + "-";
+        String typeNameSuffix = " (" + mixing.getDescriptor(getType()).getPluralLabel() + ")";
         result.addAll(oma.select(Category.class)
                          .eq(Category.TENANT, tenants.getRequiredTenant())
                          .eq(Category.TYPE, getCategoryTypeName())
@@ -132,7 +132,7 @@ public abstract class BasicRelationProvider implements RelationProvider {
     }
 
     protected void addUserDefinedTypes(List<Tuple<String, String>> result) {
-        String prefix = Schema.getNameForType(getType()) + "-";
+        String prefix = Mixing.getNameForType(getType()) + "-";
         result.addAll(oma.select(getMetaType())
                          .fields(BasicType.ID, BasicType.NAME, BasicType.CATEGORY.join(Category.NAME))
                          .eq(BasicType.TENANT, tenants.getRequiredTenant())

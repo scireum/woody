@@ -8,8 +8,8 @@
 
 package woody.core.relations;
 
-import sirius.biz.tenants.Tenants;
-import sirius.db.mixing.OMA;
+import sirius.biz.jdbc.tenants.Tenants;
+import sirius.db.jdbc.OMA;
 import sirius.kernel.cache.Cache;
 import sirius.kernel.cache.CacheManager;
 import sirius.kernel.commons.ComparableTuple;

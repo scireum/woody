@@ -8,15 +8,16 @@
 
 package woody.core.relations;
 
-import sirius.biz.web.QueryTag;
-import sirius.biz.web.QueryTagHandler;
-import sirius.db.mixing.Constraint;
-import sirius.db.mixing.Entity;
+import sirius.db.jdbc.OMA;
+import sirius.db.jdbc.SQLEntity;
+import sirius.db.jdbc.constraints.Exists;
+import sirius.db.jdbc.constraints.SQLConstraint;
+import sirius.db.mixing.BaseEntity;
 import sirius.db.mixing.EntityDescriptor;
-import sirius.db.mixing.Schema;
-import sirius.db.mixing.constraints.Exists;
-import sirius.db.mixing.constraints.FieldOperator;
-import sirius.db.mixing.constraints.Like;
+import sirius.db.mixing.Mixing;
+import sirius.db.mixing.query.QueryTag;
+import sirius.db.mixing.query.QueryTagHandler;
+import sirius.db.mixing.query.constraints.FilterFactory;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Part;
@@ -30,39 +31,43 @@ import javax.annotation.Nonnull;
  * Created by aha on 28.07.17.
  */
 @Register
-public class RelationQueryTagHandler implements QueryTagHandler {
+public class RelationQueryTagHandler implements QueryTagHandler<SQLConstraint> {
 
     public static final String TYPE_RELATION = "relation";
 
     @Part
     private static Colors colors;
+    @Part
+    private static Mixing mixing;
 
     @Override
-    public Constraint generateConstraint(EntityDescriptor descriptor, String tagValue) {
+    public SQLConstraint generateConstraint(FilterFactory<SQLConstraint> filters,
+                                            EntityDescriptor descriptor,
+                                            String tagValue) {
         Tuple<String, String> typeAndObjectName = Strings.split(tagValue, ":");
         Exists constraint = createConstraintForTarget(typeAndObjectName.getSecond());
-        constraint.where(FieldOperator.on(Relation.OWNER_TYPE).eq(Schema.getNameForType(descriptor.getType())));
+        constraint.where(OMA.FILTERS.eq(Relation.OWNER_TYPE, mixing.getNameForType(descriptor.getType())));
         if (Strings.isFilled(typeAndObjectName.getFirst())) {
-            constraint.where(FieldOperator.on(Relation.TYPE).eq(Long.parseLong(typeAndObjectName.getFirst())));
+            constraint.where(OMA.FILTERS.eq(Relation.TYPE, Long.parseLong(typeAndObjectName.getFirst())));
         }
         return constraint;
     }
 
     protected static Exists createConstraintForTarget(String target) {
         if (target.endsWith("*")) {
-            return Exists.matchingIn(Entity.ID, Relation.class, Relation.OWNER_ID)
-                         .where(Like.on(Relation.TARGET).contains(target));
+            return OMA.FILTERS.existsIn(SQLEntity.ID, Relation.class, Relation.OWNER_ID)
+                              .where(OMA.FILTERS.like(Relation.TARGET).startsWith(target).build());
         } else {
-            return Exists.matchingIn(Entity.ID, Relation.class, Relation.OWNER_ID)
-                         .where(FieldOperator.on(Relation.TARGET).eq(target));
+            return OMA.FILTERS.existsIn(SQLEntity.ID, Relation.class, Relation.OWNER_ID)
+                              .where(OMA.FILTERS.eq(Relation.TARGET, target));
         }
     }
 
-    protected static Exists generateRelationExistsConstraint(Class<? extends Entity> sourceType, String target) {
-        return createConstraintForTarget(target).where(FieldOperator.on(Relation.OWNER_TYPE)
-                                                                    .eq(Schema.getNameForType(sourceType)))
-                                                .where(FieldOperator.on(Relation.TYPE.join(RelationType.LIST_REVERSE))
-                                                                    .eq(true));
+    protected static Exists generateRelationExistsConstraint(Class<? extends BaseEntity<?>> sourceType, String target) {
+        return createConstraintForTarget(target).where(OMA.FILTERS.eq(Relation.OWNER_TYPE,
+                                                                      mixing.getNameForType(sourceType)))
+                                                .where(OMA.FILTERS.eq(Relation.TYPE.join(RelationType.LIST_REVERSE),
+                                                                      true));
     }
 
     @Nonnull

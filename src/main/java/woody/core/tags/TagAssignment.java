@@ -8,27 +8,27 @@
 
 package woody.core.tags;
 
-import sirius.db.mixing.Column;
-import sirius.db.mixing.Entity;
-import sirius.db.mixing.EntityRef;
+import sirius.db.jdbc.SQLEntity;
+import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Length;
 
 /**
  * Created by aha on 25.11.15.
  */
-public class TagAssignment extends Entity {
+public class TagAssignment extends SQLEntity {
 
-    private final EntityRef<Tag> tag = EntityRef.on(Tag.class, EntityRef.OnDelete.CASCADE);
-    public static final Column TAG = Column.named("tag");
+    private final SQLEntityRef<Tag> tag = SQLEntityRef.on(Tag.class, SQLEntityRef.OnDelete.CASCADE);
+    public static final Mapping TAG = Mapping.named("tag");
 
     private long targetEntity;
-    public static final Column TARGET_ENTITY = Column.named("targetEntity");
+    public static final Mapping TARGET_ENTITY = Mapping.named("targetEntity");
 
     @Length(255)
     private String targetType;
-    public static final Column TARGET_TYPE = Column.named("targetType");
+    public static final Mapping TARGET_TYPE = Mapping.named("targetType");
 
-    public EntityRef<Tag> getTag() {
+    public SQLEntityRef<Tag> getTag() {
         return tag;
     }
 

@@ -8,10 +8,10 @@
 
 package woody.core.tags;
 
-import sirius.biz.tenants.Tenants;
+import sirius.biz.jdbc.tenants.Tenants;
+import sirius.db.jdbc.OMA;
+import sirius.db.jdbc.SQLEntity;
 import sirius.db.mixing.Composite;
-import sirius.db.mixing.Entity;
-import sirius.db.mixing.OMA;
 import sirius.db.mixing.annotations.BeforeDelete;
 import sirius.db.mixing.annotations.Transient;
 import sirius.kernel.commons.Strings;
@@ -36,9 +36,9 @@ public class Tagged extends Composite {
     public static final String CSS_TAG = "suggestion-tag";
 
     @Transient
-    protected final Entity owner;
+    protected final SQLEntity owner;
 
-    public Tagged(Entity owner) {
+    public Tagged(SQLEntity owner) {
         this.owner = owner;
     }
 

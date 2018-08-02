@@ -8,34 +8,6 @@
 
 package woody.xrm.css;
 
-import com.google.common.collect.Sets;
-import sirius.biz.model.LoginData;
-import sirius.biz.tenants.UserAccount;
-import sirius.biz.web.BizController;
-import sirius.db.mixing.OMA;
-import sirius.kernel.cache.Cache;
-import sirius.kernel.cache.CacheManager;
-import sirius.kernel.commons.Strings;
-import sirius.kernel.di.std.Part;
-import sirius.kernel.di.std.Register;
-
-import sirius.kernel.health.Exceptions;
-
-import sirius.kernel.health.Exceptions;
-import sirius.kernel.settings.Extension;
-import sirius.web.http.WebContext;
-import sirius.web.security.GenericUserManager;
-import sirius.web.security.ScopeInfo;
-import sirius.web.security.UserInfo;
-import sirius.web.security.UserManager;
-import sirius.web.security.UserManagerFactory;
-import woody.xrm.Person;
-
-import javax.annotation.Nonnull;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Set;
-
 /**
  * Created by aha on 12.05.15.
  */

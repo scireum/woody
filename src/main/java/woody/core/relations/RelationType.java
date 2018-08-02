@@ -8,9 +8,9 @@
 
 package woody.core.relations;
 
-import sirius.biz.tenants.TenantAware;
+import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Column;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
@@ -19,37 +19,37 @@ import woody.core.colors.ColorData;
 /**
  * Created by aha on 11.01.17.
  */
-public class RelationType extends TenantAware {
+public class RelationType extends SQLTenantAware {
 
-    public static final Column NAME = Column.named("name");
+    public static final Mapping NAME = Mapping.named("name");
     @Length(100)
     @Autoloaded
     private String name;
 
-    public static final Column SOURCE_TYPE = Column.named("sourceType");
+    public static final Mapping SOURCE_TYPE = Mapping.named("sourceType");
     @Length(100)
     @Trim
     private String sourceType;
 
-    public static final Column TARGET_TYPE = Column.named("targetType");
+    public static final Mapping TARGET_TYPE = Mapping.named("targetType");
     @Length(100)
     @NullAllowed
     @Trim
     private String targetType;
 
-    public static final Column MULTIPLE = Column.named("multiple");
+    public static final Mapping MULTIPLE = Mapping.named("multiple");
     @Autoloaded
     private boolean multiple;
 
-    public static final Column VIEW_IN_LIST = Column.named("viewInList");
+    public static final Mapping VIEW_IN_LIST = Mapping.named("viewInList");
     @Autoloaded
     private boolean viewInList;
 
-    public static final Column LIST_REVERSE = Column.named("listReverse");
+    public static final Mapping LIST_REVERSE = Mapping.named("listReverse");
     @Autoloaded
     private boolean listReverse;
 
-    public static final Column COLOR = Column.named("color");
+    public static final Mapping COLOR = Mapping.named("color");
     private final ColorData color = new ColorData();
 
     public String getName() {

@@ -8,9 +8,8 @@
 
 package woody.organization.units;
 
-import sirius.db.mixing.Column;
-import sirius.db.mixing.EntityRef;
-import sirius.db.mixing.Schema;
+import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.AfterDelete;
 import sirius.db.mixing.annotations.Index;
 import sirius.db.mixing.annotations.Length;
@@ -24,17 +23,17 @@ import woody.organization.BasicElement;
 @Index(name = "unique_path_lookup", columns = "uniquePath")
 public class Unit extends BasicElement<UnitType> {
 
-    public static final Column PARENT = Column.named("parent");
+    public static final Mapping PARENT = Mapping.named("parent");
     @NullAllowed
-    private final EntityRef<Unit> parent = EntityRef.on(Unit.class, EntityRef.OnDelete.REJECT);
+    private final SQLEntityRef<Unit> parent = SQLEntityRef.on(Unit.class, SQLEntityRef.OnDelete.REJECT);
 
-    public static final Column UNIQUE_PATH = Column.named("uniquePath");
+    public static final Mapping UNIQUE_PATH = Mapping.named("uniquePath");
     @Length(150)
     private String uniquePath;
 
     @Override
-    protected EntityRef<UnitType> initializeTypeRef() {
-        return EntityRef.on(UnitType.class, EntityRef.OnDelete.REJECT);
+    protected SQLEntityRef<UnitType> initializeTypeRef() {
+        return SQLEntityRef.on(UnitType.class, SQLEntityRef.OnDelete.REJECT);
     }
 
     @AfterDelete
@@ -44,10 +43,10 @@ public class Unit extends BasicElement<UnitType> {
 
     @Override
     public String getTargetString() {
-        return Schema.getNameForType(Unit.class) + "-" + getUniquePath()+"*";
+        return mixing.getNameForType(Unit.class) + "-" + getUniquePath() + "*";
     }
 
-    public EntityRef<Unit> getParent() {
+    public SQLEntityRef<Unit> getParent() {
         return parent;
     }
 

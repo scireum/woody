@@ -9,8 +9,9 @@
 package woody.organization.units;
 
 import sirius.biz.web.BizController;
-import sirius.biz.web.PageHelper;
-import sirius.db.mixing.SmartQuery;
+import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.SmartQuery;
+import sirius.db.mixing.query.QueryField;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.nls.NLS;
 import sirius.web.controller.Controller;
@@ -36,19 +37,18 @@ public class UnitTypeController extends BizController {
     @Permission(PERMISSION_MANAGE_UNIT_TYPES)
     @Routed("/units/types")
     public void unitTypes(WebContext ctx) {
-        PageHelper<UnitType> ph = PageHelper.withQuery(oma.select(UnitType.class)
-                                                          .fields(UnitType.ID,
-                                                                  UnitType.NAME,
-                                                                  UnitType.DESCRIPTION,
-                                                                  UnitType.CATEGORY.join(Category.ID),
-                                                                  UnitType.CATEGORY.join(Category.NAME),
-                                                                  UnitType.COLOR.inner(ColorData.COLOR)
-                                                                                 .join(ColorDefinition.NAME),
-                                                                  UnitType.COLOR.inner(ColorData.COLOR)
-                                                                                 .join(ColorDefinition.HEX_CODE))
-                                                          .orderAsc(UnitType.NAME));
+        SmartQuery<UnitType> query = oma.select(UnitType.class)
+                                        .fields(UnitType.ID,
+                                                UnitType.NAME,
+                                                UnitType.DESCRIPTION,
+                                                UnitType.CATEGORY.join(Category.ID),
+                                                UnitType.CATEGORY.join(Category.NAME),
+                                                UnitType.COLOR.inner(ColorData.COLOR).join(ColorDefinition.NAME),
+                                                UnitType.COLOR.inner(ColorData.COLOR).join(ColorDefinition.HEX_CODE))
+                                        .orderAsc(UnitType.NAME);
+        SQLPageHelper<UnitType> ph = SQLPageHelper.withQuery(tenants.forCurrentTenant(query));
         ph.withContext(ctx);
-        ph.withSearchFields(UnitType.NAME, UnitType.DESCRIPTION).forCurrentTenant();
+        ph.withSearchFields(QueryField.contains(UnitType.NAME), QueryField.contains(UnitType.DESCRIPTION));
 
         ph.addQueryFacet(BasicType.CATEGORY.getName(),
                          NLS.get("BasicType.category"),
@@ -60,7 +60,7 @@ public class UnitTypeController extends BizController {
     protected SmartQuery<Category> queryCategories() {
         return oma.select(Category.class)
                   .fields(Category.ID, Category.NAME)
-                  .eq(Category.TENANT, currentTenant())
+                  .eq(Category.TENANT, tenants.getRequiredTenant())
                   .eq(Category.TYPE, UnitCategoryTypeProvider.TYPE_NAME)
                   .orderAsc(Category.NAME);
     }

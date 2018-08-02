@@ -8,8 +8,8 @@
 
 package woody.core.mails;
 
-import sirius.biz.model.BizEntity;
-import sirius.db.mixing.Column;
+import sirius.biz.jdbc.model.BizEntity;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Lob;
 import sirius.db.mixing.annotations.Unique;
@@ -22,15 +22,15 @@ public class Mailtemplate extends BizEntity {
     @Unique
     @Length(255)
     private String name;
-    public static final Column NAME = Column.named("name");
+    public static final Mapping NAME = Mapping.named("name");
 
     @Length(255)
     private String subject;
-    public static final Column SUBJECT = Column.named("subject");
+    public static final Mapping SUBJECT = Mapping.named("subject");
 
     @Lob
     private String mailcontent;
-    public static final Column MAILCONTENT = Column.named("mailcontent");
+    public static final Mapping MAILCONTENT = Mapping.named("mailcontent");
 
     public String getName() {
         return name;

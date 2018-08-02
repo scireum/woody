@@ -8,13 +8,11 @@
 
 package woody.sales
 
-import sirius.biz.tenants.Tenants
-
-import sirius.db.mixing.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.commons.Amount
 import sirius.kernel.di.std.Part
-
+import woody.sales.accounting.PackageDefinition
+import woody.sales.accounting.Product
 
 /**
  * Created by gerhardhaufler on 09.02.16.
@@ -22,10 +20,10 @@ import sirius.kernel.di.std.Part
 class PackageDefinitionSpec extends BaseSpecification {
 
     @Part
-    private static OMA oma;
+    private static sirius.db.jdbc.OMA oma;
 
     @Part
-    private static Tenants tenants;
+    private static sirius.biz.jdbc.tenants.Tenants tenants;
 
     def "packageDefinition can be persisted into the database"() {
         given:
