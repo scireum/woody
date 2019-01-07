@@ -92,14 +92,12 @@
         value:    NLS.toUserString(contract.getSigningDate()),
         labelKey: "Contract.signingDate")
 
-
         @singleSelect(span: "4", name: "contractPartner",
         labelKey: "Contract.contractPartner") {
             @for(Person person : contract.getAllPersonsForCompany(company)) {
                 <option value="@person.getId()" @if (contract.getContractPartner().is(person) ){ selected="selected" }>@person.toString()</option>
             }
         }
-
 
         @textfield(span: "2", name:     "position",
         value:    NLS.toUserString(contract.getPosition()),

@@ -10,19 +10,37 @@ package woody.xrm;
 
 import sirius.biz.model.AddressData;
 import sirius.biz.model.PersonData;
+
+import sirius.biz.sequences.Sequences;
+import sirius.biz.tenants.UserAccount;
+
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
+import sirius.kernel.health.Exceptions;
 import sirius.web.controller.Controller;
+import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import woody.core.relations.RelationHelper;
+
+
+import woody.core.employees.Employee;
+import woody.core.tags.Tagged;
+import woody.migration.MigrationJob;
+import woody.offers.ServiceAccountingService;
+import woody.phoneCalls.Starface;
+import woody.sales.AccountingService;
+import woody.sales.Lineitem;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import java.util.Optional;
 
@@ -36,7 +54,54 @@ public class XRMController extends BizController {
     public static final String PERMISSION_MANAGE_XRM = "permission-manage-xrm";
 
     @Part
-    private RelationHelper relations;
+    private static RelationHelper relations;
+
+    @Part
+    private static AccountingService as;
+
+    @Part
+    private static ServiceAccountingService sas;
+
+    @Part
+    private static MigrationJob mgj;
+
+
+    @DefaultRoute
+    @Routed("/")
+    public void main(WebContext ctx) {
+        ctx.respondWith().template("view/main/main.html");
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/migrateCrmToWoody")
+    public void migrateCrmToWoody(WebContext ctx) {
+
+        try {
+            mgj.migrateCrmToWdody();
+            ctx.respondWith().template("view/main/main.html");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+//            Exceptions.handle();
+        }
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/exportAllLicenceLineitems")
+    public void exportAllLicenceLineitems(WebContext ctx) {
+
+        try {
+            // ToDo wieder implementieren
+//            as.exportLineitems(Lineitem.LINEITEMTYPE_LA,300,null);
+            ctx.respondWith().template("view/main/main.html");
+
+        } catch (Exception e) {
+            Exceptions.handle();
+        }
+    }
+
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)

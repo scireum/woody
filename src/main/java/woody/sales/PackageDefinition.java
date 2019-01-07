@@ -112,7 +112,7 @@ public class PackageDefinition extends BizEntity {
 
 
     @BeforeSave
-    private void beforeSave() {
+    protected void beforeSave() {
         // check the values (interval-test)
         sas.checkValue(unitPrice, true, false, false, false, null, NLS.get("PackageDefinition.unitPrice"));
         sas.checkValue(singlePrice, true, false, false, false, null, NLS.get("PackageDefinition.singlePrice"));

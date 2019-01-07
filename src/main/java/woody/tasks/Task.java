@@ -64,7 +64,7 @@ public class Task extends TenantAware {
     public static final Column COMMENTS = Column.named("comments");
 
     @Part
-    private Tenants tenants;
+    private static Tenants tenants;
 
     @BeforeSave
     protected void verify() {

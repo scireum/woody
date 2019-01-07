@@ -31,6 +31,7 @@ Anmeldung: gha
             - CRM-96 übernommen
             - CRM-97 übernommen
 
+07.01.2019  - Migratios-Software für Transfer CRM --> Woody erstellt
 
 
 

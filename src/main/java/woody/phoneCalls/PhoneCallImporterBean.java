@@ -39,6 +39,10 @@ import java.util.Optional;
 
 @Register(name = "fetchPhoneCalls", classes = {PhoneCallImporter.class, EveryMinute.class, Command.class})
 public class PhoneCallImporterBean implements EveryMinute, Command {
+
+    // ToDO Beim Hochlauf kommt die Meldung :
+    // 19:03:32.175 WARN  [ForkJoinPool.commonPool-worker-2|2ms] di -
+    // woody.phoneCalls.PhoneCallImporterBean implements Named and still provides a name in the @Register annotation. Using value provided by Named.getName()...
     /**
      * <code>
      * <p>

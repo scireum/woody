@@ -8,6 +8,7 @@
 *@
 @import woody.xrm.Company
 @import woody.sales.CompanyAccountingData
+@import woody.xrm.Person
 @args Company company
 @extends(view.xrm.company.html, company, "details")
 
@@ -60,6 +61,23 @@
         @textfield(span: "6", name: "mainPhoneNr", value: company.getMainPhoneNr(), labelKey: "Company.mainPhoneNr")
         @textfield(span: "6", name: "mainMailAddress", value: company.getMainMailAddress(), labelKey: "Company.mainMailAdr")
     </div>
+
+    <div class="row">
+        @singleSelect(span: "6", name: "dataPrivacyPerson",
+        labelKey: "Company.dataPrivacyPerson") {
+            @for(Person person : company.queryPersons()) {
+            <option value="@person.getId()" @if (company.getDataPrivacyPerson().is(person) ){ selected="selected" }>@person.toString()</option>
+            }
+        }
+
+        @textfield(span: "6", name: "dataPrivacySendDate", value: NLS.toUserString(company.getDataPrivacySendDate()), labelKey: "Company.dataPrivacySendDate")
+    </div>
+
+    <div class="row">
+
+       @textfield(span: "6", name: "trace_createdAt", value: NLS.toUserString(company.getTrace().getCreatedAt()), labelKey: "Company.createdAt")
+    </div>
+
     <div class="row">
         @autocompleteMultiSelect(span: "12", name: "tags", labelKey: "Tag.plural", serviceUri: "tags/COMPANY/autocomplete", optional: true) {
             @for(woody.core.tags.Tag t : company.getTags().getTags()) {

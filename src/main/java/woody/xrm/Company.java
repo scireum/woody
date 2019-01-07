@@ -15,6 +15,7 @@ import sirius.biz.model.InternationalAddressData;
 import sirius.biz.tenants.TenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
+import sirius.db.mixing.EntityRef;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -28,6 +29,15 @@ import woody.core.relations.HasRelations;
 import woody.core.relations.Relateable;
 import woody.core.relations.Relations;
 import woody.core.tags.Tagged;
+
+import woody.phoneCalls.SyncAsterisk;
+import woody.sales.CompanyAccountingData;
+import woody.sales.Contract;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Created by aha on 06.10.15.
@@ -89,6 +99,16 @@ public class Company extends TenantAware implements HasComments, HasRelations {
 
     private final ContactData contact = new ContactData(true);
     public static final Column CONTACT = Column.named("contact");
+
+    @NullAllowed
+    @Autoloaded
+    private final EntityRef<Person> dataPrivacyPerson = EntityRef.on(Person.class, EntityRef.OnDelete.SET_NULL);
+    public static final Column DATAPRIVACYPERSON = Column.named("dataPrivacyPerson");
+
+    @NullAllowed
+    @Autoloaded
+    private LocalDate dataPrivacySendDate;
+    public static final Column DATAPRIVACYSENDDATE = Column.named("dataPrivacySendDate");
 
     private final Tagged tags = new Tagged(this);
     public static final Column TAGS = Column.named("tags");
@@ -353,5 +373,17 @@ public class Company extends TenantAware implements HasComments, HasRelations {
 
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    public EntityRef<Person> getDataPrivacyPerson() {
+        return dataPrivacyPerson;
+    }
+
+    public LocalDate getDataPrivacySendDate() {
+        return dataPrivacySendDate;
+    }
+
+    public void setDataPrivacySendDate(LocalDate dataPrivacySendDate) {
+        this.dataPrivacySendDate = dataPrivacySendDate;
     }
 }
