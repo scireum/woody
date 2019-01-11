@@ -57,7 +57,7 @@ public class CollmexController extends BizController {
         UserAccount uac = findForTenant(UserAccount.class, "4");
         String message = cis.generateCollmexAccessStrings(uac);
         System.err.println(message);
-        ctx.respondWith().template("view/main/main.html");
+        ctx.respondWith().template("view/main/main.html.pasta");
     }
 
     @LoginRequired
@@ -72,7 +72,7 @@ public class CollmexController extends BizController {
         String csvString = cis.generateCollmexCmxKnd(company);
         System.err.println("controller/generateCsvString:"+csvString);
         cis.sendCmxKnd(accessData, csvString);
-        ctx.respondWith().template("view/main/main.html");
+        ctx.respondWith().template("view/main/main.htm.pastal");
     }
 
 

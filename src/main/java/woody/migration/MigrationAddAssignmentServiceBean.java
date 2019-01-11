@@ -51,11 +51,9 @@ public class MigrationAddAssignmentServiceBean implements MigrationAddAssignment
 
     @Override
     public void addTags() {
-
             System.out.println("Start addTags " );
             Database dbCrm = databases.get("crm");
             Database dbWoody = databases.get("mixing");
-
 
             // 1. CRM-Tabelle 'industry' in Tags umsetzen
             Long maxId = 0L;
@@ -126,6 +124,7 @@ public class MigrationAddAssignmentServiceBean implements MigrationAddAssignment
         Database dbCrm = databases.get("crm");
         Database dbWoody = databases.get("mixing");
 
+        // if maxId == -1 --> no maxId is used
         Long maxId = -1L;
         Long idT = readActualTableId(dbWoody, TagAssignment.class);
         boolean finished = false;
@@ -206,6 +205,13 @@ public class MigrationAddAssignmentServiceBean implements MigrationAddAssignment
         System.out.println("Ende transferTagassignment, TagAssignments aus der Tabelle '" + table + "' gelesen, letzte id: " +  maxId.toString() + ", idT: " + idT.toString());
     }
 
+    /**
+     * add Assignments from the given table
+     * @param fieldsStr: names of the fields, field-name separated by comma, e.g. "aaa, bbb"
+     * @param table: name of the crmTable
+     * @param function: @see prepareTagAssignment
+     * @param target: Target in the tag-table
+     */
     private void addAssignmentsFromTable(String fieldsStr, String table, String function, String target) {
         System.out.println("Start addAssignments von '" + table +"', Felder: " + fieldsStr + ";   function: " + function + ", target: " + target );
         Database dbCrm = databases.get("crm");
@@ -240,11 +246,14 @@ public class MigrationAddAssignmentServiceBean implements MigrationAddAssignment
     /**
      * prepares the given tagassignment
      * @param dbWoody
-     * @param idT      id of the tagassignment
-     * @param row      row with data of the crm
-     * @param id       id of the targetEntity
-     * @param name     name of the tag
-     * @return         idT
+     * @param idT     id of the tagassignment
+     * @param row     row with data of the crm
+     * @param id      id of the targetEntity
+     * @param name    name of the tag
+     * @param function "table": the tagName is read from te row
+     *                 "boolean": the tagname is the given name of the tag
+     * @param target  targetName in the tag-table
+     * @return        idT
      */
     private Long prepareTagAssignment(Database dbWoody, Long idT, Row row, Long id, String name, String function, String target) {
         String tagName = null;
@@ -265,20 +274,25 @@ public class MigrationAddAssignmentServiceBean implements MigrationAddAssignment
                 tagId = tag.getId();
             } else {
                 // ToDo exception anzeigen
-                throw Exceptions.createHandled().withNLSKey("MigrationsServiceBean.noTagFound").set("tag", tagName).handle();
+                try {
+                    throw new Exception("Tag mit tagName = " + tagName + "nicht gefunden.");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+//                throw Exceptions.createHandled().withNLSKey("MigrationsServiceBean.noTagFound").set("tag", tagName).handle();
             }
             if ("table".equals(function)) {
                 // only if the value is filled
                 if (row.getValue(name).isFilled()) {
                     idT = idT + 1;
-                    insertTagAssignment(dbWoody, idT, id, tagId, "COMPANY");
+                    insertTagAssignment(dbWoody, idT, id, tagId, target);
                 }
             }
             if ("boolean".equals(function)) {
                 String value = row.getValue(name).getString().toLowerCase();
                 if ("true".equals(value)) {
                     idT = idT + 1;
-                    insertTagAssignment(dbWoody, idT, id, tagId, "COMPANY");
+                    insertTagAssignment(dbWoody, idT, id, tagId, target);
                 }
             }
         }
@@ -328,7 +342,7 @@ public class MigrationAddAssignmentServiceBean implements MigrationAddAssignment
                 error = upDate.execute();
             }
             con.close();
-            System.out.println("Fehler beim Update UserAccount für gha: " + error.toString());
+            System.out.println(error == true ? "" : "kein " + "Fehler beim Update UserAccount für gha: ");
 
         } catch (SQLException e) {
             e.printStackTrace();

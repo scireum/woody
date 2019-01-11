@@ -15,7 +15,6 @@ package woody.migration;
 import sirius.db.jdbc.Database;
 import sirius.db.jdbc.Databases;
 import sirius.db.jdbc.Row;
-import sirius.db.mixing.Column;
 import sirius.db.mixing.OMA;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
@@ -23,12 +22,10 @@ import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
-import woody.core.tags.Tag;
 import woody.offers.Offer;
-
+import woody.xrm.Company;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,24 +61,27 @@ public class MigrationTableServiceBean implements MigrationTableService {
         Database dbWoody = databases.get("mixing");
 
         // Delete the content of the woody-table
-        deleteContentOfTable(dbWoody, woodyTable);
+//        deleteContentOfTable(dbWoody, woodyTable);
 
         // read the data from the crmTable and migrate them to woody
         Long maxId = 0L;
         boolean finished = false;
         do  {
+            // read the rowList from the crmTable, starting at maxId
             List<Row> rowList = readTheRowList(crmTable, dbCrm, maxId);
             Tuple<Long, Long> tuple = null;
             if(rowList.size() > 0) {
-
+                // for each row in the rowList
                 for(Row row : rowList) {
+                    // get the id and calculate the maxId
                     Long id = row.getValue("id").asLong(-1);
                     if(id > maxId) {
                         maxId = id;
                     }
+                    // build a HashMap and store the id
                     HashMap<String, Object> map = new HashMap();
-
                     map.put("id", id.toString());
+                    // add more data to the HashMap
                     String function = "full";
                     switch (crmTable) {
                         case "tag":
@@ -89,7 +89,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
                             break;
                         case "company": map = buildCompanyMap(map, row);
                             break;
-                        case "person": map = buildPersonyMap(map, row);
+                        case "person": map = buildPersonMap(map, row);
                             break;
                         case "product": map = buildProductMap(map, row);
                             break;
@@ -125,7 +125,9 @@ public class MigrationTableServiceBean implements MigrationTableService {
                             System.out.println("   Die Verarbeitung der Tabelle '" + crmTable + "' fehlt!");
                             break;
                     }
+                    // add the traceData to the HashMap
                     prepareTraceData(map, row, function);
+                    // insert the data in the woody-table
                     insertRow(dbWoody, map, woodyTable);
                 }
 
@@ -196,7 +198,6 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "baseProduct", null);
         rowFetch(map, row, "cyclicPrice", null);
         rowFetch(map, row, "developeDate", null);
-//        rowFetch(map, row, "flagOneTimeHistory", null);
         rowFetch(map, row, "keyword", null);
         rowFetch(map, row, "offer", null);
         rowFetch(map, row, "offerDate", null);
@@ -213,7 +214,6 @@ public class MigrationTableServiceBean implements MigrationTableService {
         }
         rowFetch(map, row, "salesConfirmationDate", null);
         rowFetch(map, row, "singlePrice", null);
-
         rowFetch(map, row, "state", null);
         rowFetch(map, row, "text", null);
         return map;
@@ -261,6 +261,10 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "defaultPosition", null);
         rowFetch(map, row, "name", null);
         rowFetch(map, row, "packetType", "paketType");
+        if(map.get("paketType") == null) {
+            // set the default
+            map.put("paketType", "STANDARD");
+        }
         rowFetch(map, row, "parameter", null);
         rowFetch(map, row, "singlePrice", null);
         rowFetch(map, row, "product", null);
@@ -279,7 +283,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
         return map;
     }
 
-    private HashMap<String,Object> buildPersonyMap(HashMap<String, Object> map, Row row) {
+    private HashMap<String,Object> buildPersonMap(HashMap<String, Object> map, Row row) {
         rowFetch(map, row,"id", null);
         rowFetch(map, row, "company", "company");
         rowFetch(map, row, "firstname", "person_firstname");
@@ -291,12 +295,14 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "mobileNormalized", "contact_mobile");
         rowFetch(map, row, "phoneNormalized", "contact_phone");
         rowFetch(map, row, "birthday", null);
-        rowFetch(map, row, "offline", null);
+        rowFetch(map, row, "offline", "quit");
         rowFetch(map, row, "position", "position");
-        rowFetch(map, row, "city", "address_city");
-        rowFetch(map, row, "countryCode", "address_country");
-        rowFetch(map, row, "street", "address_street");
-        rowFetch(map, row, "zipCode", "address_zip");
+        if(checkIntegrityOfFields(row, "city, countryCode, street, zipCode")) {
+            rowFetch(map, row, "city", "address_city");
+            rowFetch(map, row, "countryCode", "address_country");
+            rowFetch(map, row, "street", "address_street");
+            rowFetch(map, row, "zipCode", "address_zip");
+        }
         map.put("login_accountLocked",0);
         map.put("login_generatedPassword", "");
         map.put("login_lastLogin", 0);
@@ -304,6 +310,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
         map.put("login_passwordHash", "");
         map.put("login_salt", "");
         map.put("login_username", "");
+        map.put("uniquePath", "");
         return map;
     }
 
@@ -344,7 +351,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
     }
 
     /**
-     * build a uniqueName -->transfer to lowerCase an replace all ä, ö, ü, ß
+     * build a uniqueName -->transfer the name to lowerCase an replace all ä, ö, ü, ß
      */
     @Override
     public Object buildUniqueName(String name) {
@@ -356,7 +363,9 @@ public class MigrationTableServiceBean implements MigrationTableService {
         return name;
     }
 
-
+    /**
+     * read the data from the given crmTable from id > maxId in a rowList
+     */
     private List<Row> readTheRowList(String crmTable, Database dbCrm, Long maxId) {
         String sql = "SELECT * FROM " + crmTable + " c WHERE c.id > " + NLS.toUserString(maxId) + " order by c.id limit 1000";
         List<Row>rowList = null;
@@ -380,6 +389,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
         try {
             con = db.getConnection();
             PreparedStatement statement = con.prepareStatement("DELETE FROM " + table);
+            System.out.println("     Datenbank: " + db.toString() + ", Tablle: " + table + " löschen.");
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -400,22 +410,18 @@ public class MigrationTableServiceBean implements MigrationTableService {
         }
     }
 
-    /**
-     * reads each company-data from the rowList an transfer them to woody/company
-     */
     private HashMap<String, Object> buildCompanyMap(HashMap<String, Object> map, Row row) {
-
-        // read the crm-data from the row and store them in a HashMap
-
         map.put("tenant", TENANT);
         rowFetch(map, row,"id", null);
         rowFetch(map, row, "name", "name");
         rowFetch(map, row,"name2", null);
-        rowFetch(map, row, "city", "address_city");
-        rowFetch(map, row, "countryCode", "address_country");
-        rowFetch(map, row,"street", "address_street");
-        rowFetch(map, row,"zipCode", "address_zip");
-        rowFetch(map, row,"customerNr", null);
+        if(checkIntegrityOfFields(row, "city, countryCode, street, zipCode")) {
+            rowFetch(map, row, "city", "address_city");
+            rowFetch(map, row, "countryCode", "address_country");
+            rowFetch(map, row, "street", "address_street");
+            rowFetch(map, row, "zipCode", "address_zip");
+        }
+        rowFetch(map, row,"customerNr", "customerNumber");
         rowFetch(map, row,"homepage", null);
         rowFetch(map, row,"image", null);
         rowFetch(map, row,"matchcode", null);
@@ -423,22 +429,10 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row,"invoiceMailAdr", "companyAccountingData_invoiceMailAdr");
         rowFetch(map, row,"ptPrice", "companyAccountingData_ptPrice");
         rowFetch(map, row,"outputLanguage", "companyAccountingData_outputLanguage");
-
-        // dataPrivacyPerson und dataPrivacySendDate werden im 2. Lauf der company-Migration bearbeitet.
-//            rowFetch(map, row,"dataPrivacyPerson", null);
         rowFetch(map, row,"dataPrivacySendDate", null);
 
         // build the postbox-address-element - or not
-        int sum = 0;
-        sum = sum + checkIsValuePresent(row,"cityPostbox");
-        sum = sum + checkIsValuePresent(row,"zipCodePostbox");
-        sum = sum + checkIsValuePresent(row,"postbox");
-        if(sum >0 && sum <3) {
-            // some valueus for the postbox-address are missing
-//                System.out.println("Fehler bei Firma: " + row.getValue("name").getString() + ", id = " + id.toString());
-        }
-        if (sum == 3) {
-            // all values are present for the postbox-address
+        if(checkIntegrityOfFields(row, "cityPostbox, zipCodePostbox, postbox, countryCode")) {
             rowFetch(map, row, "cityPostbox", "postboxAddress_city" );
             rowFetch(map, row, "zipCodePostbox", "postboxAddress_zip" );
             rowFetch(map, row, "countryCode", "postboxAddress_country" );
@@ -456,30 +450,87 @@ public class MigrationTableServiceBean implements MigrationTableService {
             }
             if(addPostboxName) {
                 String countryCode = row.getValue("countryCode").asString("de").toLowerCase();
-                String postfachName = NLS.get("PostfachName_"+countryCode);
+                String postfachName = NLS.get("PostfachName_" + countryCode);
                 if(Strings.isEmpty(postfachName)) {
                     postfachName = "Postbox";
                 }
                 postbox = postfachName + " " + postbox;
-                map.put("postboxAddress_street", postbox);
-//                    System.out.println(postbox);
+            } else {
+                rowFetch(map, row, "postbox", "postboxAddress_street");
             }
         }
-
-//            // insert the row in the company-table
-//            insertRow(dbWoody, id, map, woodyTable);
-//
-//            // add the tag-assignments
-//            idT = prepareTagAssignment(dbWoody, idT, row, id, "companyType");
-//            idT = prepareTagAssignment(dbWoody, idT, row, id, "businessType");
-//        }
         return map;
     }
 
     /**
+     * check the integrity of the given filelds in the given row
+     * @param row: row
+     * @param fieldsAsString: field-names, separated by comma, e.g "field1 , field2, field3"
+     * @return true if all fields are filled, otherwise false
+     */
+    private boolean checkIntegrityOfFields(Row row, String fieldsAsString) {
+        boolean success = true;
+        String[] fields = fieldsAsString.split(",");
+        for(int i = 0; i<fields.length; i++) {
+            String value = row.getValue(fields[i].trim()).getString();
+            if(Strings.isEmpty(value)) {
+                success = false;
+            }
+        }
+        if(!success) {
+            int sum = 0;
+            boolean print = false;
+            if(row.hasValue("cityPostbox")) {
+                if(row.getValue("cityPostbox").isFilled()) {
+                    for(int k = 0; k<fields.length; k++) {
+                        if(fields[k].trim().equals("cityPostBox")) {
+                            print = true;
+                        }
+                    }
+                }
+            } else {
+                for (int k = 0; k < fields.length; k++) {
+                    if (row.getValue(fields[k].trim()).getString() != null) {
+                        sum = sum++;
+                    }
+                }
+                if (sum >= 2) {
+                    print = true;
+                }
+            }
+            if(print) {
+                for (int k = 0; k < fields.length; k++) {
+                    if (k == 0) {
+                        String name = "noName";
+                        if (row.hasValue("name")) {
+                            name = row.getValue("name").getString();
+                        } else {
+                            if (row.hasValue("lastname")) {
+                                name = row.getValue("lastname").getString();
+                                if (row.getValue("firstname").isFilled()) {
+                                    name = name + ", " + row.getValue("firstname").getString() + ": ";
+                                }
+                            } else {
+                                name = "id: " + row.getValue("id").getString();
+                            }
+                        }
+                        System.out.print("     " + name + ": " + fields[k] + "= " + row.getValue(fields[k].trim()).getString());
+                    } else {
+                        System.out.print(", " + fields[k] + "= " + row.getValue(fields[k].trim()).getString());
+                    }
+                    if (k == fields.length - 1) {
+                        System.out.println(" ");
+                    }
+                }
+            }
+        }
+        return success;
+    }
+
+
+    /**
      * migrate the data for the TraceData from the crm-values, given in row
      */
-
     @Override
     public void prepareTraceData(HashMap<String, Object> map, Row row, String function) {
         if(row == null) {
@@ -514,7 +565,6 @@ public class MigrationTableServiceBean implements MigrationTableService {
                 String date = row.getValue("date").getString();  //YYYY-MM-DD
                 date = date + "T12:00:00";
                 Long epoch = translateLocalDateTimeToEpoch(date);
-//                LocalDateTime xxx = LocalDateTime.ofInstant(Instant.ofEpochSecond(epoch), ZoneId.systemDefault());
                 map.put("trace_createdAt", epoch.toString());
                 map.put("trace_createdIn", "Migration");
                 map.put("trace_createdBy", "Migration");
@@ -588,20 +638,6 @@ public class MigrationTableServiceBean implements MigrationTableService {
         return ldt.toEpochSecond(offset);
     }
 
-
-    /**
-     * @return 0 if the value is not present, returns 1 if the value is present
-     */
-    private int checkIsValuePresent(Row row, String name) {
-        int count = 0;
-        if(row.hasValue(name)) {
-            if(row.getValue(name).isFilled()) {
-                count = 1;
-            }
-        }
-        return count;
-    }
-
     /**
      * reads the given value (nameCrm) from the row and store the value (String) in the HashMap with the key 'nameWoody'
      */
@@ -624,5 +660,70 @@ public class MigrationTableServiceBean implements MigrationTableService {
             }
         }
     }
+
+    @Override
+    public void addDataprivatyPersons() {
+        System.out.println("Start addDataPrivacyPerson");
+        Database databaseCrm = databases.get("crm");
+        Long maxId = 0L;
+        boolean finish = false;
+        // read the crm-table company
+        do {
+            List<Row> rowList = readTheRowList("company", databaseCrm, maxId);
+            if(rowList.size() == 0) {
+                finish = true;
+            } else {
+                try {
+                    // read each row
+                    for(Row row : rowList) {
+                        // is a id of the dataPrivacyPerson present?
+                        Long dataPrivacyPersonId = row.getValue("dataPrivacyPerson").getLong();
+                        if(dataPrivacyPersonId != null) {
+                            // get the id of the company
+                            Long id = row.getValue("id").getLong();
+                            // get the company by id
+                            Optional opt = oma.find(Company.class, id);
+                            if(opt.isPresent()) {
+                                Company company = (Company) opt.get();
+                                // set the dataPrivacyPerson and save the company
+                                company.getDataPrivacyPerson().setId(dataPrivacyPersonId);
+                                oma.update(company);
+                            } else {
+                                // ToDo vernünftig anzeigen
+                                throw new Exception("Company mit id = " + id.toString() + " nicht gefinden.");
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } while (finish);
+        System.out.println("Ende addDataPrivacyPerson");
+    }
+
+    @Override
+    public void deleteDataPrivacyPersonsInCompanies() {
+        List<Company> companyList = oma.select(Company.class).queryList();
+        for(Company company : companyList) {
+            if(company.getDataPrivacyPerson() != null) {
+                //set the dataPrivacyPerson to null
+                company.getDataPrivacyPerson().setId(null);
+                // delete all address-data to avoid a exception.
+//                company.getAddress().setCountry(null);
+//                company.getAddress().setCity(null);
+//                company.getAddress().setStreet(null);
+//                company.getAddress().setZip(null);
+//                company.getPostboxAddress().setCountry(null);
+//                company.getPostboxAddress().setCity(null);
+//                company.getPostboxAddress().setStreet(null);
+//                company.getPostboxAddress().setZip(null);
+                oma.update(company);
+            }
+        }
+        int ggg = 3;
+    }
+
 
 }

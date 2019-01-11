@@ -27,7 +27,10 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
+import sirius.web.security.ScopeInfo;
 import sirius.web.security.UserContext;
+import sirius.web.security.UserInfo;
+import sirius.web.security.UserSettings;
 import woody.core.relations.RelationHelper;
 
 
@@ -43,6 +46,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by aha on 11.05.15.
@@ -69,17 +73,21 @@ public class XRMController extends BizController {
     @DefaultRoute
     @Routed("/")
     public void main(WebContext ctx) {
-        ctx.respondWith().template("view/main/main.html");
+        ctx.respondWith().template("view/main/main.html.pasta");
     }
 
     @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
+    // ToDo permission-manage-xrm kommt nicht an, obwohl das Recht über die Rolle da sein sollte.
+//    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/migrateCrmToWoody")
     public void migrateCrmToWoody(WebContext ctx) {
 
+        UserInfo usi = UserContext.getCurrentUser();
+        Set<String> permissions = usi.getPermissions();
+
         try {
             mgj.migrateCrmToWdody();
-            ctx.respondWith().template("view/main/main.html");
+            ctx.respondWith().template("view/main/main.html.pasta");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,7 +103,7 @@ public class XRMController extends BizController {
         try {
             // ToDo wieder implementieren
 //            as.exportLineitems(Lineitem.LINEITEMTYPE_LA,300,null);
-            ctx.respondWith().template("view/main/main.html");
+            ctx.respondWith().template("view/main/main.html.pasta");
 
         } catch (Exception e) {
             Exceptions.handle();

@@ -1,14 +1,5 @@
-@*
-*  Made with all the love in the world
-*  by scireum in Remshalden, Germany
-*
-*  Copyright by scireum GmbH
-*  http://www.scireum.de - info@scireum.de
-*@
-
-@extends(view.wondergem.template.html, title: "woody")
-
-@pageHeader("Welcome to woody")
+<h1><b>Welcome to woody</b></h1>
+<br></br>
 
 <table>
     <tr><td><a class="link" href="/companies">Firmen</a></td></tr>

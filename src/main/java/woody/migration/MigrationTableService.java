@@ -33,12 +33,34 @@ public interface MigrationTableService {
      */
     public void deleteContentOfTable(Database db, String table);
 
+    /**
+     * builds a uniqueName --> transfer the given name to lowerCase and replace ä, ö, ü ß
+     */
     public Object buildUniqueName(String name);
 
+    /**
+     * prepare the traceData given in the row and add them to the given HashMap
+     */
     public void prepareTraceData(HashMap<String, Object> map, Row row, String function);
 
+    /**
+     * insert the in a HashMap given data into the given table in the given databas
+     */
     public void insertRow(Database db, HashMap<String, Object> map, String table);
 
+    /**
+     * read all compaanies from the crm and add the dataPrivacyPersons into the woody-company-table
+     */
+    public void addDataprivatyPersons();
+
+    /**
+     * set all dataPrivacyPersons in the woody-company-table to null
+     */
+    public void deleteDataPrivacyPersonsInCompanies();
+
+    /**
+     * get the tenant
+     */
     public String getTENANT();
 
 }

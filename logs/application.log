@@ -1,0 +1,959 @@
+2019-01-11 13:53:49,356 INFO  [main] sirius - Java HotSpot(TM) 64-Bit Server VM (1.8, Oracle Corporation, 25.65-b01)
+2019-01-11 13:53:49,366 INFO  [main] sirius - Mac OS X (10.14.2) on 4 CPUs (x86_64)
+2019-01-11 13:53:49,366 INFO  [main] sirius - ---------------------------------------------------------
+2019-01-11 13:53:49,366 INFO  [main] sirius - System is STARTING...
+2019-01-11 13:53:49,366 INFO  [main] sirius - ---------------------------------------------------------
+2019-01-11 13:53:49,366 INFO  [main] sirius - Loading config...
+2019-01-11 13:53:49,366 INFO  [main] sirius - ---------------------------------------------------------
+2019-01-11 13:53:49,423 INFO  [main] sirius - using application.conf from classpath...
+2019-01-11 13:53:49,556 INFO  [main] ignored - application.conf @ file:/Users/gerhardhaufler/dev/woody/target/classes/application.conf: 190: Expecting close brace } or a comma, got end of file
+com.typesafe.config.ConfigException$Parse: application.conf @ file:/Users/gerhardhaufler/dev/woody/target/classes/application.conf: 190: Expecting close brace } or a comma, got end of file
+	at com.typesafe.config.impl.ConfigDocumentParser$ParseContext.parseError(ConfigDocumentParser.java:201)
+	at com.typesafe.config.impl.ConfigDocumentParser$ParseContext.parseError(ConfigDocumentParser.java:197)
+	at com.typesafe.config.impl.ConfigDocumentParser$ParseContext.parseObject(ConfigDocumentParser.java:526)
+	at com.typesafe.config.impl.ConfigDocumentParser$ParseContext.parseValue(ConfigDocumentParser.java:247)
+	at com.typesafe.config.impl.ConfigDocumentParser$ParseContext.parseObject(ConfigDocumentParser.java:456)
+	at com.typesafe.config.impl.ConfigDocumentParser$ParseContext.parseValue(ConfigDocumentParser.java:247)
+	at com.typesafe.config.impl.ConfigDocumentParser$ParseContext.parseObject(ConfigDocumentParser.java:456)
+	at com.typesafe.config.impl.ConfigDocumentParser$ParseContext.parse(ConfigDocumentParser.java:646)
+	at com.typesafe.config.impl.ConfigDocumentParser.parse(ConfigDocumentParser.java:14)
+	at com.typesafe.config.impl.Parseable.rawParseValue(Parseable.java:260)
+	at com.typesafe.config.impl.Parseable.rawParseValue(Parseable.java:248)
+	at com.typesafe.config.impl.Parseable.parseValue(Parseable.java:180)
+	at com.typesafe.config.impl.Parseable.parseValue(Parseable.java:174)
+	at com.typesafe.config.impl.Parseable.parseValue(Parseable.java:307)
+	at com.typesafe.config.impl.Parseable$ParseableResources.rawParseValue(Parseable.java:747)
+	at com.typesafe.config.impl.Parseable$ParseableResources.rawParseValue(Parseable.java:710)
+	at com.typesafe.config.impl.Parseable.parseValue(Parseable.java:180)
+	at com.typesafe.config.impl.Parseable.parseValue(Parseable.java:174)
+	at com.typesafe.config.impl.Parseable.parse(Parseable.java:152)
+	at com.typesafe.config.impl.SimpleIncluder.fromBasename(SimpleIncluder.java:172)
+	at com.typesafe.config.impl.ConfigImpl.parseResourcesAnySyntax(ConfigImpl.java:132)
+	at com.typesafe.config.ConfigFactory.parseResourcesAnySyntax(ConfigFactory.java:978)
+	at com.typesafe.config.ConfigFactory.load(ConfigFactory.java:114)
+	at com.typesafe.config.ConfigFactory.load(ConfigFactory.java:95)
+	at sirius.kernel.Setup.loadApplicationConfig(Setup.java:428)
+	at sirius.kernel.Sirius.setupConfiguration(Sirius.java:482)
+	at sirius.kernel.Sirius.start(Sirius.java:365)
+	at sirius.kernel.Setup.createAndStartEnvironment(Setup.java:159)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at IPL.kickstart(IPL.java:132)
+	at IPL.main(IPL.java:62)
+2019-01-11 13:53:49,563 WARN  [main] sirius - Cannot load application.conf: application.conf @ file:/Users/gerhardhaufler/dev/woody/target/classes/application.conf: 190: Expecting close brace } or a comma, got end of file
+2019-01-11 13:53:49,563 INFO  [main] sirius - using instance.conf from filesystem...
+2019-01-11 13:53:49,578 INFO  [main] sirius - ---------------------------------------------------------
+2019-01-11 13:53:49,578 INFO  [main] sirius - Starting the system...
+2019-01-11 13:53:49,578 INFO  [main] sirius - ---------------------------------------------------------
+2019-01-11 13:53:49,952 INFO  [main] sirius - Initializing the log system:
+2019-01-11 13:53:49,955 INFO  [main] sirius - * Setting velocity to: WARN
+2019-01-11 13:53:49,955 INFO  [main] sirius - * Setting ignored to: OFF
+2019-01-11 13:53:49,958 INFO  [main] sirius - Enabled 10 of 10 frameworks...
+2019-01-11 13:53:49,958 INFO  [main] sirius - Active Customizations: []
+2019-01-11 13:53:50,094 INFO  [main] di - Initializing the MicroKernel....
+2019-01-11 13:53:50,094 INFO  [main] di - ~ Scanning .class files...
+2019-01-11 13:53:53,543 INFO  [main] di - ~ Applying 3 class load actions on 947 classes...
+2019-01-11 13:53:53,644 WARN  [ForkJoinPool.commonPool-worker-2] di - @Replace should be only used within a customization. sirius.web.mails.MailsMock@69db067b (class sirius.web.mails.MailsMock) seems to be a base class!
+2019-01-11 13:53:53,692 WARN  [ForkJoinPool.commonPool-worker-1] di - woody.phoneCalls.PhoneCallImporterBean implements Named and still provides a name in the @Register annotation. Using value provided by Named.getName()...
+2019-01-11 13:53:53,696 INFO  [main] di - ~ Initializing static parts-references...
+2019-01-11 13:53:53,782 INFO  [main] di - ~ Initializing parts...
+2019-01-11 13:53:53,871 INFO  [main] oma - Mixing is starting up for database 'mixing'
+2019-01-11 13:53:53,883 WARN  [main] oma - Cannot create property STAGE in type woody.core.lifecycles.LifecycleState (woody.core.lifecycles.LifecycleState)
+2019-01-11 13:53:53,931 WARN  [main] oma - Field contractValue in woody.opportunities.Opportunity is an Amount. Such fields should be initialized with Amount.NOTHING as an amount should never be null!
+2019-01-11 13:53:53,985 WARN  [main] oma - Field vatRate in woody.offers.VatRate is an Amount. Such fields should be initialized with Amount.NOTHING as an amount should never be null!
+2019-01-11 13:53:54,015 WARN  [main] di - Missing config value: mail.scireumSupportMailAddress in (woody.offers.ServiceAccountingServiceBean.scireumSupportMailAddress)!
+2019-01-11 13:53:54,021 INFO  [default-1] sirius - Starting: tasks (Async Execution Engine)
+2019-01-11 13:53:54,030 INFO  [default-2] sirius - Starting: crunchlog-writeback
+2019-01-11 13:53:54,034 INFO  [default-3] sirius - Starting: Statistics
+2019-01-11 13:53:54,035 INFO  [default-4] sirius - Starting: redis
+2019-01-11 13:53:54,036 INFO  [default-5] sirius - Starting: CompileAllTemplates
+2019-01-11 13:53:54,053 INFO  [default-5] tagliatelle - Checking: /taglib/woody/overview.html.pasta
+2019-01-11 13:53:54,340 INFO  [default-5] tagliatelle - Checking: /taglib/woody/tags.html.pasta
+2019-01-11 13:53:54,345 INFO  [default-5] tagliatelle - Checking: /taglib/woody/colorSelector.html.pasta
+2019-01-11 13:53:54,356 INFO  [default-5] tagliatelle - Checking: /taglib/woody/comments.html.pasta
+2019-01-11 13:53:54,372 INFO  [default-5] tagliatelle - Checking: /taglib/woody/listRelations.html.pasta
+2019-01-11 13:53:54,372 INFO  [default-5] tagliatelle - Checking: /taglib/woody/colorBox.html.pasta
+2019-01-11 13:53:54,386 INFO  [default-5] tagliatelle - Checking: /taglib/woody/listTags.html.pasta
+2019-01-11 13:53:54,387 INFO  [default-5] tagliatelle - Checking: /view/main/main.html.pasta
+2019-01-11 13:53:54,392 INFO  [default-5] tagliatelle - Checking: /templates/organization/units/units.html.pasta
+2019-01-11 13:53:54,514 INFO  [default-5] tagliatelle - Checking: /templates/organization/units/types.html.pasta
+2019-01-11 13:53:54,533 INFO  [default-5] tagliatelle - Checking: /templates/organization/units/unit-overview.html.pasta
+2019-01-11 13:53:54,554 INFO  [default-5] tagliatelle - Checking: /templates/organization/units/type.html.pasta
+2019-01-11 13:53:54,574 INFO  [default-5] tagliatelle - Checking: /templates/organization/units/unit.html.pasta
+2019-01-11 13:53:54,575 INFO  [default-5] tagliatelle - Checking: /templates/organization/units/unit-details.html.pasta
+2019-01-11 13:53:54,595 INFO  [default-5] tagliatelle - Checking: /templates/organization/units/relateable-units-overview.html.pasta
+2019-01-11 13:53:54,600 INFO  [default-5] tagliatelle - Checking: /templates/organization/things/thing-overview.html.pasta
+2019-01-11 13:53:54,614 INFO  [default-5] tagliatelle - Checking: /templates/organization/things/thing.html.pasta
+2019-01-11 13:53:54,614 INFO  [default-5] tagliatelle - Checking: /templates/organization/things/things.html.pasta
+2019-01-11 13:53:54,630 INFO  [default-5] tagliatelle - Checking: /templates/organization/things/thing-details.html.pasta
+2019-01-11 13:53:54,670 INFO  [default-5] tagliatelle - Checking: /templates/organization/things/types.html.pasta
+2019-01-11 13:53:54,708 INFO  [default-5] tagliatelle - Checking: /templates/organization/things/type.html.pasta
+2019-01-11 13:53:54,758 INFO  [default-5] tagliatelle - Checking: /templates/organization/things/relateable-things-overview.html.pasta
+2019-01-11 13:53:54,763 INFO  [default-5] tagliatelle - Checking: /templates/organization/categories/category.html.pasta
+2019-01-11 13:53:54,772 INFO  [default-5] tagliatelle - Checking: /templates/organization/categories/categories.html.pasta
+2019-01-11 13:53:54,811 INFO  [default-5] tagliatelle - Checking: /templates/organization/organization-overview.html.pasta
+2019-01-11 13:53:54,811 INFO  [default-5] tagliatelle - Checking: /templates/organization/efforts/effort-overview.html.pasta
+2019-01-11 13:53:54,824 INFO  [default-5] tagliatelle - Checking: /templates/organization/efforts/effort.html.pasta
+2019-01-11 13:53:54,824 INFO  [default-5] tagliatelle - Checking: /templates/organization/efforts/effort-details.html.pasta
+2019-01-11 13:53:54,837 INFO  [default-5] tagliatelle - Checking: /templates/organization/efforts/relateable-efforts-overview.html.pasta
+2019-01-11 13:53:54,843 INFO  [default-5] tagliatelle - Checking: /templates/organization/efforts/types.html.pasta
+2019-01-11 13:53:54,850 INFO  [default-5] tagliatelle - Checking: /templates/organization/efforts/type.html.pasta
+2019-01-11 13:53:54,857 INFO  [default-5] tagliatelle - Checking: /templates/organization/efforts/efforts.html.pasta
+2019-01-11 13:53:54,866 INFO  [default-5] tagliatelle - Checking: /templates/core/comments/comments-overview.html.pasta
+2019-01-11 13:53:54,866 INFO  [default-5] tagliatelle - Checking: /templates/core/relations/relations-overview.html.pasta
+2019-01-11 13:53:54,866 INFO  [default-5] tagliatelle - Checking: /templates/core/relations/types.html.pasta
+2019-01-11 13:53:54,874 INFO  [default-5] tagliatelle - Checking: /templates/core/relations/type.html.pasta
+2019-01-11 13:53:54,894 INFO  [default-5] tagliatelle - Checking: /templates/core/tags/tag.html.pasta
+2019-01-11 13:53:54,917 INFO  [default-5] tagliatelle - Checking: /templates/core/tags/tags.html.pasta
+2019-01-11 13:53:54,925 INFO  [default-5] tagliatelle - Checking: /templates/core/colors/definitions.html.pasta
+2019-01-11 13:53:54,932 INFO  [default-5] tagliatelle - Checking: /templates/core/colors/definition.html.pasta
+2019-01-11 13:53:54,940 INFO  [default-5] tagliatelle - Checking: /templates/core/colors/assignments.html.pasta
+2019-01-11 13:53:54,979 INFO  [default-5] tagliatelle - Checking: /templates/core/colors/assignment.html.pasta
+2019-01-11 13:53:54,984 INFO  [default-5] tagliatelle - Checking: /templates/core/employee/user-account-employee.html.pasta
+2019-01-11 13:53:55,034 INFO  [default-5] tagliatelle - Cannot compile user-account-employee.html.pasta:
+ERROR  15:120: class woody.core.employees.Employee doesn't have a method 'getPersonalContact'
+                       <w:textfield name="personalContact_email" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getEmail()" labelKey="ContactData.email" span="12" />
+                                                                                                                         ^
+ERROR  15:141: void doesn't have a method 'getEmail'
+                       <w:textfield name="personalContact_email" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getEmail()" labelKey="ContactData.email" span="12" />
+                                                                                                                                              ^
+ERROR  16:120: class woody.core.employees.Employee doesn't have a method 'getPersonalContact'
+                       <w:textfield name="personalContact_phone" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getPhone()" labelKey="ContactData.phone" span="12" />
+                                                                                                                         ^
+ERROR  16:141: void doesn't have a method 'getPhone'
+                       <w:textfield name="personalContact_phone" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getPhone()" labelKey="ContactData.phone" span="12" />
+                                                                                                                                              ^
+ERROR  17:121: class woody.core.employees.Employee doesn't have a method 'getPersonalContact'
+                       <w:textfield name="personalContact_mobile" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getMobile()" labelKey="ContactData.mobile" span="12" />
+                                                                                                                          ^
+ERROR  17:142: void doesn't have a method 'getMobile'
+                       <w:textfield name="personalContact_mobile" value="@account.as(woody.core.employees.Employee.class).getPersonalContact().getMobile()" labelKey="ContactData.mobile" span="12" />
+                                                                                                                                               ^
+ERROR  23:121: class woody.core.employees.Employee doesn't have a method 'getPersonalAddress'
+                       <w:textfield name="personalAddress_street" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getStreet()" labelKey="AddressData.street" span="12" />
+                                                                                                                          ^
+ERROR  23:142: void doesn't have a method 'getStreet'
+                       <w:textfield name="personalAddress_street" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getStreet()" labelKey="AddressData.street" span="12" />
+                                                                                                                                               ^
+ERROR  24:118: class woody.core.employees.Employee doesn't have a method 'getPersonalAddress'
+                       <w:textfield name="personalAddress_zip" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getZip()" labelKey="AddressData.zip" span="4" />
+                                                                                                                       ^
+ERROR  24:139: void doesn't have a method 'getZip'
+                       <w:textfield name="personalAddress_zip" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getZip()" labelKey="AddressData.zip" span="4" />
+                                                                                                                                            ^
+ERROR  25:119: class woody.core.employees.Employee doesn't have a method 'getPersonalAddress'
+                       <w:textfield name="personalAddress_city" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getCity()" labelKey="AddressData.city" span="8" />
+                                                                                                                        ^
+ERROR  25:140: void doesn't have a method 'getCity'
+                       <w:textfield name="personalAddress_city" value="@account.as(woody.core.employees.Employee.class).getPersonalAddress().getCity()" labelKey="AddressData.city" span="8" />
+                                                                                                                                             ^
+ERROR  32:121: class woody.core.employees.Employee doesn't have a method 'getBirthday'
+               <w:datefield name="Employee_birthday" value="@toUserString(account.as(woody.core.employees.Employee.class).getBirthday())" labelKey="Employee.birthday" span="4" />
+                                                                                                                          ^
+Template: /templates/core/employee/user-account-employee.html.pasta
+URL: file:/Users/gerhardhaufler/dev/woody/target/classes/default/templates/core/employee/user-account-employee.html.pasta
+
+2019-01-11 13:53:55,034 INFO  [default-5] tagliatelle - Checking: /templates/core/employee/user-account-sidebar-employee.html.pasta
+2019-01-11 13:53:55,034 INFO  [default-5] tagliatelle - Checking: /templates/xrm/company.html.pasta
+2019-01-11 13:53:55,042 INFO  [default-5] tagliatelle - Checking: /templates/xrm/company-details.html.pasta
+2019-01-11 13:53:55,056 INFO  [default-5] tagliatelle - Checking: /templates/xrm/persons.html.pasta
+2019-01-11 13:53:55,063 INFO  [default-5] tagliatelle - Checking: /templates/xrm/person-details.html.pasta
+2019-01-11 13:53:55,080 INFO  [default-5] tagliatelle - Checking: /templates/xrm/person.html.pasta
+2019-01-11 13:53:55,081 INFO  [default-5] tagliatelle - Checking: /templates/xrm/persons-overview.html.pasta
+2019-01-11 13:53:55,081 INFO  [default-5] tagliatelle - Checking: /templates/xrm/companies.html.pasta
+2019-01-11 13:53:55,088 INFO  [default-5] tagliatelle - Checking: /templates/xrm/company-persons.html.pasta
+2019-01-11 13:53:55,127 INFO  [default-5] tagliatelle - Checking: /templates/xrm/person-overview.html.pasta
+2019-01-11 13:53:55,131 INFO  [default-5] tagliatelle - Checking: /templates/xrm/company-overview.html.pasta
+2019-01-11 13:53:55,134 INFO  [default-5] tagliatelle - Checking: /templates/xrm/person-css.html.pasta
+2019-01-11 13:53:55,139 INFO  [default-5] tagliatelle - Checking: /templates/offer.pdf.pasta
+2019-01-11 13:53:55,173 INFO  [default-5] tagliatelle - Cannot compile offer.pdf.pasta:
+ERROR  32: 7: Unexpected Token: $
+    @if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>$!buyer</td><td>Tel.: $!buyer.phone,</td><td>E-Mail: $!buyer.email </td></tr>   @end
+        ^
+ERROR  32: 7: A ')' was expected here.
+    @if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>$!buyer</td><td>Tel.: $!buyer.phone,</td><td>E-Mail: $!buyer.email </td></tr>   @end
+        ^
+ERROR  32: 7: A '{' was expected here.
+    @if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>$!buyer</td><td>Tel.: $!buyer.phone,</td><td>E-Mail: $!buyer.email </td></tr>   @end
+        ^
+ERROR  32:150: Unknown variable end
+    @if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>$!buyer</td><td>Tel.: $!buyer.phone,</td><td>E-Mail: $!buyer.email </td></tr>   @end
+                                                                                                                                                       ^
+ERROR  33: 7: Unexpected Token: $
+    @if($toolkit.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >$offer.reference</td></tr>    @end
+        ^
+ERROR  33: 7: A ')' was expected here.
+    @if($toolkit.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >$offer.reference</td></tr>    @end
+        ^
+ERROR  33: 7: A '{' was expected here.
+    @if($toolkit.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >$offer.reference</td></tr>    @end
+        ^
+ERROR  33:124: Unknown variable end
+    @if($toolkit.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >$offer.reference</td></tr>    @end
+                                                                                                                             ^
+ERROR  48: 9: Unknown variable foreach
+         @foreach ($item in $offerItemList)
+          ^
+ERROR  49:15: Unexpected Token: $
+            @if($item.isInfoText())
+                ^
+ERROR  49:15: A ')' was expected here.
+            @if($item.isInfoText())
+                ^
+ERROR  49:15: A '{' was expected here.
+            @if($item.isInfoText())
+                ^
+ERROR  53:12: Unknown variable else
+            @else
+             ^
+ERROR  54:18: Unexpected Token: $
+               @if($item.isSum())
+                   ^
+ERROR  54:18: A ')' was expected here.
+               @if($item.isSum())
+                   ^
+ERROR  54:18: A '{' was expected here.
+               @if($item.isSum())
+                   ^
+ERROR  66:15: Unknown variable else
+               @else
+                ^
+ERROR  68:22: Unexpected Token: $
+                   @if($item.isLicense())
+                       ^
+ERROR  68:22: A ')' was expected here.
+                   @if($item.isLicense())
+                       ^
+ERROR  68:22: A '{' was expected here.
+                   @if($item.isLicense())
+                       ^
+ERROR  69:129: Unknown variable end
+                       <tr><th style="width:2cm" valign="top">Pos.</th><th>Menge</th><th></th><th>if($item.stateIsVisible)Hinweis@end</th>
+                                                                                                                                  ^
+ERROR  70:110: Unknown variable end
+                           <th align="right">if($item.isPackageDefinitionSinglePricePresent())einmaliger Preis@end</th>
+                                                                                                               ^
+ERROR  73:19: Unknown variable end
+                   @end
+                    ^
+ERROR  75:163: Unknown variable end
+                       <tr><th>Pos.</th><th style="width:4cm">Menge</th><th style="width:4cm">Einzelpreis</th><th style="width:4cm">if($item.stateIsVisible)Hinweis@end</th>
+                                                                                                                                                                    ^
+ERROR  77:19: Unknown variable end
+                   @end
+                    ^
+ERROR  79:28: Unexpected Token: $
+                         @if($item.isLicense())
+                             ^
+ERROR  79:28: A ')' was expected here.
+                         @if($item.isLicense())
+                             ^
+ERROR  79:28: A '{' was expected here.
+                         @if($item.isLicense())
+                             ^
+ERROR  81:25: Unknown variable end
+                         @end
+                          ^
+ERROR  82:28: Unexpected Token: $
+                         @if($item.isService())
+                             ^
+ERROR  82:28: A ')' was expected here.
+                         @if($item.isService())
+                             ^
+ERROR  82:28: A '{' was expected here.
+                         @if($item.isService())
+                             ^
+ERROR  84:25: Unknown variable end
+                         @end
+                          ^
+ERROR  85:28: Unexpected Token: $
+                         @if($item.isService())
+                             ^
+ERROR  85:28: A ')' was expected here.
+                         @if($item.isService())
+                             ^
+ERROR  85:28: A '{' was expected here.
+                         @if($item.isService())
+                             ^
+ERROR  87:24: Unknown variable end
+                        @end
+                         ^
+ERROR  88:27: Unexpected Token: $
+                        @if($item.isLicense())
+                            ^
+ERROR  88:27: A ')' was expected here.
+                        @if($item.isLicense())
+                            ^
+ERROR  88:27: A '{' was expected here.
+                        @if($item.isLicense())
+                            ^
+ERROR  90:24: Unknown variable end
+                        @end
+                         ^
+ERROR  92:81: Unknown variable end
+                        <td style="width:4cm">if($item.stateIsVisible)$item.state@end</td>
+                                                                                  ^
+ERROR  93:27: Unexpected Token: $
+                        @if($item.isService())
+                            ^
+ERROR  93:27: A ')' was expected here.
+                        @if($item.isService())
+                            ^
+ERROR  93:27: A '{' was expected here.
+                        @if($item.isService())
+                            ^
+ERROR  95:24: Unknown variable end
+                        @end
+                         ^
+ERROR  96:27: Unexpected Token: $
+                        @if($item.isLicense())
+                            ^
+ERROR  96:27: A ')' was expected here.
+                        @if($item.isLicense())
+                            ^
+ERROR  96:27: A '{' was expected here.
+                        @if($item.isLicense())
+                            ^
+ERROR  97:156: Unknown variable end
+                           <td style="width:4cm" align="right">if($item.isPackageDefinitionSinglePricePresent())$nls.toUserString($item.offerSinglePrice) € @end</td>
+                                                                                                                                                             ^
+ERROR  99:24: Unknown variable end
+                        @end
+                         ^
+ERROR 102:22: Unexpected Token: $
+                   @if($item.discountPresent)
+                       ^
+ERROR 102:22: A ')' was expected here.
+                   @if($item.discountPresent)
+                       ^
+ERROR 102:22: A '{' was expected here.
+                   @if($item.discountPresent)
+                       ^
+ERROR 104:19: Unknown variable end
+                   @end
+                    ^
+ERROR 105:22: Unexpected Token: $
+                   @if($toolkit.notEmpty($item.keyword))
+                       ^
+ERROR 105:22: A ')' was expected here.
+                   @if($toolkit.notEmpty($item.keyword))
+                       ^
+ERROR 105:22: A '{' was expected here.
+                   @if($toolkit.notEmpty($item.keyword))
+                       ^
+ERROR 107:19: Unknown variable end
+                   @end
+                    ^
+ERROR 109:15: Unknown variable end
+               @end
+                ^
+ERROR 110:12: Unknown variable end
+            @end
+             ^
+ERROR 112: 9: Unknown variable end
+         @end
+          ^
+ERROR 120:17: Unexpected Token: $
+              @if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit @else  @end</th>
+                  ^
+ERROR 120:17: A ')' was expected here.
+              @if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit @else  @end</th>
+                  ^
+ERROR 120:17: A '{' was expected here.
+              @if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit @else  @end</th>
+                  ^
+ERROR 120:72: Unknown variable else
+              @if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit @else  @end</th>
+                                                                         ^
+ERROR 120:79: Unknown variable end
+              @if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit @else  @end</th>
+                                                                                ^
+ERROR 123:17: Unexpected Token: $
+              @if($isLicenceItemPresent)$cyclicPriceNettoSum € @else  @end</td></tr>
+                  ^
+ERROR 123:17: A ')' was expected here.
+              @if($isLicenceItemPresent)$cyclicPriceNettoSum € @else  @end</td></tr>
+                  ^
+ERROR 123:17: A '{' was expected here.
+              @if($isLicenceItemPresent)$cyclicPriceNettoSum € @else  @end</td></tr>
+                  ^
+ERROR 123:63: Unknown variable else
+              @if($isLicenceItemPresent)$cyclicPriceNettoSum € @else  @end</td></tr>
+                                                                ^
+ERROR 123:70: Unknown variable end
+              @if($isLicenceItemPresent)$cyclicPriceNettoSum € @else  @end</td></tr>
+                                                                       ^
+ERROR 124:17: Unexpected Token: $
+              @if($company.isVAT())
+                  ^
+ERROR 124:17: A ')' was expected here.
+              @if($company.isVAT())
+                  ^
+ERROR 124:17: A '{' was expected here.
+              @if($company.isVAT())
+                  ^
+ERROR 126:25: Unexpected Token: $
+                      @if($isLicenceItemPresent)$cyclicPriceVatSum € @else  @end</td></tr>
+                          ^
+ERROR 126:25: A ')' was expected here.
+                      @if($isLicenceItemPresent)$cyclicPriceVatSum € @else  @end</td></tr>
+                          ^
+ERROR 126:25: A '{' was expected here.
+                      @if($isLicenceItemPresent)$cyclicPriceVatSum € @else  @end</td></tr>
+                          ^
+ERROR 126:69: Unknown variable else
+                      @if($isLicenceItemPresent)$cyclicPriceVatSum € @else  @end</td></tr>
+                                                                      ^
+ERROR 126:76: Unknown variable end
+                      @if($isLicenceItemPresent)$cyclicPriceVatSum € @else  @end</td></tr>
+                                                                             ^
+ERROR 128:25: Unexpected Token: $
+                      @if($isLicenceItemPresent)$cyclicPriceBruttoSum € @else  @end</td></tr>
+                          ^
+ERROR 128:25: A ')' was expected here.
+                      @if($isLicenceItemPresent)$cyclicPriceBruttoSum € @else  @end</td></tr>
+                          ^
+ERROR 128:25: A '{' was expected here.
+                      @if($isLicenceItemPresent)$cyclicPriceBruttoSum € @else  @end</td></tr>
+                          ^
+ERROR 128:72: Unknown variable else
+                      @if($isLicenceItemPresent)$cyclicPriceBruttoSum € @else  @end</td></tr>
+                                                                         ^
+ERROR 128:79: Unknown variable end
+                      @if($isLicenceItemPresent)$cyclicPriceBruttoSum € @else  @end</td></tr>
+                                                                                ^
+ERROR 129:14: Unknown variable end
+              @end
+               ^
+ERROR 136: 6: Unexpected Token: $
+   @if($company.isVAT()) @else
+       ^
+ERROR 136: 6: A ')' was expected here.
+   @if($company.isVAT()) @else
+       ^
+ERROR 136: 6: A '{' was expected here.
+   @if($company.isVAT()) @else
+       ^
+ERROR 136:25: Unknown variable else
+   @if($company.isVAT()) @else
+                          ^
+ERROR 139: 3: Unknown variable end
+   @end
+    ^
+ERROR 145: 6: Unexpected Token: $
+   @if($isOfferPeriodPresent)
+       ^
+ERROR 145: 6: A ')' was expected here.
+   @if($isOfferPeriodPresent)
+       ^
+ERROR 145: 6: A '{' was expected here.
+   @if($isOfferPeriodPresent)
+       ^
+ERROR 146: 6: Unexpected Token: $
+   @if($isOffer)
+       ^
+ERROR 146: 6: A ')' was expected here.
+   @if($isOffer)
+       ^
+ERROR 146: 6: A '{' was expected here.
+   @if($isOffer)
+       ^
+ERROR 155:17: Unexpected Token: $
+              @if($isLicenceItemPresent)$offerPeriodNetto € @else  @end</td></tr>
+                  ^
+ERROR 155:17: A ')' was expected here.
+              @if($isLicenceItemPresent)$offerPeriodNetto € @else  @end</td></tr>
+                  ^
+ERROR 155:17: A '{' was expected here.
+              @if($isLicenceItemPresent)$offerPeriodNetto € @else  @end</td></tr>
+                  ^
+ERROR 155:60: Unknown variable else
+              @if($isLicenceItemPresent)$offerPeriodNetto € @else  @end</td></tr>
+                                                             ^
+ERROR 155:67: Unknown variable end
+              @if($isLicenceItemPresent)$offerPeriodNetto € @else  @end</td></tr>
+                                                                    ^
+ERROR 156:17: Unexpected Token: $
+              @if($company.isVAT())
+                  ^
+ERROR 156:17: A ')' was expected here.
+              @if($company.isVAT())
+                  ^
+ERROR 156:17: A '{' was expected here.
+              @if($company.isVAT())
+                  ^
+ERROR 158:25: Unexpected Token: $
+                      @if($isLicenceItemPresent)$vatOfferPeriodLicence € @else  @end</td></tr>
+                          ^
+ERROR 158:25: A ')' was expected here.
+                      @if($isLicenceItemPresent)$vatOfferPeriodLicence € @else  @end</td></tr>
+                          ^
+ERROR 158:25: A '{' was expected here.
+                      @if($isLicenceItemPresent)$vatOfferPeriodLicence € @else  @end</td></tr>
+                          ^
+ERROR 158:73: Unknown variable else
+                      @if($isLicenceItemPresent)$vatOfferPeriodLicence € @else  @end</td></tr>
+                                                                          ^
+ERROR 158:80: Unknown variable end
+                      @if($isLicenceItemPresent)$vatOfferPeriodLicence € @else  @end</td></tr>
+                                                                                 ^
+ERROR 160:25: Unexpected Token: $
+                      @if($isLicenceItemPresent)$offerPeriodLicenceBrutto € @else  @end</td></tr>
+                          ^
+ERROR 160:25: A ')' was expected here.
+                      @if($isLicenceItemPresent)$offerPeriodLicenceBrutto € @else  @end</td></tr>
+                          ^
+ERROR 160:25: A '{' was expected here.
+                      @if($isLicenceItemPresent)$offerPeriodLicenceBrutto € @else  @end</td></tr>
+                          ^
+ERROR 160:76: Unknown variable else
+                      @if($isLicenceItemPresent)$offerPeriodLicenceBrutto € @else  @end</td></tr>
+                                                                             ^
+ERROR 160:83: Unknown variable end
+                      @if($isLicenceItemPresent)$offerPeriodLicenceBrutto € @else  @end</td></tr>
+                                                                                    ^
+ERROR 161:14: Unknown variable end
+              @end
+               ^
+ERROR 165: 3: Unknown variable end
+   @end
+    ^
+ERROR 166: 3: Unknown variable end
+   @end
+    ^
+ERROR 160:25: Missing closing } for this block
+                      @if($isLicenceItemPresent)$offerPeriodLicenceBrutto € @else  @end</td></tr>
+                          ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 158:25: Missing closing } for this block
+                      @if($isLicenceItemPresent)$vatOfferPeriodLicence € @else  @end</td></tr>
+                          ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 156:17: Missing closing } for this block
+              @if($company.isVAT())
+                  ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 155:17: Missing closing } for this block
+              @if($isLicenceItemPresent)$offerPeriodNetto € @else  @end</td></tr>
+                  ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 146: 6: Missing closing } for this block
+   @if($isOffer)
+       ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 145: 6: Missing closing } for this block
+   @if($isOfferPeriodPresent)
+       ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 136: 6: Missing closing } for this block
+   @if($company.isVAT()) @else
+       ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 128:25: Missing closing } for this block
+                      @if($isLicenceItemPresent)$cyclicPriceBruttoSum € @else  @end</td></tr>
+                          ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 126:25: Missing closing } for this block
+                      @if($isLicenceItemPresent)$cyclicPriceVatSum € @else  @end</td></tr>
+                          ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 124:17: Missing closing } for this block
+              @if($company.isVAT())
+                  ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 123:17: Missing closing } for this block
+              @if($isLicenceItemPresent)$cyclicPriceNettoSum € @else  @end</td></tr>
+                  ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 120:17: Missing closing } for this block
+              @if($isLicenceItemPresent)Preis je $licenceItemCyclicUnit @else  @end</th>
+                  ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 105:22: Missing closing } for this block
+                   @if($toolkit.notEmpty($item.keyword))
+                       ^
+ERROR 185: 1: A '}' was expected here.
+ERROR 102:22: Missing closing } for this block
+                   @if($item.discountPresent)
+                       ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  96:27: Missing closing } for this block
+                        @if($item.isLicense())
+                            ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  93:27: Missing closing } for this block
+                        @if($item.isService())
+                            ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  88:27: Missing closing } for this block
+                        @if($item.isLicense())
+                            ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  85:28: Missing closing } for this block
+                         @if($item.isService())
+                             ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  82:28: Missing closing } for this block
+                         @if($item.isService())
+                             ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  79:28: Missing closing } for this block
+                         @if($item.isLicense())
+                             ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  68:22: Missing closing } for this block
+                   @if($item.isLicense())
+                       ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  54:18: Missing closing } for this block
+               @if($item.isSum())
+                   ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  49:15: Missing closing } for this block
+            @if($item.isInfoText())
+                ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  33: 7: Missing closing } for this block
+    @if($toolkit.notEmpty($offer.reference)) <tr><td>Ihre kfm. Referenz:</td><td colspan="3" >$offer.reference</td></tr>    @end
+        ^
+ERROR 185: 1: A '}' was expected here.
+ERROR  32: 7: Missing closing } for this block
+    @if($toolkit.notEmpty($buyer))<tr><td>Ihr kfm. Besteller:</td><td>$!buyer</td><td>Tel.: $!buyer.phone,</td><td>E-Mail: $!buyer.email </td></tr>   @end
+        ^
+ERROR 185: 1: A '}' was expected here.
+Template: /templates/offer.pdf.pasta
+URL: file:/Users/gerhardhaufler/dev/woody/target/classes/default/templates/offer.pdf.pasta
+
+2019-01-11 13:53:55,174 INFO  [default-5] tagliatelle - Checking: /templates/settings-menu.html.pasta
+2019-01-11 13:53:55,174 INFO  [default-5] tagliatelle - Checking: /templates/menu-left.html.pasta
+2019-01-11 13:53:55,183 INFO  [default-5] tagliatelle - Checking: /taglib/h/page.html.pasta
+2019-01-11 13:53:55,190 INFO  [default-5] tagliatelle - Checking: /taglib/h/backButton.html.pasta
+2019-01-11 13:53:55,191 INFO  [default-5] tagliatelle - Checking: /taglib/h/overlayImage.html.pasta
+2019-01-11 13:53:55,192 INFO  [default-5] tagliatelle - Checking: /taglib/w/helpbox.html.pasta
+2019-01-11 13:53:55,194 INFO  [default-5] tagliatelle - Checking: /taglib/w/fileUpload.html.pasta
+2019-01-11 13:53:55,195 INFO  [default-5] tagliatelle - Checking: /taglib/w/table.html.pasta
+2019-01-11 13:53:55,196 INFO  [default-5] tagliatelle - Checking: /taglib/w/permission.html.pasta
+2019-01-11 13:53:55,196 INFO  [default-5] tagliatelle - Checking: /taglib/w/tableLink.html.pasta
+2019-01-11 13:53:55,197 INFO  [default-5] tagliatelle - Checking: /taglib/w/menuItem.html.pasta
+2019-01-11 13:53:55,197 INFO  [default-5] tagliatelle - Checking: /taglib/w/facetSidebar.html.pasta
+2019-01-11 13:53:55,201 INFO  [default-5] tagliatelle - Checking: /taglib/w/infobox.html.pasta
+2019-01-11 13:53:55,201 INFO  [default-5] tagliatelle - Checking: /taglib/w/page.html.pasta
+2019-01-11 13:53:55,201 INFO  [default-5] tagliatelle - Checking: /taglib/w/singleSelect.html.pasta
+2019-01-11 13:53:55,201 INFO  [default-5] tagliatelle - Checking: /taglib/w/tableSearchHeader.html.pasta
+2019-01-11 13:53:55,202 INFO  [default-5] tagliatelle - Checking: /taglib/w/modalFooter.html.pasta
+2019-01-11 13:53:55,202 INFO  [default-5] tagliatelle - Checking: /taglib/w/codeEditor.html.pasta
+2019-01-11 13:53:55,204 INFO  [default-5] tagliatelle - Checking: /taglib/w/navbox.html.pasta
+2019-01-11 13:53:55,204 INFO  [default-5] tagliatelle - Checking: /taglib/w/modalBody.html.pasta
+2019-01-11 13:53:55,205 INFO  [default-5] tagliatelle - Checking: /taglib/w/multiSelect.html.pasta
+2019-01-11 13:53:55,208 INFO  [default-5] tagliatelle - Checking: /taglib/w/autocompleteSingleSelect.html.pasta
+2019-01-11 13:53:55,208 INFO  [default-5] tagliatelle - Checking: /taglib/w/modal.html.pasta
+2019-01-11 13:53:55,209 INFO  [default-5] tagliatelle - Checking: /taglib/w/pagination.html.pasta
+2019-01-11 13:53:55,210 INFO  [default-5] tagliatelle - Checking: /taglib/w/pageHeader.html.pasta
+2019-01-11 13:53:55,210 INFO  [default-5] tagliatelle - Checking: /taglib/w/textarea.html.pasta
+2019-01-11 13:53:55,210 INFO  [default-5] tagliatelle - Checking: /taglib/w/filterbox.html.pasta
+2019-01-11 13:53:55,210 INFO  [default-5] tagliatelle - Checking: /taglib/w/checkbox.html.pasta
+2019-01-11 13:53:55,210 INFO  [default-5] tagliatelle - Checking: /taglib/w/datefield.html.pasta
+2019-01-11 13:53:55,210 INFO  [default-5] tagliatelle - Checking: /taglib/w/formBar.html.pasta
+2019-01-11 13:53:55,210 INFO  [default-5] tagliatelle - Checking: /taglib/w/heading.html.pasta
+2019-01-11 13:53:55,211 INFO  [default-5] tagliatelle - Checking: /taglib/w/loggedIn.html.pasta
+2019-01-11 13:53:55,213 INFO  [default-5] tagliatelle - Checking: /taglib/w/imageUpload.html.pasta
+2019-01-11 13:53:55,217 INFO  [default-5] tagliatelle - Checking: /taglib/w/editForm.html.pasta
+2019-01-11 13:53:55,218 INFO  [default-5] tagliatelle - Checking: /taglib/w/infoboxElement.html.pasta
+2019-01-11 13:53:55,218 INFO  [default-5] tagliatelle - Checking: /taglib/w/radio.html.pasta
+2019-01-11 13:53:55,222 INFO  [default-5] tagliatelle - Checking: /taglib/w/menuSection.html.pasta
+2019-01-11 13:53:55,222 INFO  [default-5] tagliatelle - Checking: /taglib/w/deleteLink.html.pasta
+2019-01-11 13:53:55,222 INFO  [default-5] tagliatelle - Checking: /taglib/w/colorpicker.html.pasta
+2019-01-11 13:53:55,223 INFO  [default-5] tagliatelle - Checking: /taglib/w/menuDropdown.html.pasta
+2019-01-11 13:53:55,223 INFO  [default-5] tagliatelle - Checking: /taglib/w/subHeading.html.pasta
+2019-01-11 13:53:55,223 INFO  [default-5] tagliatelle - Checking: /taglib/w/autocompleteMultiSelect.html.pasta
+2019-01-11 13:53:55,223 INFO  [default-5] tagliatelle - Checking: /taglib/w/navboxLink.html.pasta
+2019-01-11 13:53:55,223 INFO  [default-5] tagliatelle - Checking: /taglib/w/textfield.html.pasta
+2019-01-11 13:53:55,224 INFO  [default-5] tagliatelle - Checking: /help/menu.html.pasta
+2019-01-11 13:53:55,224 INFO  [default-5] tagliatelle - Checking: /help/index.html.pasta
+2019-01-11 13:53:55,227 INFO  [default-5] tagliatelle - Checking: /help/footer.html.pasta
+2019-01-11 13:53:55,228 INFO  [default-5] tagliatelle - Checking: /assets/wondergem/wondergem.css.pasta
+2019-01-11 13:53:55,240 INFO  [default-5] tagliatelle - Checking: /assets/wondergem/wondergem.js.pasta
+2019-01-11 13:53:55,255 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/error.html.pasta
+2019-01-11 13:53:55,257 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-script.html.pasta
+2019-01-11 13:53:55,258 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-breadcrumbs.html.pasta
+2019-01-11 13:53:55,259 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-disaster.html.pasta
+2019-01-11 13:53:55,260 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-dialogs.html.pasta
+2019-01-11 13:53:55,261 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-footer-menu.html.pasta
+2019-01-11 13:53:55,262 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/scripts/autocomplete.html.pasta
+2019-01-11 13:53:55,268 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/scripts/event-keys.html.pasta
+2019-01-11 13:53:55,271 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/scripts/polyfill.html.pasta
+2019-01-11 13:53:55,273 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/scripts/tokenfield.html.pasta
+2019-01-11 13:53:55,280 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-menu.html.pasta
+2019-01-11 13:53:55,280 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-footer.html.pasta
+2019-01-11 13:53:55,280 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-messages.html.pasta
+2019-01-11 13:53:55,281 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/page-electron.html.pasta
+2019-01-11 13:53:55,283 INFO  [default-5] tagliatelle - Checking: /templates/http/error.html.pasta
+2019-01-11 13:53:55,287 INFO  [default-5] tagliatelle - Checking: /templates/http/plain-error.html.pasta
+2019-01-11 13:53:55,288 INFO  [default-5] tagliatelle - Checking: /templates/http/not-found.html.pasta
+2019-01-11 13:53:55,291 INFO  [default-5] tagliatelle - Checking: /templates/system/task.html.pasta
+2019-01-11 13:53:55,314 INFO  [default-5] tagliatelle - Checking: /templates/system/scope-config.html.pasta
+2019-01-11 13:53:55,318 INFO  [default-5] tagliatelle - Checking: /templates/system/console.html.pasta
+2019-01-11 13:53:55,324 INFO  [default-5] tagliatelle - Checking: /templates/system/timing.html.pasta
+2019-01-11 13:53:55,327 INFO  [default-5] tagliatelle - Checking: /templates/system/state.html.pasta
+2019-01-11 13:53:55,333 INFO  [default-5] tagliatelle - Checking: /templates/system/info.html.pasta
+2019-01-11 13:53:55,368 INFO  [default-5] tagliatelle - Checking: /templates/system/tags-state.html.pasta
+2019-01-11 13:53:55,370 INFO  [default-5] tagliatelle - Checking: /templates/system/tag.html.pasta
+2019-01-11 13:53:55,374 INFO  [default-5] tagliatelle - Checking: /templates/system/tags.html.pasta
+2019-01-11 13:53:55,381 INFO  [default-5] tagliatelle - Checking: /templates/system/scripting.html.pasta
+2019-01-11 13:53:55,388 INFO  [default-5] tagliatelle - Checking: /templates/system/tasks.html.pasta
+2019-01-11 13:53:55,392 INFO  [default-5] tagliatelle - Checking: /taglib/w/codelistSelect.html.pasta
+2019-01-11 13:53:55,392 INFO  [default-5] tagliatelle - Checking: /taglib/w/taggedSearch.html.pasta
+2019-01-11 13:53:55,392 INFO  [default-5] tagliatelle - Checking: /taglib/w/storedObjectUploader.html.pasta
+2019-01-11 13:53:55,395 INFO  [default-5] tagliatelle - Checking: /taglib/w/tracing.html.pasta
+2019-01-11 13:53:55,395 INFO  [default-5] tagliatelle - Checking: /taglib/w/selectObject.html.pasta
+2019-01-11 13:53:55,403 INFO  [default-5] tagliatelle - Checking: /mail/mail-footer.pasta
+2019-01-11 13:53:55,404 INFO  [default-5] tagliatelle - Checking: /mail/mail-footer.html.pasta
+2019-01-11 13:53:55,406 INFO  [default-5] tagliatelle - Checking: /mail/mail-header.html.pasta
+2019-01-11 13:53:55,406 INFO  [default-5] tagliatelle - Checking: /mail/mail-header.pasta
+2019-01-11 13:53:55,407 INFO  [default-5] tagliatelle - Checking: /mail/useraccount/password.pasta
+2019-01-11 13:53:55,415 INFO  [default-5] tagliatelle - Checking: /mail/useraccount/password.html.pasta
+2019-01-11 13:53:55,420 INFO  [default-5] tagliatelle - Checking: /templates/biz/login.html.pasta
+2019-01-11 13:53:55,425 INFO  [default-5] tagliatelle - Checking: /templates/model/schema.html.pasta
+2019-01-11 13:53:55,431 INFO  [default-5] tagliatelle - Checking: /templates/model/sql.html.pasta
+2019-01-11 13:53:55,433 INFO  [default-5] tagliatelle - Checking: /templates/codelists/code-list-details.html.pasta
+2019-01-11 13:53:55,454 INFO  [default-5] tagliatelle - Checking: /templates/codelists/settings-menu-code-lists.html.pasta
+2019-01-11 13:53:55,456 INFO  [default-5] tagliatelle - Checking: /templates/codelists/code-list.html.pasta
+2019-01-11 13:53:55,456 INFO  [default-5] tagliatelle - Checking: /templates/codelists/code-lists.html.pasta
+2019-01-11 13:53:55,460 INFO  [default-5] tagliatelle - Checking: /templates/codelists/code-list-entries.html.pasta
+2019-01-11 13:53:55,465 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/menu-right-user.html.pasta
+2019-01-11 13:53:55,472 INFO  [default-5] tagliatelle - Checking: /templates/wondergem/menu-left-settings.html.pasta
+2019-01-11 13:53:55,475 INFO  [default-5] tagliatelle - Checking: /templates/storage/object.html.pasta
+2019-01-11 13:53:55,481 INFO  [default-5] tagliatelle - Checking: /templates/storage/buckets.html.pasta
+2019-01-11 13:53:55,483 INFO  [default-5] tagliatelle - Checking: /templates/storage/stored-object-uploader.html.pasta
+2019-01-11 13:53:55,487 INFO  [default-5] tagliatelle - Checking: /templates/storage/objects.html.pasta
+2019-01-11 13:53:55,495 INFO  [default-5] tagliatelle - Checking: /templates/jobs/job.html.pasta
+2019-01-11 13:53:55,498 INFO  [default-5] tagliatelle - Checking: /templates/jobs/jobs.html.pasta
+2019-01-11 13:53:55,501 INFO  [default-5] tagliatelle - Checking: /templates/protocol/error.html.pasta
+2019-01-11 13:53:55,506 INFO  [default-5] tagliatelle - Checking: /templates/protocol/errors.html.pasta
+2019-01-11 13:53:55,509 INFO  [default-5] tagliatelle - Checking: /templates/protocol/mails.html.pasta
+2019-01-11 13:53:55,513 INFO  [default-5] tagliatelle - Checking: /templates/protocol/protocol.html.pasta
+2019-01-11 13:53:55,520 INFO  [default-5] tagliatelle - Checking: /templates/protocol/mail.html.pasta
+2019-01-11 13:53:55,524 INFO  [default-5] tagliatelle - Checking: /templates/protocol/logs.html.pasta
+2019-01-11 13:53:55,527 INFO  [default-5] tagliatelle - Checking: /templates/tenants/select-tenant.html.pasta
+2019-01-11 13:53:55,531 INFO  [default-5] tagliatelle - Checking: /templates/tenants/tenant-details.html.pasta
+2019-01-11 13:53:55,549 INFO  [default-5] tagliatelle - Checking: /templates/tenants/user-accounts.html.pasta
+2019-01-11 13:53:55,552 INFO  [default-5] tagliatelle - Checking: /templates/tenants/profile.html.pasta
+2019-01-11 13:53:55,556 INFO  [default-5] tagliatelle - Checking: /templates/tenants/user-account.html.pasta
+2019-01-11 13:53:55,557 INFO  [default-5] tagliatelle - Checking: /templates/tenants/user-account-config.html.pasta
+2019-01-11 13:53:55,558 INFO  [default-5] tagliatelle - Checking: /templates/tenants/saml.html.pasta
+2019-01-11 13:53:55,563 INFO  [default-5] tagliatelle - Checking: /templates/tenants/tenants.html.pasta
+2019-01-11 13:53:55,567 INFO  [default-5] tagliatelle - Checking: /templates/tenants/user-account-password.html.pasta
+2019-01-11 13:53:55,572 INFO  [default-5] tagliatelle - Checking: /templates/tenants/profile-change-password.html.pasta
+2019-01-11 13:53:55,574 INFO  [default-5] tagliatelle - Checking: /templates/tenants/user-menu-tenants.html.pasta
+2019-01-11 13:53:55,576 INFO  [default-5] tagliatelle - Checking: /templates/tenants/select-user-account.html.pasta
+2019-01-11 13:53:55,580 WARN  [default-5] tagliatelle - Warnings when compiling select-user-account.html.pasta:
+WARNING  33:10: Argument or local variable hides a global: user
+           <i:for type="sirius.biz.tenants.UserAccount" var="user" items="users.getItems()">
+           ^
+Template: /templates/tenants/select-user-account.html.pasta
+URL: jar:file:/Users/gerhardhaufler/.m2/repository/com/scireum/sirius-biz/4.0.3/sirius-biz-4.0.3.jar!/default/templates/tenants/select-user-account.html.pasta
+
+2019-01-11 13:53:55,580 INFO  [default-5] tagliatelle - Checking: /templates/tenants/tenant-config.html.pasta
+2019-01-11 13:53:55,582 INFO  [default-5] tagliatelle - Checking: /templates/tenants/tenant.html.pasta
+2019-01-11 13:53:55,583 INFO  [default-5] tagliatelle - Checking: /templates/tenants/password.html.pasta
+2019-01-11 13:53:55,583 INFO  [default-5] tagliatelle - Checking: /templates/tenants/user-account-details.html.pasta
+2019-01-11 13:53:55,590 INFO  [default-5] tagliatelle - Checking: /taglib/e/deprecated.html.pasta
+2019-01-11 13:53:55,591 INFO  [default-5] tagliatelle - Checking: /taglib/e/renderToString.html.pasta
+2019-01-11 13:53:55,591 INFO  [default-5] tagliatelle - Checking: /taglib/e/secondTagWithDeprecation.html.pasta
+2019-01-11 13:53:55,592 INFO  [default-5] tagliatelle - Checking: /taglib/e/tagWithDeprecation.html.pasta
+2019-01-11 13:53:55,595 WARN  [default-5] tagliatelle - Warnings when compiling <e:tagWithDeprecation>:
+WARNING   3: 2: The template '<e:secondTagWithDeprecation>' is deprecated: Do not use.
+   <e:secondTagWithDeprecation deprecatedArg="test" />
+   ^
+WARNING   3: 2: The attribute 'deprecatedArg' is deprecated: Do not use me.
+   <e:secondTagWithDeprecation deprecatedArg="test" />
+   ^
+Template: /taglib/e/tagWithDeprecation.html.pasta
+URL: jar:file:/Users/gerhardhaufler/.m2/repository/com/scireum/sirius-web/12.3.1/sirius-web-12.3.1-tests.jar!/taglib/e/tagWithDeprecation.html.pasta
+
+2019-01-11 13:53:55,595 INFO  [default-5] tagliatelle - Checking: /templates/brackets.html.pasta
+2019-01-11 13:53:55,596 INFO  [default-5] tagliatelle - Checking: /templates/missing-tag.html.pasta
+2019-01-11 13:53:55,598 INFO  [default-5] tagliatelle - Cannot compile missing-tag.html.pasta:
+ERROR   5:12: Cannot find a template for the tag: w:unknown
+   <w:unknown />
+             ^
+ERROR   8:12: Cannot find a handler for the internal tag: i:unknown
+   <i:unknown />
+             ^
+Template: /templates/missing-tag.html.pasta
+URL: jar:file:/Users/gerhardhaufler/.m2/repository/com/scireum/sirius-web/12.3.1/sirius-web-12.3.1-tests.jar!/templates/missing-tag.html.pasta
+
+2019-01-11 13:53:55,598 INFO  [default-5] tagliatelle - Checking: /templates/helloWorld.js.pasta
+2019-01-11 13:53:55,599 INFO  [default-5] tagliatelle - Checking: /templates/security-token.html.pasta
+2019-01-11 13:53:55,600 INFO  [default-5] tagliatelle - Checking: /templates/render-to-string.html.pasta
+2019-01-11 13:53:55,602 INFO  [default-5] tagliatelle - Checking: /templates/deprecatedArgument.html.pasta
+2019-01-11 13:53:55,610 WARN  [default-5] tagliatelle - Warnings when compiling deprecatedArgument.html.pasta:
+WARNING   1: 1: The attribute 'deprecatedArg' is deprecated: Do not use.
+   <e:tagWithDeprecation deprecatedArg="Test" />
+   ^
+Template: /templates/deprecatedArgument.html.pasta
+URL: jar:file:/Users/gerhardhaufler/.m2/repository/com/scireum/sirius-web/12.3.1/sirius-web-12.3.1-tests.jar!/templates/deprecatedArgument.html.pasta
+
+2019-01-11 13:53:55,610 INFO  [default-5] tagliatelle - Checking: /templates/define.html.pasta
+2019-01-11 13:53:55,630 INFO  [default-5] tagliatelle - Checking: /templates/dynamic-invoke-outer.html.pasta
+2019-01-11 13:53:55,631 INFO  [default-5] tagliatelle - Checking: /templates/helloWorld.pasta
+2019-01-11 13:53:55,632 INFO  [default-5] tagliatelle - Checking: /templates/dynamic-invoke-inner.html.pasta
+2019-01-11 13:53:55,633 INFO  [default-5] tagliatelle - Checking: /templates/deprecatedCaller.html.pasta
+2019-01-11 13:53:55,635 WARN  [default-5] tagliatelle - Warnings when compiling deprecatedCaller.html.pasta:
+WARNING   1: 1: The template '<e:deprecated>' is deprecated: Test of deprecated
+   <e:deprecated />
+   ^
+WARNING   2: 2: The template '<e:deprecated>' is deprecated: Test of deprecated
+   <i:invoke template="/taglib/e/deprecated.html.pasta" />
+   ^
+Template: /templates/deprecatedCaller.html.pasta
+URL: jar:file:/Users/gerhardhaufler/.m2/repository/com/scireum/sirius-web/12.3.1/sirius-web-12.3.1-tests.jar!/templates/deprecatedCaller.html.pasta
+
+2019-01-11 13:53:55,635 INFO  [default-5] tagliatelle - Checking: /templates/loop.html.pasta
+2019-01-11 13:53:55,637 INFO  [default-6] sirius - Starting: i5
+2019-01-11 13:53:55,638 INFO  [default-7] sirius - Starting: Virtual File System
+2019-01-11 13:53:55,851 INFO  [default-0] oma - Executing Schema Updates....
+2019-01-11 13:53:55,922 INFO  [default-7] vfs - Started FTP server on port 2121 ()
+2019-01-11 13:53:55,923 INFO  [default-8] sirius - Starting: web (netty HTTP Server)
+2019-01-11 13:53:55,923 INFO  [default-8] web - Initializing netty at port 9000
+2019-01-11 13:53:56,139 INFO  [default-9] sirius - Starting: timer (System Timer Services)
+2019-01-11 13:53:56,145 INFO  [main] sirius - ---------------------------------------------------------
+2019-01-11 13:53:56,145 INFO  [main] sirius - System is UP and RUNNING - 6 Seconds, 927 Milliseconds
+2019-01-11 13:53:56,145 INFO  [main] sirius - ---------------------------------------------------------
+2019-01-11 13:53:58,031 WARN  [default-0] oma - Executed 34 schema change actions of which 3 failed. 189 were skipped due to possible dataloss
+2019-01-11 13:54:06,146 WARN  [Timer-0] timer - Skipping daily timer woody.phoneCalls.SyncAsterisk as config key 'timer.daily.SyncAsterisk' is missing!
+2019-01-11 13:54:06,169 INFO  [default-10] locks - SmartLockManager: Assuming a single machine setup as Redis isn't present - using fast JVM locks
+2019-01-11 13:54:25,312 WARN  [netty-3] controller - Route collision for 'copyOffer' in controller 'woody.offers.OffersController' and 'cancelOffer' in controller 'woody.offers.OffersController'. Please provide a priority to resolve this!
+2019-01-11 13:55:25,432 WARN  [timer-0] timer - TimedTask 'sirius.web.health.Cluster@2f2cca02' (class sirius.web.health.Cluster) took over a second to complete! Consider executing the work in a separate executor!
+2019-01-11 13:56:39,994 WARN  [background-13] tasks - UPDATE statisticvalue SET statisticValue = statisticValue +  ?  WHERE objectId =  ?  AND event =  ?  AND level =  ?  AND tod =  ?   (1 Minute, 14 Seconds, 501 Milliseconds/0 Seconds) OVERTIME!
+2019-01-11 13:56:40,038 WARN  [timer-0] tasks - Database: mixing.getConnection() (1 Minute, 14 Seconds, 607 Milliseconds/0 Seconds) OVERTIME!
+2019-01-11 13:56:40,055 INFO  [background-13] db-slow - A slow query was executed (1 Minute, 14 Seconds, 562 Milliseconds): UPDATE statisticvalue SET statisticValue = statisticValue +  ?  WHERE objectId =  ?  AND event =  ?  AND level =  ?  AND tod =  ?  
+Execution Point in: background-13
+---------------------------------------------------
+sirius.kernel.async.ExecutionPoint.snapshot (ExecutionPoint.java:59)
+sirius.kernel.async.ExecutionPoint.snapshot (ExecutionPoint.java:42)
+sirius.db.jdbc.WrappedPreparedStatement.updateStatistics (WrappedPreparedStatement.java:60)
+sirius.db.jdbc.WrappedPreparedStatement.executeUpdate (WrappedPreparedStatement.java:122)
+sirius.db.jdbc.SQLQuery.executeUpdate (SQLQuery.java:295)
+sirius.biz.statistics.Statistics.processIncrement (Statistics.java:159)
+sirius.biz.statistics.Statistics.handleIncrement (Statistics.java:129)
+sirius.biz.statistics.Statistics.commitStatistics (Statistics.java:117)
+sirius.biz.statistics.Statistics.doWork (Statistics.java:368)
+sirius.kernel.async.BackgroundLoop.executeWork (BackgroundLoop.java:102)
+sirius.kernel.async.ExecutionBuilder$TaskWrapper.run (ExecutionBuilder.java:123)
+java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+java.lang.Thread.run (Thread.java:745)
+
+---------------------------------------------------
+system: ASYNC::background::274
+userId: ANONYMOUS
+flow: GerhardsMBP397.fritz.box/308
+username: (no user)
+
+---------------------------------------------------
+2019-01-11 13:56:40,076 INFO  [background-13] db-slow - A long running connection was detected (1 Minute, 14 Seconds, 585 Milliseconds): Opened:
+Execution Point in: background-13
+---------------------------------------------------
+sirius.kernel.async.ExecutionPoint.snapshot (ExecutionPoint.java:59)
+sirius.kernel.async.ExecutionPoint.fastSnapshot (ExecutionPoint.java:53)
+sirius.db.jdbc.WrappedConnection.<init> (WrappedConnection.java:29)
+sirius.db.jdbc.Database.getConnection (Database.java:136)
+sirius.db.jdbc.SQLQuery.executeUpdate (SQLQuery.java:290)
+sirius.biz.statistics.Statistics.processIncrement (Statistics.java:159)
+sirius.biz.statistics.Statistics.handleIncrement (Statistics.java:129)
+sirius.biz.statistics.Statistics.commitStatistics (Statistics.java:117)
+sirius.biz.statistics.Statistics.doWork (Statistics.java:368)
+sirius.kernel.async.BackgroundLoop.executeWork (BackgroundLoop.java:102)
+sirius.kernel.async.ExecutionBuilder$TaskWrapper.run (ExecutionBuilder.java:123)
+java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+java.lang.Thread.run (Thread.java:745)
+
+---------------------------------------------------
+
+Closed:
+Execution Point in: background-13
+---------------------------------------------------
+sirius.kernel.async.ExecutionPoint.snapshot (ExecutionPoint.java:59)
+sirius.kernel.async.ExecutionPoint.snapshot (ExecutionPoint.java:42)
+sirius.db.jdbc.WrappedConnection.close (WrappedConnection.java:60)
+sirius.db.jdbc.SQLQuery.executeUpdate (SQLQuery.java:297)
+sirius.biz.statistics.Statistics.processIncrement (Statistics.java:159)
+sirius.biz.statistics.Statistics.handleIncrement (Statistics.java:129)
+sirius.biz.statistics.Statistics.commitStatistics (Statistics.java:117)
+sirius.biz.statistics.Statistics.doWork (Statistics.java:368)
+sirius.kernel.async.BackgroundLoop.executeWork (BackgroundLoop.java:102)
+sirius.kernel.async.ExecutionBuilder$TaskWrapper.run (ExecutionBuilder.java:123)
+java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+java.lang.Thread.run (Thread.java:745)
+
+---------------------------------------------------
+system: ASYNC::background::274
+userId: ANONYMOUS
+flow: GerhardsMBP397.fritz.box/308
+username: (no user)
+
+---------------------------------------------------
+2019-01-11 13:56:55,478 ERROR [web-mvc-3] db - Ein Fehler ist aufgetreten: Unknown JDBC database: crm
+sirius.kernel.health.HandledException: Ein Fehler ist aufgetreten: Unknown JDBC database: crm
+	at sirius.kernel.health.Exceptions$ErrorHandler.handle(Exceptions.java:193)
+	at sirius.db.jdbc.Database.<init>(Database.java:73)
+	at sirius.db.jdbc.Databases.lambda$get$22(Databases.java:132)
+	at java.util.concurrent.ConcurrentHashMap.computeIfAbsent(ConcurrentHashMap.java:1660)
+	at sirius.db.jdbc.Databases.get(Databases.java:132)
+	at woody.migration.MigrationTableServiceBean.migrateCrmDataToWoody(MigrationTableServiceBean.java:64)
+	at woody.migration.MigrationJobBean.migrateCrmToWdody(MigrationJobBean.java:52)
+	at woody.xrm.XRMController.migrateCrmToWoody(XRMController.java:89)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at sirius.web.controller.ControllerDispatcher.executeRoute(ControllerDispatcher.java:211)
+	at sirius.web.controller.ControllerDispatcher.performRouteInOwnThread(ControllerDispatcher.java:174)
+	at sirius.web.controller.ControllerDispatcher.lambda$tryExecuteRoute$68(ControllerDispatcher.java:126)
+	at sirius.kernel.async.ExecutionBuilder$TaskWrapper.run(ExecutionBuilder.java:123)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+2019-01-11 13:56:55,497 ERROR [web-mvc-2] db - Ein Fehler ist aufgetreten: Unknown JDBC database: crm
+sirius.kernel.health.HandledException: Ein Fehler ist aufgetreten: Unknown JDBC database: crm
+	at sirius.kernel.health.Exceptions$ErrorHandler.handle(Exceptions.java:193)
+	at sirius.db.jdbc.Database.<init>(Database.java:73)
+	at sirius.db.jdbc.Databases.lambda$get$22(Databases.java:132)
+	at java.util.concurrent.ConcurrentHashMap.computeIfAbsent(ConcurrentHashMap.java:1660)
+	at sirius.db.jdbc.Databases.get(Databases.java:132)
+	at woody.migration.MigrationTableServiceBean.migrateCrmDataToWoody(MigrationTableServiceBean.java:64)
+	at woody.migration.MigrationJobBean.migrateCrmToWdody(MigrationJobBean.java:52)
+	at woody.xrm.XRMController.migrateCrmToWoody(XRMController.java:89)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at sirius.web.controller.ControllerDispatcher.executeRoute(ControllerDispatcher.java:211)
+	at sirius.web.controller.ControllerDispatcher.performRouteInOwnThread(ControllerDispatcher.java:174)
+	at sirius.web.controller.ControllerDispatcher.lambda$tryExecuteRoute$68(ControllerDispatcher.java:126)
+	at sirius.kernel.async.ExecutionBuilder$TaskWrapper.run(ExecutionBuilder.java:123)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+2019-01-11 14:02:10,341 INFO  [Thread-3] sirius - Stopping Sirius
+2019-01-11 14:02:10,346 INFO  [Thread-3] sirius - ---------------------------------------------------------
+2019-01-11 14:02:10,349 INFO  [Thread-3] sirius - Stopping lifecycles...
+2019-01-11 14:02:10,352 INFO  [Thread-3] sirius - ---------------------------------------------------------
+2019-01-11 14:02:10,356 INFO  [default-8] sirius - Stopping: timer (System Timer Services)
+2019-01-11 14:02:10,360 INFO  [default-9] sirius - Stopping: web (netty HTTP Server)
+2019-01-11 14:02:10,369 INFO  [default-0] sirius - Stopping: Virtual File System
+2019-01-11 14:02:10,378 INFO  [default-11] sirius - Stopping: i5
+2019-01-11 14:02:10,384 INFO  [default-10] sirius - Stopping: CompileAllTemplates
+2019-01-11 14:02:10,386 INFO  [default-12] sirius - Stopping: redis
+2019-01-11 14:02:10,388 INFO  [default-13] sirius - Stopping: Statistics
+2019-01-11 14:02:10,390 INFO  [default-14] sirius - Stopping: crunchlog-writeback
+2019-01-11 14:02:10,391 INFO  [default-15] sirius - Stopping: tasks (Async Execution Engine)
+2019-01-11 14:02:10,395 INFO  [Thread-3] sirius - ---------------------------------------------------------
+2019-01-11 14:02:10,399 INFO  [Thread-3] sirius - Awaiting system halt...
+2019-01-11 14:02:10,401 INFO  [Thread-3] sirius - ---------------------------------------------------------
+2019-01-11 14:02:10,402 INFO  [Thread-3] sirius - Terminated: timer (System Timer Services) (Took: 25 us)

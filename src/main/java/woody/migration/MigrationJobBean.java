@@ -42,40 +42,53 @@ public class MigrationJobBean implements MigrationJob{
         }
 
         LocalDateTime startLdt = LocalDateTime.now();
+        System.out.println("");
         System.out.println("=======================================================================================");
         System.out.println("Start Migration CRM --> Woody.");
 
-//        deleteWoody();
+        deleteWoody();
 
+        // todo aha:  Verriegelung gegen Zweitstart: warum notwendig?
         run = true;
-//        mts.migrateCrmDataToWoody("industry", null);
-//        mts.migrateCrmDataToWoody("tag", null);
-//        mts.migrateCrmDataToWoody("company", null);
-//        mts.migrateCrmDataToWoody("person", null);
-//        mts.migrateCrmDataToWoody("product", null);
-//        mts.migrateCrmDataToWoody("packageDefinition", null);
-//        mts.migrateCrmDataToWoody("employee", "useraccount");
-//        mas.transferEmployeeInUserAccount(null);
-//        mts.migrateCrmDataToWoody("contract", null);
-//        mts.migrateCrmDataToWoody("offer", null);
-//        mts.migrateCrmDataToWoody("offerItem", null);
-//        mts.migrateCrmDataToWoody("opportunity", null);
-//        mts.migrateCrmDataToWoody("comment", null);
-//
-//        mas.addTags();
-//        mas.addTagAssignemtsFromCompany();
-//        mas.addTagAssignmentsFromPerson();
-//        mas.transferTagAssignment("tagCompanyAssignment", "COMPANY");
-//        mas.transferTagAssignment("industryAssignment", "INDUSTRY");
-//        mas.transferTagAssignment("tagOpportunityAssignment", "OPPORTUNITY");
-//        mas.transferTagAssignment("tagPersonAssignment", "PERSON");
-// ToDo testen
+
+        // migrate as first the useraccounts
+        mts.migrateCrmDataToWoody("employee", "useraccount");
+        mas.transferEmployeeInUserAccount(null);
+
+        // migrate the other tables, do not change the order!
+        mts.migrateCrmDataToWoody("industry", null);
+        mts.migrateCrmDataToWoody("tag", null);
+        mts.migrateCrmDataToWoody("company", null);
+        mts.migrateCrmDataToWoody("person", null);
+        mts.migrateCrmDataToWoody("product", null);
+        mts.migrateCrmDataToWoody("packageDefinition", null);
+        mts.migrateCrmDataToWoody("contract", null);
+        mts.migrateCrmDataToWoody("offer", null);
+        mts.migrateCrmDataToWoody("offerItem", null);
+        mts.migrateCrmDataToWoody("opportunity", null);
+        mts.migrateCrmDataToWoody("comment", null);
+
+        // add more data to several tables
+        mts.addDataprivatyPersons();
+        mas.addTags();
+        mas.addTagAssignemtsFromCompany();
+        mas.addTagAssignmentsFromPerson();
+
+        // transfer assignmentTables into Woody
+        mas.transferTagAssignment("tagCompanyAssignment", "COMPANY");
+        mas.transferTagAssignment("industryAssignment", "INDUSTRY");
+        mas.transferTagAssignment("tagOpportunityAssignment", "OPPORTUNITY");
+        mas.transferTagAssignment("tagPersonAssignment", "PERSON");
+
+        // update sequencecounters
         mas.updateSequenceCounter( "OFFER", "OFFERS-1", "sequencecounter");
-        mas.updateSequenceCounter( "company", "COMPANIES-1", "table");  // im CRM keine sequence-Number für Company
+        mas.updateSequenceCounter( "company", "COMPANIES-1", "table");  // im CRM keine sequence-Number für Company vorhanden
+
         LocalDateTime endLdt = LocalDateTime.now();
         Long seconds = ChronoUnit.SECONDS.between(startLdt, endLdt);
         System.out.println("Ende Migration CRM --> Woody, Zeitdauer = " + seconds + " sec.");
         System.out.println("=======================================================================================");
+        System.out.println("");
         run = false;
     }
 
@@ -90,6 +103,8 @@ public class MigrationJobBean implements MigrationJob{
         Database dbWoody = databases.get("mixing");
 
         System.out.println("Start delete Woody" );
+        // do not change the order!
+        mts.deleteDataPrivacyPersonsInCompanies();
         mts.deleteContentOfTable(dbWoody, "phonecall");
         mts.deleteContentOfTable(dbWoody, "tagassignment");
         mts.deleteContentOfTable(dbWoody, "tag");
@@ -105,6 +120,7 @@ public class MigrationJobBean implements MigrationJob{
         mts.deleteContentOfTable(dbWoody, "product");
         mts.deleteContentOfTable(dbWoody, "person");
         mts.deleteContentOfTable(dbWoody, "industry");
+        mts.deleteContentOfTable(dbWoody, "company");
 
         System.out.println("Ende delete Woody" );
 
