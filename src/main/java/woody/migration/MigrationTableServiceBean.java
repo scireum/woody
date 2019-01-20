@@ -422,16 +422,17 @@ public class MigrationTableServiceBean implements MigrationTableService {
             rowFetch(map, row, "zipCode", "address_zip");
         }
         rowFetch(map, row,"customerNr", "customerNumber");
-        rowFetch(map, row,"homepage", null);
+        rowFetch(map, row,"homepage", "website");
         rowFetch(map, row,"image", null);
         rowFetch(map, row,"matchcode", null);
         rowFetch(map, row,"invoiceMedium", "companyAccountingData_invoiceMedium");
         rowFetch(map, row,"invoiceMailAdr", "companyAccountingData_invoiceMailAdr");
         rowFetch(map, row,"ptPrice", "companyAccountingData_ptPrice");
         rowFetch(map, row,"outputLanguage", "companyAccountingData_outputLanguage");
-        rowFetch(map, row,"dataPrivacySendDate", null);
+        rowFetch(map, row,"dataPrivacySendDate", "companyAccountingData_dataPrivacySendDate");
 
-        // build the postbox-address-element - or not
+        // build the postbox-address-elements
+        // check whether all postbox-data are present
         if(checkIntegrityOfFields(row, "cityPostbox, zipCodePostbox, postbox, countryCode")) {
             rowFetch(map, row, "cityPostbox", "postboxAddress_city" );
             rowFetch(map, row, "zipCodePostbox", "postboxAddress_zip" );
@@ -455,8 +456,23 @@ public class MigrationTableServiceBean implements MigrationTableService {
                     postfachName = "Postbox";
                 }
                 postbox = postfachName + " " + postbox;
+                map.put("postboxAddress_street", postbox);
             } else {
                 rowFetch(map, row, "postbox", "postboxAddress_street");
+            }
+        } else {
+            // check whether the city, countryCode and zipCode are present ---> the postbox-number is the zipCode
+            // set the postboxAddress_street to "Postfach"
+            if(checkIntegrityOfFields(row, "cityPostbox, zipCodePostbox, countryCode")) {
+                rowFetch(map, row, "cityPostbox", "postboxAddress_city" );
+                rowFetch(map, row, "zipCodePostbox", "postboxAddress_zip" );
+                rowFetch(map, row, "countryCode", "postboxAddress_country" );
+                String countryCode = row.getValue("countryCode").asString("de").toLowerCase();
+                String postfachName = NLS.get("PostfachName_" + countryCode);
+                if(Strings.isEmpty(postfachName)) {
+                    postfachName = "Postbox";
+                }
+                map.put("postboxAddress_street", postfachName);
             }
         }
         return map;
@@ -686,7 +702,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
                             if(opt.isPresent()) {
                                 Company company = (Company) opt.get();
                                 // set the dataPrivacyPerson and save the company
-                                company.getDataPrivacyPerson().setId(dataPrivacyPersonId);
+                                company.getCompanyAccountingData().getDataPrivacyPerson().setId(dataPrivacyPersonId);
                                 oma.update(company);
                             } else {
                                 // ToDo vernünftig anzeigen
@@ -705,24 +721,26 @@ public class MigrationTableServiceBean implements MigrationTableService {
 
     @Override
     public void deleteDataPrivacyPersonsInCompanies() {
+        System.out.println("Start deleteDataPrivacyPersonsInCompanies");
         List<Company> companyList = oma.select(Company.class).queryList();
         for(Company company : companyList) {
-            if(company.getDataPrivacyPerson() != null) {
+            if(company.getCompanyAccountingData().getDataPrivacyPerson() != null) {
                 //set the dataPrivacyPerson to null
-                company.getDataPrivacyPerson().setId(null);
+                company.getCompanyAccountingData().getDataPrivacyPerson().setId(null);
                 // delete all address-data to avoid a exception.
-//                company.getAddress().setCountry(null);
-//                company.getAddress().setCity(null);
-//                company.getAddress().setStreet(null);
-//                company.getAddress().setZip(null);
-//                company.getPostboxAddress().setCountry(null);
-//                company.getPostboxAddress().setCity(null);
-//                company.getPostboxAddress().setStreet(null);
-//                company.getPostboxAddress().setZip(null);
+                company.getAddress().setCountry(null);
+                company.getAddress().setCity(null);
+                company.getAddress().setStreet(null);
+                company.getAddress().setZip(null);
+                company.getPostboxAddress().setCountry(null);
+                company.getPostboxAddress().setCity(null);
+                company.getPostboxAddress().setStreet(null);
+                company.getPostboxAddress().setZip(null);
+                //  System.out.println(company.toString());
                 oma.update(company);
             }
         }
-        int ggg = 3;
+        System.out.println("Ende deleteDataPrivacyPersonsInCompanies");
     }
 
 

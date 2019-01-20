@@ -1,0 +1,43 @@
+
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:invoke template="templates/xrm/company.html.pasta" company="company" page="companyAccountingData">
+    <w:editForm url="@apply('/company/%s/edit', company.getIdAsString())">
+
+        <w:subHeading labelKey="CompanyAccountingData.plural" />
+        <div class="row">
+            <w:codelistSelect name="companyAccountingData_invoiceMedium"
+                              value="@company.getCompanyAccountingData().getInvoiceMedium()"
+                              list="invoiceMedium"
+                              optional="true"
+                              labelKey="CompanyAccountingData.invoiceMedium"
+                              span="12" />
+
+          <w:codelistSelect name="companyAccountingData_outputLanguage"
+                            value="@company.getCompanyAccountingData().getOutputLanguage()"
+                            list="outputLanguage"
+                            optional="true"
+                            labelKey="CompanyAccountingData.outputLanguage"
+                            span="12" />
+
+          <w:textfield name="companyAccountingData_invoiceMailAdr" value="@company.getCompanyAccountingData().getInvoiceMailAdr()" labelKey="CompanyAccountingData.invoiceMailAdr" span="6" />
+        </div>
+
+        <w:subHeading labelKey="CompanyAccountingData.invoiceAddress" />
+        <div class="row">
+            <w:textfield name="companyAccountingData_street" value="@company.getCompanyAccountingData().getInvoiceAddress().getStreet()" labelKey="AddressData.street" span="12" />
+            <w:textfield name="companyAccountingData_zip" value="@company.getCompanyAccountingData().getInvoiceAddress().getZip()" labelKey="AddressData.zip" span="4" />
+            <w:textfield name="companyAccountingData_city" value="@company.getCompanyAccountingData().getInvoiceAddress().getCity()" labelKey="AddressData.city" span="8" />
+            <w:codelistSelect name="companyAccountingData_country"
+                              value="@company.getCompanyAccountingData().getInvoiceAddress().getCountry()"
+                              list="countries"
+                              optional="true"
+                              labelKey="InternationalAddressData.country"
+                              span="12" />
+        </div>
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@company.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

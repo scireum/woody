@@ -11,6 +11,7 @@ package woody.sales;
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.Column;
+import sirius.db.mixing.SmartQuery;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
@@ -161,18 +162,16 @@ public class SalesController extends BizController implements SalesControllerSer
     @Permission(MANAGE_XRM)
     @Routed("/company/:1/contracts")
     public void companyContracts(WebContext ctx, String companyId) {
-//        Company company = findForTenant(Company.class, companyId);
-//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-//        SmartQuery<Contract> query = oma.select(Contract.class)
-//                                        .eq(Contract.COMPANY, company)
-//                                        .orderAsc(Contract.ACCOUNTINGGROUP)
-//                                        .orderAsc(Contract.STARTDATE);
-//
-//        Tagged.applyTagSuggestions(Contract.class, search, query);
-//        PageHelper<Contract> ph = PageHelper.withQuery(query);
-//        ph.withContext(ctx);
-//        ctx.respondWith()
-//           .template("view/sales/company-contracts.html", company, ph.asPage(), search.getSuggestionsString());
+        Company company = findForTenant(Company.class, companyId);
+        SmartQuery<Contract> query = oma.select(Contract.class)
+                                        .eq(Contract.COMPANY, company)
+                                        .orderAsc(Contract.ACCOUNTINGGROUP)
+                                        .orderAsc(Contract.STARTDATE);
+        PageHelper<Contract> ph = PageHelper.withQuery(query);
+        ph.withContext(ctx);
+        ph.withSearchFields(Contract.STARTDATE);
+        ph.enableAdvancedSearch();
+        ctx.respondWith().template("templates/sales/company-contracts.html.pasta", company, ph.asPage());
     }
 
     @LoginRequired

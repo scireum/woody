@@ -26,6 +26,9 @@ import sirius.db.mixing.annotations.Trim;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.nls.NLS;
 import woody.xrm.Company;
+import woody.xrm.Person;
+
+import java.time.LocalDate;
 
 /**
  * Created by gerhardhaufler on 22.09.16.
@@ -38,7 +41,6 @@ public class CompanyAccountingData extends Composite {
     public static final String OUTPUTLANGUAGE_CODELIST = "outputLanguage";
     public static final String COMPANYTYPE_CODELIST = "companytype";
     public static final String BUSINESSTYPE_CODELIST = "businesstype";
-
 
     @NullAllowed
     @Autoloaded
@@ -69,6 +71,16 @@ public class CompanyAccountingData extends Composite {
     @Length(1)
     private String outputLanguage = "0";
     public static final Column OUTPUTLANGUAGE = Column.named("outputLanguage");
+
+    @NullAllowed
+    @Autoloaded
+    private final EntityRef<Person> dataPrivacyPerson = EntityRef.on(Person.class, EntityRef.OnDelete.SET_NULL);
+    public static final Column DATAPRIVACYPERSON = Column.named("dataPrivacyPerson");
+
+    @NullAllowed
+    @Autoloaded
+    private LocalDate dataPrivacySendDate;
+    public static final Column DATAPRIVACYSENDDATE = Column.named("dataPrivacySendDate");
 
 
     public InternationalAddressData getInvoiceAddress() {
@@ -107,4 +119,15 @@ public class CompanyAccountingData extends Composite {
         this.outputLanguage = outputLanguage;
     }
 
+    public EntityRef<Person> getDataPrivacyPerson() {
+        return dataPrivacyPerson;
+    }
+
+    public LocalDate getDataPrivacySendDate() {
+        return dataPrivacySendDate;
+    }
+
+    public void setDataPrivacySendDate(LocalDate dataPrivacySendDate) {
+        this.dataPrivacySendDate = dataPrivacySendDate;
+    }
 }

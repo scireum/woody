@@ -1,10 +1,13 @@
+<!-- displays the details of a company               -->
+
 <i:arg type="woody.xrm.Company" name="company"/>
+
 <i:invoke template="templates/xrm/company.html.pasta" company="company" page="details">
     <w:editForm url="@apply('/company/%s/edit', company.getIdAsString())">
         <div class="row">
             <w:textfield name="name" value="@company.getName()" labelKey="Company.name" required="true" />
             <w:textfield name="customerNumber" value="@company.getCustomerNumber()" labelKey="Company.customerNumber" span="3" />
-            <w:textfield name="correlationId" value="company.getCorrelationId()" labelKey="Company.matchcode" span="3" />
+            <w:textfield name="correlationId" value="@company.getCorrelationId()" labelKey="Company.matchcode" span="3" />
         </div>
 
         <div class="row">
@@ -58,6 +61,7 @@
                 </i:for>
             </w:autocompleteMultiSelect>
         </div>
+
     </w:editForm>
 
     <w:formBar>

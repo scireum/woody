@@ -1,0 +1,40 @@
+<!-- displays a list of all contracts of a company               -->
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="Page" name="contracts"/>
+
+<i:invoke template="templates/xrm/company.html.pasta" company="company" page="contracts">
+    <i:block name="breadcrumbs">
+        <li><a href="/company/@company.getId()/contracts">@i18n("Contract.plural")</a></li>
+    </i:block>
+
+    <w:taggedSearch page="contracts" baseUrl="@apply('/company/%s/contracts', company.getId())" suggestionsName="CONTRACT"/>
+
+    <w:table data="contracts">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Contract.accountingGroup")
+            </th>
+            <th>
+                @i18n("Contract")
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.sales.Contract" var="contract" items="contracts.getItems()">
+            <tr>
+                <td>@contract.getAccountingGroup()
+                </td>
+                <td>
+                    <a class="link" href="/company/@contract.getCompany().getId()/contract/@contract.getId()">@contract</a>
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/company/%s/contract/%s/delete', contract.getCompany().getId(), contract.getId())" page="contracts"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="contracts" baseUrl="@apply('company/%s/contracts', company.getId())"/>
+</i:invoke>

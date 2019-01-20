@@ -1,0 +1,26 @@
+<!-- displays all datas of the dataprivacy of a company                -->
+
+<i:arg type="woody.xrm.Company" name="company"/>
+
+
+<i:invoke template="templates/xrm/company.html.pasta" company="company" page="dataPrivacy">
+    <w:editForm url="@apply('/company/%s/dataPrivacy', company.getIdAsString())">
+
+        <w:subHeading labelKey="CompanyAccountingData.dataPrivacy" />
+        <div class="row">
+            <w:autocompleteSingleSelect span="12" name="dataPrivacyPerson" labelKey="CompanyAccountingData.dataPrivacyPerson" serviceUri="@apply('/persons/%s/autocomplete', company.getIdAsString())"
+                                       optional="true" >
+                <i:for type="woody.xrm.Person" var="person" items="company.queryPersons()">
+                    <option value="@person.toString()" selected>@person.toString()</option>
+                </i:for>
+            </w:autocompleteSingleSelect>
+
+            <w:datefield readonly="true" name="companyAccountingData_dataPrivacySendDate" value="@toUserString(company.getCompanyAccountingData().getDataPrivacySendDate())" labelKey="CompanyAccountingData.avvSendDate" span="12" />
+        </div>
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@company.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

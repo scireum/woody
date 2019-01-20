@@ -12,6 +12,7 @@ import sirius.biz.codelists.CodeLists;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.InternationalAddressData;
+import sirius.biz.model.PersonData;
 import sirius.biz.tenants.TenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
@@ -20,14 +21,19 @@ import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Trim;
+import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Part;
+import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
+import sirius.web.mails.Mails;
+import woody.core.colors.Colors;
 import woody.core.comments.Commented;
 import woody.core.comments.HasComments;
 import woody.core.relations.HasRelations;
 import woody.core.relations.Relateable;
 import woody.core.relations.Relations;
+import woody.core.tags.TagQueryTagColorTypeProvider;
 import woody.core.tags.Tagged;
 
 import woody.phoneCalls.SyncAsterisk;
@@ -44,7 +50,13 @@ import java.util.List;
  */
 public class Company extends TenantAware implements HasComments, HasRelations {
 
-    public static final int MIN_CUSTOMERNR = 10001;
+    @Part
+    private static Mails mails;
+
+    @Part
+    private static CodeLists cls;
+
+    public static final int MIN_CUSTOMERNR = 10000;
     public static final int MAX_CUSTOMERNR = 19999;
     public static final String COUNTRY_CODELIST = "country";
 
@@ -61,7 +73,7 @@ public class Company extends TenantAware implements HasComments, HasRelations {
     private String name2;
     public static final Column NAME2 = Column.named("name2");
 
-    /* the customerNr is set by the sequence.generateId */
+    // the customerNr is set by the sequence.generateId --> no @Autoloaded !
     @NullAllowed
     @Length(50)
     private String customerNumber;
@@ -100,15 +112,8 @@ public class Company extends TenantAware implements HasComments, HasRelations {
     private final ContactData contact = new ContactData(true);
     public static final Column CONTACT = Column.named("contact");
 
-    @NullAllowed
-    @Autoloaded
-    private final EntityRef<Person> dataPrivacyPerson = EntityRef.on(Person.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column DATAPRIVACYPERSON = Column.named("dataPrivacyPerson");
-
-    @NullAllowed
-    @Autoloaded
-    private LocalDate dataPrivacySendDate;
-    public static final Column DATAPRIVACYSENDDATE = Column.named("dataPrivacySendDate");
+    private final CompanyAccountingData companyAccountingData = new CompanyAccountingData();
+    public static final Column COMPANYACCOUNTINGDATA = Column.named("companyAccountingData");
 
     private final Tagged tags = new Tagged(this);
     public static final Column TAGS = Column.named("tags");
@@ -131,89 +136,96 @@ public class Company extends TenantAware implements HasComments, HasRelations {
         }
     }
 
-    //
-//    @Part
-//    private static Mails mails;
-//
-//   @BeforeSave
-//    protected void onSave() {
-//       // check te customerNR - if present
-//       if(customerNr != null) {
-//           Integer nr = Integer.parseInt(customerNr);
-//           if(nr < MIN_CUSTOMERNR || nr > MAX_CUSTOMERNR) {
-//               throw Exceptions.createHandled().withNLSKey("Company.customerNrOutOfInterval")
-//                     .set("customerNr", customerNr).set("min", MIN_CUSTOMERNR).set("max", MAX_CUSTOMERNR).handle();
-//           }
-//       }
-//        // check the presence of a customer-number if contracts are existing
-//        long count = oma.select(Contract.class).eq(Contract.COMPANY, this).count();
-//        if (count > 0 && Strings.isEmpty(customerNr)) {
-//            throw Exceptions.createHandled()
-//                            .withNLSKey("Company.ContractsArePresent.CustomerNrIsMissing")
-//                            .handle();
-//        }
-//        // normalize the mainPhoneNr
-//       String phoneNumber = this.getMainPhoneNr();
-//        if(phoneNumber != null && Strings.isFilled(phoneNumber)) {
-//            this.setMainPhoneNr(SyncAsterisk.normalizePhonenumberForStarfaceAddressbook(phoneNumber, true));
-//        }
-//        //check the mainMailAddress
-//        if(Strings.isFilled(this.getMainMailAddress())) {
+    // used for views
+    public String getCorrelationId() {
+        return matchcode;
+    }
+
+
+
+   @BeforeSave
+    protected void onSave() {
+       // check te customerNR - if present
+       if(customerNumber != null) {
+           Integer nr = Integer.parseInt(customerNumber);
+           if (nr < MIN_CUSTOMERNR || nr > MAX_CUSTOMERNR) {
+               throw Exceptions.createHandled()
+                               .withNLSKey("Company.customerNumberOutOfInterval")
+                               .set("customerNumber", customerNumber)
+                               .set("min", MIN_CUSTOMERNR)
+                               .set("max", MAX_CUSTOMERNR)
+                               .handle();
+           }
+       } else {
+           // check the presence of a customer-number if contracts are existing
+           long count = oma.select(Contract.class).eq(Contract.COMPANY, this).count();
+           if (count > 0 && Strings.isEmpty(customerNumber)) {
+               throw Exceptions.createHandled().withNLSKey("Company.ContractsArePresent.CustomerNrIsMissing").handle();
+           }
+       }
+       // normalize the mainPhoneNr
+       String phoneNumber = this.getContact().getPhone();
+       if(phoneNumber != null && Strings.isFilled(phoneNumber)) {
+            this.getContact().setPhone(SyncAsterisk.normalizePhonenumberForStarfaceAddressbook(phoneNumber, true));
+       }
+       // ToDo inkompatibel mit Validierung der Mailadresse in ContactData
+//       //check the mainMailAddress, the mainMailAddress is stored in .ContactData.eMail
+//       if(Strings.isFilled(this.getContact().getEmail())) {
 //            // mimimal: a.b
-//            if (this.getMainMailAddress().length() < 3) {
+//            if (this.getContact().getEmail().length() < 3) {
 //                throw Exceptions.createHandled()
 //                                .withNLSKey("Model.mainMailAddressToShort")
-//                                .set("value", this.getMainMailAddress())
+//                                .set("value", this.getContact().getEmail())
 //                                .handle();
 //            } else {
 //                // cut out the @   aa@bbbbb.cc ---> bbbbb.cc
-//                int pos = this.getMainMailAddress().indexOf("@");
+//                int pos = this.getContact().getEmail().indexOf("@");
 //                if (pos > -1) {
-//                     this.setMainMailAddress(this.getMainMailAddress().substring(pos + 1));
+//                    this.getContact().setEmail(this.getContact().getEmail().substring(pos + 1));
 //                }
 //                // check the presence of the "."
-//                pos = this.getMainMailAddress().indexOf(".");
+//                pos = this.getContact().getEmail().indexOf(".");
 //                // missing   or  at the last index
-//                if(pos == -1 || pos == this.getMainMailAddress().length() - 1) {
+//                if(pos == -1 || pos == this.getContact().getEmail().length() - 1) {
 //                    throw Exceptions.createHandled()
 //                                    .withNLSKey("Model.mainMailAddressError")
-//                                    .set("value", this.getMainMailAddress())
+//                                    .set("value", this.getContact().getEmail())
 //                                    .handle();
-//
 //                }
 //            }
-//        }
-//       // check the CompanyAccountingData
-//       String invoiceMedium = this.getCompanyAccountingData().getInvoiceMedium();
-//       if(invoiceMedium == null) {
-//           throw Exceptions.createHandled()
-//                           .withNLSKey("Company.invoiceMediumMissing").handle();
 //       }
-//       boolean error = true;
-//       for(int i=0; i< CompanyAccountingData.INVOICEMEDIUMNAMES.length; i++) {
-//          if(invoiceMedium.equals(CompanyAccountingData.INVOICEMEDIUMNAMES[i])) {
-//              error = false;
-//              break;
-//          }
-//       }
-//       if(error) {
-//           throw Exceptions.createHandled().withNLSKey("Company.invalidInvoiceMedium")
-//                           .set("invoiceMedium", invoiceMedium).handle();
-//       }
-//       if(invoiceMedium.equals("MAIL")) {
-//           String mailAddress = this.getCompanyAccountingData().getInvoiceMailAdr();
-//           if(Strings.isEmpty(mailAddress)) {
-//               throw Exceptions.createHandled()
-//                               .withNLSKey("Company.invoiceMailAdrMissing").handle();
-//           }
-//           if(!(mails.isValidMailAddress(mailAddress, null))) {
-//               throw Exceptions.createHandled()
-//                               .withNLSKey("Company.invalidInvoiceEmail")
-//                               .set("value", mailAddress).handle();
-//           }
-//       }
-//
-//    }
+       // check the CompanyAccountingData
+       String invoiceMedium = this.getCompanyAccountingData().getInvoiceMedium();
+       if(invoiceMedium == null) {
+           throw Exceptions.createHandled()
+                           .withNLSKey("Company.invoiceMediumMissing").handle();
+       }
+       boolean error = true;
+       for(int i=0; i< CompanyAccountingData.INVOICEMEDIUMNAMES.length; i++) {
+          if(invoiceMedium.equals(CompanyAccountingData.INVOICEMEDIUMNAMES[i])) {
+              error = false;
+              break;
+          }
+       }
+       if(error) {
+           throw Exceptions.createHandled().withNLSKey("Company.invalidInvoiceMedium")
+                           .set("invoiceMedium", invoiceMedium).handle();
+       }
+       if(invoiceMedium.equals("MAIL")) {
+           String mailAddress = this.getCompanyAccountingData().getInvoiceMailAdr();
+           if(Strings.isEmpty(mailAddress)) {
+               throw Exceptions.createHandled()
+                               .withNLSKey("Company.invoiceMailAdrMissing").handle();
+           }
+           if(!(mails.isValidMailAddress(mailAddress, null))) {
+               throw Exceptions.createHandled()
+                               .withNLSKey("Company.invalidInvoiceEmail")
+                               .set("value", mailAddress).handle();
+           }
+       }
+
+    }
+
 //
 //    // the followig methods are called by JSF
 //
@@ -222,78 +234,20 @@ public class Company extends TenantAware implements HasComments, HasRelations {
 //        return !("DE".equals(countryCode.toUpperCase()));
 //    }
 //
-//    public List<Person> queryPersons() {
-//        List<Person> personList = new ArrayList<Person>();
-//        personList.addAll(
-//         oma.select(Person.class).eq(Person.COMPANY, this)
-//                  .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
-//                  .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
-//                  .queryList());
-//        return personList;
-//=======
+    public List<Person> queryPersons() {
+        List<Person> personList = new ArrayList<Person>();
+        personList.addAll(oma.select(Person.class)
+                             .eq(Person.COMPANY, this)
+                             .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
+                             .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
+                             .queryList());
+        return personList;
+    }
+
     public String getUniquePath() {
         //TODO unify...
         return com.google.common.base.Strings.padStart(Long.toString(id, 36), 6, '0');
     }
-
-    @BeforeSave
-    protected void onSave() {
-//        // check the presence of a customer-number if contracts are existing
-//        long count = oma.select(Contract.class).eq(Contract.COMPANY, this).count();
-//        if (count > 0 && Strings.isEmpty(customerNr)) {
-//            throw Exceptions.createHandled().withNLSKey("Company.ContractsArePresent.CustomerNrIsMissing").handle();
-//        }
-//        // normalize the mainPhoneNr
-//        if (Strings.isFilled(this.getMainPhoneNr())) {
-//            this.setMainPhoneNr(normalizePhoneNumber(this.getMainPhoneNr()));
-//        }
-//        //check the mainMailAddress
-//        if (Strings.isFilled(this.getMainMailAddress())) {
-//            // mimimal: a.b
-//            if (this.getMainMailAddress().length() < 3) {
-//                throw Exceptions.createHandled()
-//                                .withNLSKey("Model.mainMailAddressToShort")
-//                                .set("value", this.getMainMailAddress())
-//                                .handle();
-//            } else {
-//                // cut out the @   aa@bbbbb.cc ---> bbbbb.cc
-//                int pos = this.getMainMailAddress().indexOf("@");
-//                if (pos > -1) {
-//                    this.setMainMailAddress(this.getMainMailAddress().substring(pos + 1));
-//                }
-//                // check the presence of the "."
-//                pos = this.getMainMailAddress().indexOf(".");
-//                // missing   or  at the last index
-//                if (pos == -1 || pos == this.getMainMailAddress().length() - 1) {
-//                    throw Exceptions.createHandled()
-//                                    .withNLSKey("Model.mainMailAddressError")
-//                                    .set("value", this.getMainMailAddress())
-//                                    .handle();
-//                }
-//            }
-//        }
-//
-//        // check the CompanyAccountingData
-//        String invoiceMedium = this.getCompanyAccountingData().getInvoiceMedium();
-//        if (invoiceMedium == null) {
-//            throw Exceptions.createHandled().withNLSKey("Company.invoiceMediumMissing").handle();
-//        }
-//        if (invoiceMedium.equals("MAIL")) {
-//            String mailAddress = this.getCompanyAccountingData().getInvoiceMailAdr();
-//            if (Strings.isEmpty(mailAddress)) {
-//                throw Exceptions.createHandled().withNLSKey("Company.invoiceMailAdrMissing").handle();
-//            }
-//            if (!(mails.isValidMailAddress(mailAddress, null))) {
-//                throw Exceptions.createHandled()
-//                                .withNLSKey("Company.invalidInvoiceEmail")
-//                                .set("value", mailAddress)
-//                                .handle();
-//            }
-//        }
-    }
-
-    @Part
-    private static CodeLists cls;
 
     public String getCountryName() {
         String countryCode = this.getAddress().getCountry();
@@ -375,15 +329,7 @@ public class Company extends TenantAware implements HasComments, HasRelations {
         this.website = website;
     }
 
-    public EntityRef<Person> getDataPrivacyPerson() {
-        return dataPrivacyPerson;
-    }
-
-    public LocalDate getDataPrivacySendDate() {
-        return dataPrivacySendDate;
-    }
-
-    public void setDataPrivacySendDate(LocalDate dataPrivacySendDate) {
-        this.dataPrivacySendDate = dataPrivacySendDate;
+    public CompanyAccountingData getCompanyAccountingData() {
+        return companyAccountingData;
     }
 }

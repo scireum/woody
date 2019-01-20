@@ -1,3 +1,5 @@
+<!-- displays a list of all persons of a company         -->
+
 <i:arg type="woody.xrm.Company" name="company"/>
 <i:arg type="Page" name="persons"/>
 
@@ -30,6 +32,9 @@
                     <woody:listTags tagged="person.getTags()"/>
                     <br>
                     <woody:listRelations relations="person.getRelations()"/>
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/company/%s/person/%s/delete', person.getCompany().getId(), person.getId())" page="persons"/>
                 </td>
             </tr>
         </i:for>

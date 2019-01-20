@@ -10,41 +10,34 @@ package woody.xrm;
 
 import sirius.biz.model.AddressData;
 import sirius.biz.model.PersonData;
-
 import sirius.biz.sequences.Sequences;
-import sirius.biz.tenants.UserAccount;
-
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
+import sirius.db.mixing.constraints.Like;
+import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
+import sirius.kernel.nls.NLS;
+import sirius.web.controller.AutocompleteHelper;
 import sirius.web.controller.Controller;
 import sirius.web.controller.DefaultRoute;
 import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
-import sirius.web.security.ScopeInfo;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
-import sirius.web.security.UserSettings;
 import woody.core.relations.RelationHelper;
-
-
-import woody.core.employees.Employee;
-import woody.core.tags.Tagged;
+import woody.core.tags.Tag;
 import woody.migration.MigrationJob;
 import woody.offers.ServiceAccountingService;
-import woody.phoneCalls.Starface;
 import woody.sales.AccountingService;
-import woody.sales.Lineitem;
+import woody.sales.Contract;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -69,6 +62,8 @@ public class XRMController extends BizController {
     @Part
     private static MigrationJob mgj;
 
+    @Part
+    private static Sequences sequences;
 
     @DefaultRoute
     @Routed("/")
@@ -77,8 +72,7 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    // ToDo permission-manage-xrm kommt nicht an, obwohl das Recht über die Rolle da sein sollte.
-//    @Permission(PERMISSION_MANAGE_XRM)
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/migrateCrmToWoody")
     public void migrateCrmToWoody(WebContext ctx) {
 
@@ -110,11 +104,12 @@ public class XRMController extends BizController {
         }
     }
 
-
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/companies")
     public void companies(WebContext ctx) {
+        UserInfo usi = UserContext.getCurrentUser();
+        Set<String> permissions = usi.getPermissions();
         PageHelper<Company> ph =
                 PageHelper.withQuery(oma.select(Company.class).orderAsc(Company.NAME)).forCurrentTenant();
         ph.withSearchFields(Company.NAME,
@@ -143,6 +138,8 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1")
     public void company(WebContext ctx, String companyId) {
+        UserInfo usi = UserContext.getCurrentUser();
+        Set<String> permissions = usi.getPermissions();
         Company cl = findForTenant(Company.class, companyId);
         if (cl.isNew()) {
             ctx.respondWith().template("templates/xrm/company-details.html.pasta", cl);
@@ -153,8 +150,27 @@ public class XRMController extends BizController {
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/generateCustomerNumber")
+    public void generateCustomerNumber(WebContext ctx, String companyId) {
+        UserInfo usi = UserContext.getCurrentUser();
+        Set<String> permissions = usi.getPermissions();
+        Company cl = findForTenant(Company.class, companyId);
+        String customerNumber = cl.getCustomerNumber();
+        if(Strings.isEmpty(customerNumber)) {
+            customerNumber = String.valueOf(sequences.generateId("COMPANIES-" + cl.getTenant().getId()));
+            cl.setCustomerNumber(customerNumber);
+            oma.update(cl);
+        }
+        ctx.respondWith().template("templates/xrm/company-details.html.pasta", cl);
+    }
+
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/edit")
     public void editCompany(WebContext ctx, String companyId) {
+        UserInfo usi = UserContext.getCurrentUser();
+        Set<String> permissions = usi.getPermissions();
         Company cl = findForTenant(Company.class, companyId);
         if (ctx.isPOST()) {
             try {
@@ -174,9 +190,62 @@ public class XRMController extends BizController {
                 UserContext.handle(e);
             }
         }
-
         ctx.respondWith().template("templates/xrm/company-details.html.pasta", cl);
     }
+
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/companyAccountingData")
+    public void editCompanyAccountingData(WebContext ctx, String companyId) {
+        Company cl = findForTenant(Company.class, companyId);
+        if (ctx.isPOST()) {
+            try {
+                boolean wasNew = cl.isNew();
+                if (cl.isNew()) {
+                    cl.getTenant().setValue(tenants.getRequiredTenant());
+                }
+                load(ctx, cl);
+                oma.update(cl);
+                cl.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
+                showSavedMessage();
+                if (wasNew) {
+                    ctx.respondWith().redirectTemporarily("/company/" + cl.getId());
+                    return;
+                }
+            } catch (Throwable e) {
+                UserContext.handle(e);
+            }
+        }
+        ctx.respondWith().template("templates/xrm/company-companyAccountingData.html.pasta", cl);
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/dataPrivacy")
+    public void editCompanyDataPrivacyData(WebContext ctx, String companyId) {
+        Company cl = findForTenant(Company.class, companyId);
+        if (ctx.isPOST()) {
+            try {
+                boolean wasNew = cl.isNew();
+                if (cl.isNew()) {
+                    cl.getTenant().setValue(tenants.getRequiredTenant());
+                }
+                load(ctx, cl);
+                oma.update(cl);
+                cl.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
+                showSavedMessage();
+                if (wasNew) {
+                    ctx.respondWith().redirectTemporarily("/company/" + cl.getId());
+                    return;
+                }
+            } catch (Throwable e) {
+                UserContext.handle(e);
+            }
+        }
+        ctx.respondWith().template("templates/xrm/company-dataPrivacy.html.pasta", cl);
+    }
+
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
@@ -193,6 +262,7 @@ public class XRMController extends BizController {
         ph.enableAdvancedSearch();
         ctx.respondWith().template("templates/xrm/company-persons.html.pasta", company, ph.asPage());
     }
+
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
@@ -225,7 +295,7 @@ public class XRMController extends BizController {
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/person/:2/delete")
-    public void deletePerson(WebContext ctx, String companyId, String personId) {//TODO ???
+    public void deletePerson(WebContext ctx, String companyId, String personId) {
         Optional<Person> person = tryFind(Person.class, personId);
         if (person.isPresent()) {
             assertTenant(person.get().getCompany().getValue());
@@ -272,6 +342,20 @@ public class XRMController extends BizController {
             }
         }
         ctx.respondWith().template("templates/xrm/person-details.html.pasta", company, person);
+    }
+
+    @LoginRequired
+    @Routed("/persons/:1/autocomplete")
+    public void personsAutocomplete(final WebContext ctx, String companyId) {
+        AutocompleteHelper.handle(ctx,
+                                  (query, result) -> oma.select(Person.class)
+                                                        .eq(Person.COMPANY, companyId)
+                                                        .orderAsc(Person.PERSON.inner(PersonData.LASTNAME))
+                                                        .orderAsc(Person.PERSON.inner(PersonData.FIRSTNAME))
+                                                        .iterateAll(person -> result.accept(new AutocompleteHelper.Completion(
+                                                                person.toString(),
+                                                                person.toString(),
+                                                                person.toString()))));
     }
 
     @LoginRequired

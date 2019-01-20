@@ -31,6 +31,7 @@ import sirius.web.templates.Templates;
 import woody.core.mails.Mail;
 import woody.core.mails.Mailtemplate;
 import woody.core.mails.SendMailService;
+import woody.sales.Contract;
 import woody.sales.SalesControllerService;
 import woody.xrm.Company;
 import woody.xrm.Person;
@@ -241,22 +242,23 @@ public class OffersController extends BizController {
     @Routed("/company/:1/offers")
     // shows the offers of the given company
     public void companyOffers(WebContext ctx, String companyId) {
-//        Company company = findForTenant(Company.class, companyId);
-//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-//        SmartQuery<Offer> query = oma.select(Offer.class).eq(Offer.COMPANY, company).orderDesc(Offer.NUMBER);
-//
-//        Tagged.applyTagSuggestions(Offer.class, search, query);
-//        PageHelper<Offer> ph = PageHelper.withQuery(query);
-//        ph.withContext(ctx);
-//        ctx.respondWith()
-//           .template("view/offers/company-offers.html", company, ph.asPage(), search.getSuggestionsString());
+        Company company = findForTenant(Company.class, companyId);
+        SmartQuery<Offer> query = oma.select(Offer.class)
+                                        .eq(Offer.COMPANY, company)
+                                        .orderDesc(Offer.NUMBER);
+
+        PageHelper<Offer> ph = PageHelper.withQuery(query);
+        ph.withContext(ctx);
+        ph.withSearchFields(Offer.NUMBER);
+        ph.enableAdvancedSearch();
+        ctx.respondWith().template("templates/offers/company-offers.html.pasta", company, ph.asPage());
     }
 
     @LoginRequired
     @Permission(VIEW_OFFER)
-    @Routed("/company/:1/offer/:2")
+    @Routed("/company/:1/offer/:2/edit")
     // display and save the given offer
-    public void offer(WebContext ctx, String companyId, String offerId) {
+    public void editOffer(WebContext ctx, String companyId, String offerId) {
         Company company = findForTenant(Company.class, companyId);
         assertNotNew(company);
         Offer offer = find(Offer.class, offerId);
@@ -277,7 +279,7 @@ public class OffersController extends BizController {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("view/offers/offer-details.html", company, offer);
+        ctx.respondWith().template("templates/offers/offer-details.html.pasta", company, offer);
     }
 
     @LoginRequired

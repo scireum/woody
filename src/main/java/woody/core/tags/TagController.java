@@ -69,8 +69,8 @@ public class TagController extends BizController {
     }
 
     @DefaultRoute
-    @LoginRequired
-    @Permission(MANAGE_TAGS)
+//    @LoginRequired
+//    @Permission(MANAGE_TAGS)
     @Routed("/tags")
     public void tags(WebContext ctx) {
         PageHelper<Tag> ph = PageHelper.withQuery(oma.select(Tag.class)

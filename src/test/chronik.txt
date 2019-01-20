@@ -1,4 +1,4 @@
-localhost:9000/companies
+localhost:9000
 Anmeldung: gha
            ghagha
 

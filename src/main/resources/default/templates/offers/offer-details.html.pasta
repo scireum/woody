@@ -1,0 +1,25 @@
+<!-- displays the details of a offer               -->
+
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.offers.Offer" name="offer"/>
+
+<i:invoke template="templates/xrm/company.html.pasta" company="company" page="details">
+    <w:editForm url="@apply('/offer/%s/edit', offer.getIdAsString())">
+        <div class="row">
+            <w:textfield name="number" value="@offer.getNumber()" labelKey="Offer.number" required="false" />
+            <w:textfield name="keyword" value="@offer.getKeyword()" labelKey="Offer.keyword" required="true" />
+            <w:autocompleteSingleSelect span="12" name="person" labelKey="Offer.person" serviceUri="@apply('/persons/%s/autocomplete', offer.getCompany().getValue().getIdAsString())"
+                                       optional="true">
+                <i:for type="woody.xrm.Person" var="person" items="company.queryPersons()">
+                    <option value="@person" selected>@person</option>
+                </i:for>
+            </w:autocompleteSingleSelect>
+        </div>
+
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@offer.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

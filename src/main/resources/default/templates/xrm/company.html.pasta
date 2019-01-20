@@ -31,8 +31,22 @@
                                   active="page == 'overview'"/>
                     <w:navboxLink labelKey="Model.details" url="@apply('/company/%s/edit', company.getId())"
                                   active="page == 'details'"/>
+                    <w:navboxLink labelKey="CompanyAccountingData" url="@apply('/company/%s/companyAccountingData', company.getId())"
+                                  active="page == 'details'"/>
+                    <w:navboxLink labelKey="CompanyAccountingData.dataPrivacy" url="@apply('/company/%s/dataPrivacy', company.getId())"
+                                  active="page == 'details'"/>
                     <w:navboxLink labelKey="Person.plural" url="@apply('/company/%s/persons', company.getId())"
                                   active="page == 'persons'"/>
+                    <w:navboxLink labelKey="Contract.plural" url="@apply('/company/%s/contracts', company.getId())"
+                                  active="page == 'contracts'"/>
+                    <w:navboxLink labelKey="Offer.plural" url="@apply('/company/%s/offers', company.getId())"
+                                  active="page == 'offers'"/>
+                    <w:navboxLink labelKey="Company.showLicenseSales" url="@apply('/company/%s/showLicenseSales', company.getId())"
+                                  active="page == 'showLicenseSales'"/>
+                    <w:navboxLink labelKey="Company.showServiceSales" url="@apply('/company/%s/showServiceSales', company.getId())"
+                                  active="page == 'showServiceSales'"/>
+                    <w:navboxLink labelKey="Company.generateCustomerNumber" url="@apply('/company/%s/generateCustomerNumber',
+                                  company.getId())" active="page == 'details'"/>
 
                     <i:extensions name="templates-company-sidebar-menu" company="company" page="page"/>
                 </w:navbox>

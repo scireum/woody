@@ -1,0 +1,46 @@
+<!-- displays a list of all offers of a company               -->
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="Page" name="offers"/>
+
+<i:invoke template="templates/xrm/company.html.pasta" company="company" page="offers">
+    <i:block name="breadcrumbs">
+        <li><a href="/company/@company.getId()/offers">@i18n("Offer.plural")</a></li>
+    </i:block>
+
+    <w:taggedSearch page="offers" baseUrl="@apply('/company/%s/offers', company.getId())" suggestionsName="OFFER"/>
+
+    <w:table data="offers">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Offer.number")
+            </th>
+            <th>
+                @i18n("Offer.state")
+            </th>
+            <th>
+                @i18n("Offer.keyword")
+            </th>
+
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.offers.Offer" var="offer" items="offers.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/company/@offer.getCompany().getId()/offer/@offer.getId()/edit">@offer.getNumber()</a>
+                </td>
+                <td>@offer.getState().toString()
+                </td>
+               <td>@offer.getKeyword()
+               </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/company/%s/offer/%s/delete', offer.getCompany().getId(), offer.getId())" page="offers"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="offers" baseUrl="@apply('company/%s/offers', company.getId())"/>
+</i:invoke>

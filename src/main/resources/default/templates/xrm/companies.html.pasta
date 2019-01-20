@@ -1,3 +1,4 @@
+<!-- displays a list of all companies                     -->
 <i:arg type="Page" name="companies" />
 
 <w:page titleKey="Company.plural">
