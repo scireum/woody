@@ -1,0 +1,6 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.offers.Offer" name="offer"/>
+<i:arg type="woody.offers.OfferItem" name="offerItem"/>
+<i:invoke template="templates/offers/offerItem.html.pasta" company="company" offer="offer" offerItem = "offerItem" page="overview">
+    <woody:overview object="@offerItem"/>
+</i:invoke>

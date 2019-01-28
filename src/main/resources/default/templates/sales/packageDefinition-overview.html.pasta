@@ -1,0 +1,5 @@
+<i:arg type="woody.sales.Product" name="product"/>
+<i:arg type="woody.sales.PackageDefinition" name="packageDefinition"/>
+<i:invoke template="templates/sales/packageDefinition.html.pasta" product="product" packageDefinition="packageDefinition" page="overview">
+    <woody:overview object="@packageDefinition"/>
+</i:invoke>

@@ -26,10 +26,10 @@
                 <td>@contract.getAccountingGroup()
                 </td>
                 <td>
-                    <a class="link" href="/company/@contract.getCompany().getId()/contract/@contract.getId()">@contract</a>
+                    <a class="link" href="/company/@company.getId()/contract/@contract.getId()">@contract</a>
                 </td>
                 <td class="col-md-2 align-center">
-                    <w:deleteLink url="@apply('/company/%s/contract/%s/delete', contract.getCompany().getId(), contract.getId())" page="contracts"/>
+                    <w:deleteLink url="@apply('/company/%s/contract/%s/delete', company.getId(), contract.getId())" page="contracts"/>
                 </td>
             </tr>
         </i:for>

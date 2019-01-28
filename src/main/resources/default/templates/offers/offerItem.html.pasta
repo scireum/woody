@@ -1,47 +1,47 @@
-<!-- displays an overview of a offer with a sidebar              --->
+<!-- displays an overview of a offerItem with a sidebar              --->
 <i:arg type="woody.xrm.Company" name="company"/>
 <i:arg type="woody.offers.Offer" name="offer"/>
+<i:arg type="woody.offers.OfferItem" name="offerItem"/>
 <i:arg type="String" name="page"/>
 
-<w:page title="@offer.toString()">
+<w:page title="@offerItem.toString()">
     <i:block name="breadcrumbs">
         <li><a href="/companies">@i18n("Company.plural")</a></li>
         <li><a href="/company/@company.getId()">@company.getName()</a></li>
         <li><a href="/company/@company.getId()/offers">@i18n("Offer.plural")</a></li>
-        <li><a href="/offer/@offer.getId()">@offer</a></li>
+        <li><a href="/company/@company.getId()/offer/@offer.getId()">@offer</a></li>
+        <li><a href="/company/@company.getId()/offer/@offer.getId()/offerItem/@offerItem.getId()">@offerItem</a></li>
         <i:render name="breadcrumbs" />
     </i:block>
 
-    <w:pageHeader title="@offer.toString()"/>
+    <w:pageHeader title="@offerItem.toString()"/>
 
     <div class="row">
-        <i:if test="!offer.isNew()">
+        <i:if test="!offerItem.isNew()">
             <div class="col-md-3">
                 <w:infobox titleKey="Model.details" color="@colors.getColorForType('OFFER')">
                     <w:infoboxElement labelKey="Model.company" value="@company"/>
-                    <w:infoboxElement labelKey="Model.name" value="@offer"/>
-                    <w:infoboxElement labelKey="Offer.keyword" value="@offer.getKeyword()"/>
-
+                    <w:infoboxElement labelKey="Offer" value="@offer"/>
+                    <w:infoboxElement labelKey="OfferItem.position" value="@offerItem.getPosition()"/>
+                    <w:infoboxElement labelKey="OfferItem.keyword" value="@offerItem.getKeyword()"/>
                     <i:extensions name="templates-offer-sidebar-infos" company="offer" page="page"/>
                 </w:infobox>
 
                 <i:extensions name="templates-offer-sidebar-additional" company="offer" page="page"/>
 
                 <w:navbox labelKey="Model.links">
-                    <w:navboxLink labelKey="Model.overview" url="@apply('/company/%s/offer/%s', company.getId(), offer.getId())"
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/company/%s/offer/%s/offerItem/%s', company.getId(), offer.getId(), offerItem.getId())"
                                   active="page == 'overview'"/>
-                    <w:navboxLink labelKey="Model.details" url="@apply('/company/%s/offer/%s/edit', company.getId(), offer.getId())"
-                                  active="page == 'details'"/>
-                    <w:navboxLink labelKey="OfferItem.plural" url="@apply('/company/%s/offer/%s/offerItems', company.getId(), offer.getId())"
+                    <w:navboxLink labelKey="Model.details" url="@apply('/company/%s/offer/%s/offerItem/%s/edit', company.getId(), offer.getId(), offerItem.getId())"
                                   active="page == 'details'"/>
 
                     <i:extensions name="templates-offer-sidebar-menu" company="offer" page="page"/>
                 </w:navbox>
 
-                <a href="/company/@company.getId()/offers" class="btn btn-block">@i18n("NLS.back")</a>
+                <a href="/company/@company.getId()/offer/@offer.getId()/offerItems" class="btn btn-block">@i18n("NLS.back")</a>
             </div>
         </i:if>
-        <div class="@if (offer.isNew()) { col-md-12 } else { col-md-9 }">
+        <div class="@if (offerItem.isNew()) { col-md-12 } else { col-md-9 }">
             <i:render name="body"/>
         </div>
     </div>

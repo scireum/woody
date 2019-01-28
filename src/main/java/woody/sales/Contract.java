@@ -11,6 +11,7 @@ package woody.sales;
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
+import org.jetbrains.annotations.NotNull;
 import sirius.biz.model.BizEntity;
 import sirius.biz.tenants.Tenants;
 import sirius.biz.web.Autoloaded;
@@ -28,6 +29,7 @@ import sirius.kernel.di.std.Part;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 
+import woody.offers.OfferState;
 import woody.offers.ServiceAccountingService;
 import woody.xrm.Company;
 import woody.xrm.Person;
@@ -37,10 +39,15 @@ import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -92,6 +99,7 @@ public class Contract extends BizEntity {
     public static final Column POS_LINE = Column.named("posLine");
 
     /* this is the contractSinglePrice */
+    @NullAllowed
     @Numeric(scale = 3, precision = 15)
     @Autoloaded
     private Amount singlePrice = Amount.NOTHING;
@@ -103,6 +111,7 @@ public class Contract extends BizEntity {
     public static final Column SINGLEPRICESTATE = Column.named("singlePriceState");
 
     /* this is the contractUnitPrice */
+    @NullAllowed
     @Numeric(scale = 3, precision = 15)
     @Autoloaded
     private Amount unitPrice = Amount.NOTHING;;
@@ -130,6 +139,7 @@ public class Contract extends BizEntity {
 
     private boolean noAccounting = false;
     public static final Column NOACCOUNTING = Column.named("noAccounting");
+
     /**
      * the accountingInterval is a enumeration
      *
@@ -146,6 +156,7 @@ public class Contract extends BizEntity {
 
     // the discount is written as percent-value: 7,5% --> 7.5
     @Autoloaded
+    @NullAllowed
     @Numeric(scale = 3, precision = 15)
     private Amount discountPercent = Amount.NOTHING;
     public static final Column DISCOUNTPERCENT = Column.named("discountPercent");
@@ -153,6 +164,7 @@ public class Contract extends BizEntity {
     // this is a absoluteDiscount, eg. price = 100, absoluteDiscount = 15
     // end-price = 100 - 15 = 85
     @Autoloaded
+    @NullAllowed
     @Numeric(scale = 3, precision = 15)
     private Amount discountAbsolute = Amount.NOTHING;
     public static final Column DISCOUNTABSOLUTE = Column.named("discountAbsolute");
@@ -329,6 +341,7 @@ public class Contract extends BizEntity {
                 }
             }
         }
+
         /**
          * check the contracts of the same product, accountingGroup and accountingProcedure.
          * a contract in the past should have a endDate, the startDate of the following contract should be greater
@@ -370,6 +383,7 @@ public class Contract extends BizEntity {
         // check the contractList
         checkContractIsSingle(contractList);
     }
+
 
     /**
      * check the contracts in the given list
@@ -541,6 +555,23 @@ public class Contract extends BizEntity {
         return months;
     }
 
+    /**
+     * @return a List with all ContractSinglePriceTypes
+     */
+    public List<ContractSinglePriceType> getContractSinglePriceTypeValues() {
+        List<ContractSinglePriceType> contractSinglePriceTypeList = new ArrayList();
+        Collections.addAll(contractSinglePriceTypeList, ContractSinglePriceType.values());
+        return contractSinglePriceTypeList;
+    }
+
+    /**
+     * @return a List with all AccountingIntervalTypes
+     */
+    public List<AccountingIntervalType> getAccountingIntervalTypeValues() {
+        List<AccountingIntervalType> accountingIntervalList = new ArrayList();
+        Collections.addAll(accountingIntervalList, AccountingIntervalType.values());
+        return accountingIntervalList;
+    }
 
     public boolean isParameterPresent() {
         return Strings.isFilled(parameter);

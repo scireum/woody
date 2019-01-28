@@ -3,17 +3,39 @@
 <i:arg type="woody.xrm.Company" name="company"/>
 <i:arg type="woody.offers.Offer" name="offer"/>
 
-<i:invoke template="templates/xrm/company.html.pasta" company="company" page="details">
-    <w:editForm url="@apply('/offer/%s/edit', offer.getIdAsString())">
+<i:invoke template="templates/offers/offer.html.pasta" company="company" offer="offer" page="details">
+    <w:editForm url="@apply('/company/%s/offer/%s/edit', company.getIdAsString(), offer.getIdAsString())">
         <div class="row">
             <w:textfield name="number" value="@offer.getNumber()" labelKey="Offer.number" required="false" />
+            <w:datefield name="date" value="@toUserString(offer.getDate())" labelKey="Offer.date" required="true" />
             <w:textfield name="keyword" value="@offer.getKeyword()" labelKey="Offer.keyword" required="true" />
-            <w:autocompleteSingleSelect span="12" name="person" labelKey="Offer.person" serviceUri="@apply('/persons/%s/autocomplete', offer.getCompany().getValue().getIdAsString())"
-                                       optional="true">
-                <i:for type="woody.xrm.Person" var="person" items="company.queryPersons()">
-                    <option value="@person" selected>@person</option>
+
+            <w:textfield name="reference" value="@offer.getReference()" labelKey="Offer.reference" required="false" />
+
+            <w:singleSelect span="6" name="state" labelKey="Offer.state"  optional="false">
+                <i:for type="woody.offers.OfferState" var="offerState" items="offer.getOfferStateValues()">
+                    <option value="@offerState.name()" @if (offer.getState().equals(offerState)) { selected = "selected" }>@offerState.toString()</option>
                 </i:for>
-            </w:autocompleteSingleSelect>
+            </w:singleSelect>
+
+            <w:singleSelect span="6" name="person" labelKey="Offer.person" optional="true">
+                    <i:for type="woody.xrm.Person" var="person" items="company.queryPersons()">
+                        <option value="@person.getIdAsString()" @if (offer.getPerson().is(person)) { selected="selected" }>@person.toString()</option>
+                    </i:for>
+            </w:singleSelect>
+
+            <w:singleSelect span="6" name="buyer" labelKey="Offer.buyer" optional="true">
+                    <i:for type="woody.xrm.Person" var="buyer" items="company.queryPersons()">
+                        <option value="@buyer.getIdAsString()" @if (offer.getBuyer().is(buyer)) { selected="selected" }>@buyer.toString()</option>
+                    </i:for>
+            </w:singleSelect>
+
+
+
+
+            <w:datefield name="offerPeriodStart" value="@toUserString(offer.getOfferPeriodStart())" labelKey="Offer.offerPeriodStart" required="false" />
+            <w:datefield name="offerPeriodEnd" value="@toUserString(offer.getOfferPeriodEnd())" labelKey="Offer.offerPeriodEnd" required="false" />
+
         </div>
 
     </w:editForm>

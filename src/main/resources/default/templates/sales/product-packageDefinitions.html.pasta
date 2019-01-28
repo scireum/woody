@@ -1,0 +1,60 @@
+<!-- displays a list of all packageDefinitions of a product               -->
+<i:arg type="woody.sales.Product" name="product"/>
+<i:arg type="Page" name="packageDefinitions"/>
+
+<i:invoke template="templates/sales/product.html.pasta" product="product" page="packageDefinitions">
+    <i:block name="breadcrumbs">
+        <li><a href="/product/@product.getId()/packageDefinitions">@i18n("PackageDefinition.plural")</a></li>
+    </i:block>
+
+    <w:taggedSearch page="packageDefinitions" baseUrl="@apply('/product/%s/packageDefinitions', product.getId())" suggestionsName="PACKAGEDEFINITION"/>
+
+    <w:table data="packageDefinitions">
+        <thead>
+        <tr>
+            <th>
+                @i18n("PackageDefinition.name")
+            </th>
+            <th>
+                @i18n("PackageDefinition.paketType")
+            </th>
+            <th>
+                @i18n("PackageDefinition.accountingUnit")
+            </th>
+            <th>
+                @i18n("PackageDefinition.singlePrice")
+            </th>
+            <th>
+                @i18n("PackageDefinition.unitPrice")
+            </th>
+            <th/>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.sales.PackageDefinition" var="packageDefinition" items="packageDefinitions.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/product/@product.getId()/packageDefinition/@packageDefinition.getId()">@packageDefinition.getName()</a>
+                </td>
+                <td>
+                    @packageDefinition.getPaketType().toString()
+                </td>
+                <td>
+                    @packageDefinition.getAccountingUnit().toString()
+                </td>
+                <td>
+                    @toUserString(packageDefinition.getSinglePrice())
+                </td>
+                <td>
+                    @toUserString(packageDefinition.getUnitPrice())
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/product/%s/packageDefinition/%s/delete', product.getId(), packageDefinition.getId())" page="packageDefinitions"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="packageDefinitions" baseUrl="@apply('product/%s/packageDefinitions', product.getId())"/>
+</i:invoke>

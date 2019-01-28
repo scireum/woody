@@ -1,0 +1,45 @@
+<!-- displays an overview of a contract with a sidebar              --->
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.sales.Contract" name="contract"/>
+<i:arg type="String" name="page"/>
+
+<w:page title="@contract.toString()">
+    <i:block name="breadcrumbs">
+        <li><a href="/companies">@i18n("Company.plural")</a></li>
+        <li><a href="/company/@company.getId()">@company.getName()</a></li>
+        <li><a href="/company/@company.getId()/contracts">@i18n("Contract.plural")</a></li>
+        <li><a href="/contract/@contract.getId()">@contract</a></li>
+        <i:render name="breadcrumbs" />
+    </i:block>
+
+    <w:pageHeader title="@contract.toContractName()"/>
+
+    <div class="row">
+        <i:if test="!contract.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('CONTRACT')">
+                    <w:infoboxElement labelKey="Model.name" value="@contract"/>
+                    <w:infoboxElement labelKey="Model.company" value="@company"/>
+
+                    <i:extensions name="templates-contract-sidebar-infos" company="contract" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-contract-sidebar-additional" company="contract" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/company/%s/contract/%s', company.getId(), contract.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/company/%s/contract/%s/edit', company.getId(), contract.getId())"
+                                  active="page == 'details'"/>
+
+                    <i:extensions name="templates-contract-sidebar-menu" company="contract" page="page"/>
+                </w:navbox>
+
+                <a href="/company/@company.getId()/contracts" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (contract.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

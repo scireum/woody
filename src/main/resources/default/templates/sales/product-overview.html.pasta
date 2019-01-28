@@ -1,0 +1,5 @@
+
+<i:arg type="woody.sales.Product" name="product"/>
+<i:invoke template="templates/sales/product.html.pasta" product="product" page="overview">
+    <woody:overview object="@product"/>
+</i:invoke>

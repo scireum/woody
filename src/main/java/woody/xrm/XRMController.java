@@ -138,8 +138,6 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1")
     public void company(WebContext ctx, String companyId) {
-        UserInfo usi = UserContext.getCurrentUser();
-        Set<String> permissions = usi.getPermissions();
         Company cl = findForTenant(Company.class, companyId);
         if (cl.isNew()) {
             ctx.respondWith().template("templates/xrm/company-details.html.pasta", cl);

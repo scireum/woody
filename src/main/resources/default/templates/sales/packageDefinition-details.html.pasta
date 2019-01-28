@@ -1,0 +1,29 @@
+<!-- displays the details of a packageDefinition               -->
+
+<i:arg type="woody.sales.Product" name="product"/>
+<i:arg type="woody.sales.PackageDefinition" name="packageDefinition"/>
+
+<i:invoke template="templates/sales/packageDefinition.html.pasta" product="product" packageDefinition="packageDefinition" page="details">
+    <w:editForm url="@apply('/product/%s/packageDefinition/%s/edit', product.getIdAsString(), packageDefinition.getIdAsString())">
+        <div class="row">
+
+          <w:textfield  name= "name" value="@packageDefinition.getName()" labelKey= "PackageDefinition.name" required="true"/>
+          <w:codelistSelect list= "pakettype"  name= "paketType" value= "@packageDefinition.getPaketType().toString()"
+            labelKey= "PackageDefinition.paketType" />
+          <w:codelistSelect list= "accountingUnit"  name= "accountingUnit" value= "@packageDefinition.getAccountingUnit().toString()"
+            labelKey= "PackageDefinition.accountingUnit" />
+          <w:codelistSelect list= "accountingProcedure"  name= "accountingProcedure" value= "@packageDefinition.getAccountingProcedure().toString()"
+            labelKey= "PackageDefinition.accountingProcedure" />
+          <w:textfield  name= "singlePrice" value="@toUserString(packageDefinition.getSinglePrice())" labelKey= "PackageDefinition.singlePrice" />
+          <w:textfield  name= "unitPrice" value="@toUserString(packageDefinition.getUnitPrice())" labelKey= "PackageDefinition.unitPrice" />
+          <w:textfield  name= "defaultPosition" value="@toUserString(packageDefinition.getDefaultPosition())" labelKey= "PackageDefinition.defaultPosition" />
+          <w:textarea  name= "description" value="@packageDefinition.getDescription()" labelKey= "PackageDefinition.description" />
+          <w:textarea  name= "parameter" value="@packageDefinition.getParameter()" labelKey= "PackageDefinition.parameter" />
+        </div>
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@packageDefinition.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

@@ -1,0 +1,52 @@
+<!-- displays a list of all products                     -->
+<i:arg type="Page" name="products" />
+
+<w:page titleKey="Product.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/products">@i18n("Product.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Product.plural"/>
+
+    <w:taggedSearch page="products" baseUrl="/products" suggestionsName="PRODUCT">
+        <a class="btn btn-primary" href="/product/new">@i18n("Model.create")</a>
+    </w:taggedSearch>
+
+    <w:table data="products">
+        <thead>
+            <tr>
+                <th>
+                    @i18n("Model.id")
+                </th>
+                <th>
+                    @i18n("Product.name")
+                </th>
+
+                <th>
+                    @i18n("Product.article")
+                </th>
+                <th/>
+            </tr>
+        </thead>
+        <tbody>
+            <i:for type="woody.sales.Product" var="product" items="products.getItems()">
+                <tr>
+                    <td>
+                        @toUserString(product.getId())
+                    </td>
+                    <td>
+                        <a class="link" href="/product/@product.getId()">@product.getName()</a>
+                    </td>
+                    <td>
+                        @product.getArticle()
+                    </td>
+                    <td class="col-md-2 align-center">
+                        <w:deleteLink url="@apply('/product/%s/delete', product.getId())" page="products"/>
+                    </td>
+                </tr>
+            </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="products" baseUrl="products"/>
+</w:page>

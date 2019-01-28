@@ -255,6 +255,19 @@ public class OffersController extends BizController {
     }
 
     @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/company/:1/offer/:2")
+    public void offer(WebContext ctx, String companyId, String offerId) {
+        Company company = findForTenant(Company.class, companyId);
+        Offer offer = find(Offer.class, offerId);
+        assertNotNew(company);
+        setOrVerify(offer, offer.getCompany(), company);
+
+        ctx.respondWith().template("templates/offers/offer-overview.html.pasta", company, offer);
+    }
+
+
+    @LoginRequired
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2/edit")
     // display and save the given offer
@@ -279,7 +292,21 @@ public class OffersController extends BizController {
                 UserContext.handle(e);
             }
         }
+
         ctx.respondWith().template("templates/offers/offer-details.html.pasta", company, offer);
+    }
+
+    @LoginRequired
+    @Permission(MANAGE_OFFER)
+    @Routed("/company/:1/offer/:2/delete")
+    public void deleteOffer(WebContext ctx, String companyId, String offerId) {
+        Optional<Offer> offer = tryFind(Offer.class, offerId);
+        if (offer.isPresent()) {
+            assertTenant(offer.get().getCompany().getValue());
+            oma.delete(offer.get());
+            showDeletedMessage();
+        }
+        companyOffers(ctx, companyId);
     }
 
     @LoginRequired
@@ -311,18 +338,20 @@ public class OffersController extends BizController {
     @Routed("/company/:1/offer/:2/offerItems")
     // Displays the offerItems of the given offer
     public void offerOfferItems(WebContext ctx, String companyId, String offerId) {
-//        Company company = findForTenant(Company.class, companyId);
-//        assertNotNew(company);
-//        Offer offer = findForTenant(Offer.class, offerId);
-//        MagicSearch search = MagicSearch.parseSuggestions(ctx);
-//        SmartQuery<OfferItem> query =
-//                oma.select(OfferItem.class).eq(OfferItem.OFFER, offer).orderAsc(OfferItem.POSITION);
-//
-//        //Tagged.applyTagSuggestions(Offer.class, search, query);
-//        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
-//        ph.withContext(ctx);
-//        ctx.respondWith()
-//           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
+        Company company = findForTenant(Company.class, companyId);
+        assertNotNew(company);
+
+        Offer offer = findForTenant(Offer.class, offerId);
+
+        SmartQuery<OfferItem> query = oma.select(OfferItem.class)
+                                     .eq(OfferItem.OFFER, offer)
+                                     .orderAsc(OfferItem.POSITION);
+
+        PageHelper<OfferItem> ph = PageHelper.withQuery(query);
+        ph.withContext(ctx);
+        ph.withSearchFields(OfferItem.POSITION);
+        ph.enableAdvancedSearch();
+        ctx.respondWith().template("templates/offers/offer-offerItems.html.pasta", company, offer, ph.asPage());
     }
 
     @LoginRequired
@@ -375,52 +404,51 @@ public class OffersController extends BizController {
 //           .template("view/offers/offer-offerItems.html", company, offer, ph.asPage(), search.getSuggestionsString());
     }
 
-    @LoginRequired
-    @Permission(MANAGE_OFFER)
-    @Routed("/company/:1/offer/:2/delete")
-    public void deleteOffer(WebContext ctx, String companyId, String offerId) {
-        Optional<Offer> offer = tryFind(Offer.class, offerId);
-        if (offer.isPresent()) {
-            assertTenant(offer.get().getCompany().getValue());
-            oma.delete(offer.get());
-            showDeletedMessage();
-        }
-        companyOffers(ctx, companyId);
-    }
+
 
     @LoginRequired
     @Permission(VIEW_OFFER)
     @Routed("/company/:1/offer/:2/offerItem/:3")
     // Displays and save te given offerItem
     public void offerItem(WebContext ctx, String companyId, String offerId, String offerItemId) {
-//        Company company = findForTenant(Company.class, companyId);
-//        assertNotNew(company);
-//        Offer offer = findForTenant(Offer.class, offerId);
-//        OfferItem oi = findForTenant(OfferItem.class, offerItemId);
-//        setOrVerify(oi, oi.getOffer(), offer);
-//        if (ctx.isPOST() && getUser().hasPermission(MANAGE_OFFER)) {
-//            try {
-//                boolean wasNew = oi.isNew();
-//                load(ctx, oi);
-//                oma.update(oi);
-//                showSavedMessage();
-//                if (wasNew) {
-//                    ctx.respondWith()
-//                       .redirectTemporarily(WebContext.getContextPrefix()
-//                                            + "/company/"
-//                                            + company.getId()
-//                                            + "/offer/"
-//                                            + offer.getId()
-//                                            + "/offerItem/"
-//                                            + oi.getId());
-//                    return;
-//                }
-//            } catch (Throwable e) {
-//                UserContext.handle(e);
-//            }
-//        }
-//        ctx.respondWith().template("view/offers/offerItem-details.html", company, offer, oi);
+        Company company = findForTenant(Company.class, companyId);
+        Offer offer = find(Offer.class, offerId);
+        OfferItem offerItem = find(OfferItem.class, offerItemId);
+        assertNotNew(company);
+        setOrVerify(offer, offer.getCompany(), company);
+        setOrVerify(offerItem, offerItem.getOffer(), offer);
+        ctx.respondWith().template("templates/offers/offerItem-overview.html.pasta", company, offer, offerItem);
     }
+
+    @LoginRequired
+    @Permission(VIEW_OFFER)
+    @Routed("/company/:1/offer/:2/offerItem/:3/edit")
+    // display and save the given offer
+    public void editOfferItem(WebContext ctx, String companyId, String offerId, String offerItemId) {
+        Company company = findForTenant(Company.class, companyId);
+        assertNotNew(company);
+        Offer offer = find(Offer.class, offerId);
+        setOrVerify(offer, offer.getCompany(), company);
+        OfferItem offerItem = find(OfferItem.class, offerItemId);
+        setOrVerify(offerItem, offerItem.getOffer(), offer);
+        if (ctx.isPOST() && getUser().hasPermission(MANAGE_OFFER)) {
+            try {
+                boolean wasNew = offer.isNew();
+                load(ctx, offerItem);
+                oma.update(offerItem);
+
+                showSavedMessage();
+                if (wasNew) {
+                    ctx.respondWith().redirectTemporarily("/company/" + company.getId() + "/offer/" + offer.getId() + "/offerItem/" + offerItem.getId());
+                    return;
+                }
+            } catch (Throwable e) {
+                UserContext.handle(e);
+            }
+        }
+        ctx.respondWith().template("templates/offers/offerItem-details.html.pasta", company, offer, offerItem);
+    }
+
 
     @LoginRequired
     @Permission(MANAGE_OFFER)

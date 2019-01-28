@@ -1,0 +1,24 @@
+<!-- displays the details of a product               -->
+
+<i:arg type="woody.sales.Product" name="product"/>
+
+<i:invoke template="templates/sales/product.html.pasta" product="product" page="details">
+    <w:editForm url="@apply('/product/%s/edit', product.getIdAsString())">
+        <div class="row">
+
+          <w:textfield  name= "name" value="@product.getName()" labelKey= "Product.name" />
+          <w:textfield  name= "article" value="@product.getArticle()" labelKey= "Product.article" />
+          <w:checkbox  name= "collectBugs" value="product.getCollectBugs()" labelKey= "Product.collectBugs" />
+
+          <w:textfield  name= "image" value="@product.getImage()" labelKey= "Product.image" />
+          <w:textfield  name= "description" value="@product.getDescription()" labelKey= "Product.description" />
+
+        </div>
+
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@product.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

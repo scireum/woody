@@ -1,0 +1,45 @@
+<!-- displays an overview of a packageDefinition with a sidebar              --->
+<i:arg type="woody.sales.Product" name="product"/>
+<i:arg type="woody.sales.PackageDefinition" name="packageDefinition"/>
+<i:arg type="String" name="page"/>
+
+<w:page title="@packageDefinition.getName()">
+    <i:block name="breadcrumbs">
+        <li><a href="/products">@i18n("Product.plural")</a></li>
+        <li><a href="/product/@product.getId()">@product.getName()</a></li>
+        <li><a href="/product/@product.getId()/packageDefinitions">@i18n("PackageDefinition.plural")</a></li>
+        <li><a href="/packageDefinition/@packageDefinition.getId()">@packageDefinition</a></li>
+        <i:render name="breadcrumbs" />
+    </i:block>
+
+    <w:pageHeader title="@packageDefinition.getName()"/>
+
+    <div class="row">
+        <i:if test="!packageDefinition.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('CONTRACT')">
+                    <w:infoboxElement labelKey="Model.name" value="@packageDefinition"/>
+                    <w:infoboxElement labelKey="Product" value="@product.getName()"/>
+
+                    <i:extensions name="templates-packageDefinition-sidebar-infos" product="packageDefinition" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-packageDefinition-sidebar-additional" product="packageDefinition" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/product/%s/packageDefinition/%s', product.getId(), packageDefinition.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/product/%s/packageDefinition/%s/edit', product.getId(), packageDefinition.getId())"
+                                  active="page == 'details'"/>
+
+                    <i:extensions name="templates-packageDefinition-sidebar-menu" product="packageDefinition" page="page"/>
+                </w:navbox>
+
+                <a href="/product/@product.getId()/packageDefinitions" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (packageDefinition.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

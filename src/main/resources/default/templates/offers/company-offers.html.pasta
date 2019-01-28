@@ -28,7 +28,7 @@
         <i:for type="woody.offers.Offer" var="offer" items="offers.getItems()">
             <tr>
                 <td>
-                    <a class="link" href="/company/@offer.getCompany().getId()/offer/@offer.getId()/edit">@offer.getNumber()</a>
+                    <a class="link" href="/company/@offer.getCompany().getValue().getId()/offer/@offer.getId()">@offer.getNumber()</a>
                 </td>
                 <td>@offer.getState().toString()
                 </td>

@@ -1,0 +1,43 @@
+<!-- displays an overview of a product with a sidebar              --->
+<i:arg type="woody.sales.Product" name="product"/>
+<i:arg type="String" name="page"/>
+
+<w:page title="@product.toString()">
+    <i:block name="breadcrumbs">
+        <li><a href="/products">@i18n("Product.plural")</a></li>
+        <li><a href="/product/@product.getId()">@product.getName()</a></li>
+        <i:render name="breadcrumbs" />
+    </i:block>
+
+    <w:pageHeader title="@product.getName()"/>
+
+    <div class="row">
+        <i:if test="!product.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('PRODUCT')">
+                    <w:infoboxElement labelKey="Product" value="@product.getName()"/>
+                    <w:infoboxElement labelKey="Model.id" value="@toUserString(product.getId())"/>
+                    <i:extensions name="templates-product-sidebar-infos" company="product" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-product-sidebar-additional" company="product" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/product/%s', product.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/product/%s/edit', product.getId())"
+                                  active="page == 'details'"/>
+                    <w:navboxLink labelKey="PackageDefinition.plural" url="@apply('/product/%s/packageDefinitions', product.getId())"
+                                  active="page == 'details'"/>
+
+                    <i:extensions name="templates-product-sidebar-menu" company="product" page="page"/>
+                </w:navbox>
+
+                <a href="/products" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (product.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

@@ -1,0 +1,29 @@
+<!-- displays the details of a packageDefinition               -->
+
+<i:arg type="woody.sales.Product" name="product"/>
+<i:arg type="woody.sales.PackageDefinition" name="packageDefinition"/>
+
+<i:invoke template="templates/sales/packageDefinition.html.pasta" product="product" packageDefinition="packageDefinition" page="details">
+    <w:editForm url="@apply('/product/%s/packageDefinition/%s/edit', product.getIdAsString(), packageDefinition.getIdAsString())">
+        <div class="row">
+
+          <w:textfield  name= "name" value="@packageDefinition.getName())" labelKey= "PackageDefinition.name" required="true"/>
+          <w:codelistSelect(list= PackageDefinition.PAKETTYPE_CODELIST  name= "paketType" value= "@packageDefinition.getPaketType().toString()
+            labelKey: "PackageDefinition.paketType" >
+          <w:codelistSelect(list= PackageDefinition.ACCOUNTINGUNIT_CODELIST  name= "accountingUnit" value= "@packageDefinition.getAccountingUnit().toString()
+            labelKey: "PackageDefinition.accountingUnit" >
+          <w:codelistSelect(list= PackageDefinition.ACCOUNTINGPROCEDURE_CODELIST  name= "accountingProcedure" value= "@packageDefinition.getAccountingProcedure().toString()
+            labelKey: "PackageDefinition.accountingProcedure" >
+          <w:textfield  name= "singlePrice" value="@toUserString(packageDefinition.getSinglePrice())" labelKey= "PackageDefinition.singlePrice" required="false"/>
+          <w:textfield  name= "unitPrice" value="@toUserString(packageDefinition.getUnitPrice())" labelKey= "PackageDefinition.unitPrice" required="false"/>
+          <w:textfield  name= "defaultPosition" value="@toUserString(packageDefinition.getDefaultPosition())" labelKey= "PackageDefinition.defaultPosition" required="false"/>
+          <w:textarea  name= "description" value="@packageDefinition.getDescription()" labelKey= "PackageDefinition.description" required="false"/>
+          <w:textarea  name= "parameter" value="@packageDefinition.getParameter()" labelKey= "PackageDefinition.parameter" required="false"/>
+        </div>
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@packageDefinition.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

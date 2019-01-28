@@ -1,0 +1,80 @@
+<!-- displays the details of a contract               -->
+
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.sales.Contract" name="contract"/>
+
+<i:invoke template="templates/sales/contract.html.pasta" company="company" contract="contract" page="details">
+    <w:editForm url="@apply('/company/%s/contract/%s/edit', company.getIdAsString(), contract.getIdAsString())">
+        <div class="row">
+
+          <w:singleSelect  span="6" name= "packageDefinition" labelKey= "Contract.packageDefinition" >
+             <i:for type = "woody.sales.PackageDefinition" var="packageDefinition" items="contract.getAllPackageDefinitionsDirect()">
+                <option value="@packageDefinition.getIdAsString()"
+                        @if (contract.getPackageDefinition().is(packageDefinition)  )
+                        { selected="selected" }>@packageDefinition.toString()</option>
+             </i:for>
+          </w:singleSelect>
+
+          <w:textfield  span="2" name= "quantity" value="@toUserString(contract.getQuantity())" labelKey= "Contract.quantity" />
+          <w:textfield  span="3" name= "unitPrice" value="@toUserString(contract.getUnitPrice())" labelKey= "Contract.unitPrice" />
+          <w:textfield  span="3" name= "singlePrice" value="@toUserString(contract.getSinglePrice())" labelKey= "Contract.singlePrice" />
+
+
+
+        </div>
+
+        <div class="row">
+          <w:singleSelect span="6" name= "singlePriceState" labelKey= "Contract.singlePriceState" >
+             <i:for type = "woody.sales.ContractSinglePriceType" var="singlePriceState" items="contract.getContractSinglePriceTypeValues()">
+                <option value="@singlePriceState.name()"
+                        @if (contract.getSinglePriceState().equals(singlePriceState)  )
+                        { selected="selected" }>@singlePriceState.toString()</option>
+             </i:for>
+          </w:singleSelect>
+
+        </div>
+
+        <div class="row">
+          <w:textfield  span="6" name= "discountPercent" value="@toUserString(contract.getDiscountPercent())" labelKey= "Contract.discountPercent" />
+          <w:textfield  span="6" name= "discountAbsolute" value="@toUserString(contract.getDiscountAbsolute())" labelKey= "Contract.discountAbsolute" />
+        </div>
+
+        <div class="row">
+          <w:singleSelect span="6" name= "accountingInterval" labelKey= "Contract.accountingInterval" >
+             <i:for type = "woody.sales.AccountingIntervalType" var="accountingInterval" items="contract.getAccountingIntervalTypeValues()">
+                <option value="@accountingInterval.name()"
+                        @if (contract.getAccountingInterval().equals(accountingInterval)  )
+                        { selected="selected" }>@accountingInterval.toString()</option>
+             </i:for>
+          </w:singleSelect>
+
+          <w:textfield  span="6" name= "accountingGroup" value="@toUserString(contract.getAccountingGroup())" labelKey= "Contract.accountingGroup" />
+          <w:checkbox  span="6" name= "noAccounting" value="contract.isNoAccounting()" labelKey= "Contract.noAccounting" />
+          <w:datefield  span="6" name= "startDate" value="@toUserString(contract.getStartDate())" labelKey= "Contract.startDate" />
+          <w:datefield  span="6" name= "accountedTo" value="@toUserString(contract.getAccountedTo())" labelKey= "Contract.accountedTo" />
+          <w:datefield  span="6" name= "endDate" value="@toUserString(contract.getEndDate())" labelKey= "Contract.endDate" />
+          <w:datefield  span="6" name= "signingDate" value="@toUserString(contract.getSigningDate())" labelKey= "Contract.signingDate" />
+
+           <w:singleSelect span="6" name= "contractPartner" labelKey= "Contract.contractPartner" >
+              <i:for type = "woody.xrm.Person" var="contractPartner" items="contract.getAllPersonsForCompany(company)">
+                 <option value="@contractPartner.getIdAsString()"
+                         @if (contract.getContractPartner().is(contractPartner) )
+                         { selected="selected" }>@contractPartner.toString()</option>
+              </i:for>
+           </w:singleSelect>
+
+          <w:textfield  span="6" name= "position" value="@toUserString(contract.getPosition())" labelKey= "Contract.position" />
+          <w:textfield  span="6" name= "posLine" value="@contract.getPosLine()" labelKey= "Contract.posLine" />
+
+          <w:textarea  span="6" name= "parameter" value="@contract.getParameter()" labelKey= "Contract.parameter" />
+          <w:textarea  span="6" name= "comments" value="@contract.getComments()" labelKey= "Contract.comments" />
+
+        </div>
+
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@contract.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

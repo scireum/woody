@@ -1,0 +1,60 @@
+<!-- displays the details of a offerItem               -->
+
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.offers.Offer" name="offer"/>
+<i:arg type="woody.offers.OfferItem" name="offerItem"/>
+
+<i:invoke template="templates/offers/offerItem.html.pasta" company="company" offer = "offer" offerItem="offerItem" page="details">
+    <w:editForm url="@apply('/company/%s/offer/%s/offerItem/%s/edit', company.getIdAsString(), offer.getIdAsString(), offerItem.getIdAsString())">
+        <div class="row">
+            <w:textfield name="position" value="@toUserString(offerItem.getPosition())" labelKey="OfferItem.position" required="false" />
+
+            <w:singleSelect  name="offerItemType" labelKey="OfferItem.offerItemType"  optional="false">
+                <i:for type="woody.offers.OfferItemType" var="offerItemType" items="offerItem.getOfferItemTypeValues()">
+                    <option value="@offerItemType.name()" @if (offerItem.getOfferItemType().equals(offerItemType)) { selected = "selected" }>@offerItemType.toString()</option>
+                </i:for>
+            </w:singleSelect>
+
+            <w:singleSelect name="state" labelKey="OfferItem.state"  optional="true">
+                <i:for type="woody.offers.OfferItemState" var="offerItemState" items="offerItem.getOfferItemStateValues()">
+                    <option value="@offerItemState.name()" @if (offerItem.getState().equals(offerItemState)) { selected = "selected" }>@offerItemState.toString()</option>
+                </i:for>
+            </w:singleSelect>
+
+            @if(offerItem.getLICENSE().equals(offerItem.getOfferItemType() ) ||
+                offerItem.getSERVICE().equals(offerItem.getOfferItemType() ) ) {
+
+                <w:textfield name="quantity" value="@toUserString(offerItem.getQuantity())" labelKey="OfferItem.quantity" required="false" />
+
+                <w:textfield name="accountingUnit" value="@offerItem.getPackageDefinition().getValue().as(woody.sales.PackageDefinition.class).getName()" labelKey="OfferItem.accountingUnitComplete" readonly="true" />
+
+                <w:singleSelect name="packageDefinition" labelKey="OfferItem.packageDefinition"  optional="false">
+                    <i:for type="woody.sales.PackageDefinition" var="pd" items="offerItem.getAllPackageDefinitionsOrderedByProduct()">
+                        <option value="@pd.getIdAsString()" @if (offerItem.getPackageDefinition().is(pd)) { selected = "selected" }>@pd.getName()</option>
+                    </i:for>
+                </w:singleSelect>
+
+                <w:textfield name="priceBase" value="@offerItem.getPriceBase()" labelKey="OfferItem.priceBase" readonly="true" />
+                <w:textfield name="singlePrice" value="@toUserString(offerItem.getSinglePrice())" labelKey="OfferItem.singlePrice" readonly="false" />
+                <w:textfield name="cyclicPrice" value="@toUserString(offerItem.getCyclicPrice())" labelKey="OfferItem.cyclicPrice" readonly="false" />
+                <w:textfield name="discount" value="@toUserString(offerItem.getDiscount())" labelKey="OfferItem.discount" readonly="false" />
+                <w:textfield name="keyword" value="@offerItem.getKeyword()" labelKey="OfferItem.keyword" readonly="false" />
+                <w:datefield name="offerDate" value="@toUserString(offerItem.getOfferDate())" labelKey="OfferItem.offerDate" readonly="false" />
+                <w:datefield name="orderDate" value="@toUserString(offerItem.getOrderDate())" labelKey="OfferItem.orderDate" readonly="false" />
+                <w:datefield name="salesConfirmationDate" value="@toUserString(offerItem.getSalesConfirmationDate())" labelKey="OfferItem.salesConfirmationDate" readonly="false" />
+                <w:datefield name="completitionDate" value="@toUserString(offerItem.getCompletionDate())" labelKey="OfferItem.completionDate" readonly="false" />
+                <w:datefield name="acceptanceDate" value="@toUserString(offerItem.getAcceptanceDate())" labelKey="OfferItem.acceptanceDate" readonly="false" />
+                <w:datefield name="accountingDate" value="@toUserString(offerItem.getAccountingDate())" labelKey="OfferItem.accountingDate" readonly="false" />
+            }
+
+            <w:textarea name="text" value="@offerItem.getText()" labelKey="OfferItem.text" readonly="false" />
+            <w:textarea name="history" value="@offerItem.getHistory()" labelKey="OfferItem.historyWithHeading" readonly="true" />
+        </div>
+
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@offerItem.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

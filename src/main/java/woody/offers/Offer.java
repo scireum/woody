@@ -27,11 +27,14 @@ import sirius.kernel.health.Exceptions;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 import woody.core.employees.Employee;
+import woody.sales.ContractSinglePriceType;
 import woody.xrm.Company;
 import woody.xrm.Person;
 
 import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -50,6 +53,7 @@ public class Offer extends BizEntity {
     private String number;
     public static final Column NUMBER = Column.named("number");
 
+    @Autoloaded
     private OfferState state = OfferState.OPEN;
     public static final Column STATE = Column.named("state");
 
@@ -208,6 +212,15 @@ public class Offer extends BizEntity {
         String text = MessageFormat.format("Einmalige Kosten: {0} EUR, wiederkehrende Kosten: {1} EUR.",
                                            sumSingle, sumLicence);
         return text;
+    }
+
+    /**
+     * @return a List with all OfferState-values
+     */
+    public List<OfferState> getOfferStateValues() {
+        List<OfferState> offerStateList = new ArrayList();
+        Collections.addAll(offerStateList, OfferState.values());
+        return offerStateList;
     }
 
     public EntityRef<Company> getCompany() {

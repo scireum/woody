@@ -46,6 +46,8 @@ import java.text.MessageFormat;
 import java.text.StringCharacterIterator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -105,6 +107,7 @@ public class OfferItem extends BizEntity {
      * licenses = one times singlePrice
      * service  = price / day                */
     @Autoloaded
+    @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount singlePrice = Amount.NOTHING;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
@@ -115,6 +118,7 @@ public class OfferItem extends BizEntity {
     public static final Column PRICEBASE = Column.named("priceBase");
 
     @Autoloaded
+    @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount discount = Amount.NOTHING;
     public static final Column DISCOUNT = Column.named("discount");
@@ -122,6 +126,8 @@ public class OfferItem extends BizEntity {
     /* cyclicPrice:
      * licenses = price e.g. per month
      * service  = not used                */
+    @Autoloaded
+    @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount cyclicPrice = Amount.NOTHING;
     public static final Column CYCLICPRICE = Column.named("cyclicPrice");
@@ -622,6 +628,25 @@ public class OfferItem extends BizEntity {
         return false;
     }
 
+    public List<OfferItemType> getOfferItemTypeValues() {
+        List<OfferItemType> offerItemTypeList = new ArrayList();
+        Collections.addAll(offerItemTypeList, OfferItemType.values());
+        return offerItemTypeList;
+    }
+
+    public List<OfferItemState> getOfferItemStateValues() {
+        List<OfferItemState> offerItemStateList = new ArrayList();
+        Collections.addAll(offerItemStateList, OfferItemState.values());
+        return offerItemStateList;
+    }
+
+    public OfferItemType getLICENSE() {
+        return OfferItemType.LICENSE;
+    }
+
+    public OfferItemType getSERVICE() {
+        return OfferItemType.SERVICE;
+    }
 
     public EntityRef<Offer> getOffer() {
         return offer;
