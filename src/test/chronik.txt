@@ -33,7 +33,7 @@ Anmeldung: gha
 
 07.01.2019  - Migratios-Software für Transfer CRM --> Woody erstellt
 11.01.2019  - Migrationssoftware verbessert und getestet.
-
+28.01.2019  - templates für Company, Person, Contract, Product, PaketDefinition, Offer und OfferItem erstellt.
 
 
 

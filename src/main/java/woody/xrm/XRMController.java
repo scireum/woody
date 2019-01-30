@@ -15,7 +15,11 @@ import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
 import sirius.db.mixing.constraints.Like;
+import sirius.kernel.commons.Amount;
+
+import sirius.kernel.commons.NumberFormat;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
@@ -37,7 +41,12 @@ import woody.offers.ServiceAccountingService;
 import woody.sales.AccountingService;
 import woody.sales.Contract;
 
+import java.text.DecimalFormat;
+
+import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -108,8 +117,6 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/companies")
     public void companies(WebContext ctx) {
-        UserInfo usi = UserContext.getCurrentUser();
-        Set<String> permissions = usi.getPermissions();
         PageHelper<Company> ph =
                 PageHelper.withQuery(oma.select(Company.class).orderAsc(Company.NAME)).forCurrentTenant();
         ph.withSearchFields(Company.NAME,
@@ -374,4 +381,77 @@ public class XRMController extends BizController {
         }
         ctx.respondWith().template("templates/xrm/person-css.html.pasta", person.getCompany().getValue(), person);
     }
+
+    private int year = 0;
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/showLicenseSales")
+    public void showLicenceSales(WebContext ctx, String companyId) {
+        year = LocalDate.now().getYear();
+        Company company = findForTenant(Company.class, companyId);
+        List<Tuple<String, Amount>> tupleList = sas.licenseSalesPerYear(company, year);
+        String title = MessageFormat.format("Firma {0}, Lizenz-Umsatz im Jahr {1}",
+                                            company.getName(), NLS.toUserString(year));
+        ctx.respondWith().template("templates/xrm/licenseSalesPerYear.html.pasta", company, tupleList, title);
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/showLicenseSalesMinus")
+    public void showLicenceSalesMinus(WebContext ctx, String companyId) {
+        if(year > 0) {
+            year = year - 1;
+        } else {
+            year = LocalDate.now().getYear();
+        }
+        Company company = findForTenant(Company.class, companyId);
+        List<Tuple<String, Amount>> tupleList = sas.licenseSalesPerYear(company, year);
+        String title = MessageFormat.format("Firma {0}, Lizenz-Umsatz im Jahr {1}",
+                                            company.getName(), NLS.toUserString(year));
+        ctx.respondWith().template("templates/xrm/licenseSalesPerYear.html.pasta", company, tupleList, title);
+
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/showLicenseSalesPlus")
+    public void showLicenceSalesPlus(WebContext ctx, String companyId) {
+        if(year > 0) {
+            year = year + 1;
+        } else {
+            year = LocalDate.now().getYear();
+        }
+        Company company = findForTenant(Company.class, companyId);
+        List<Tuple<String, Amount>> tupleList = sas.licenseSalesPerYear(company, year);
+        String title = MessageFormat.format("Firma {0}, Lizenz-Umsatz im Jahr {1}",
+                                            company.getName(), NLS.toUserString(year));
+        ctx.respondWith().template("templates/xrm/licenseSalesPerYear.html.pasta", company, tupleList, title);
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/showServiceSales")
+    public void showOfferSums(WebContext ctx, String companyId) {
+        int yearsBack = 2;
+        Company company = findForTenant(Company.class, companyId);
+        int yearStart = LocalDate.now().getYear() - yearsBack;
+        LocalDate startDate = LocalDate.of(yearStart, 12, 31);
+        LocalDate endDate = startDate.plusYears(yearsBack);
+        int yearEnd = endDate.getYear();
+        int priorYear = yearEnd - 1;
+
+        String title = MessageFormat.format("Service-Angebote {0}/{1} an Firma {2}:",
+                                            NLS.toUserString(priorYear), NLS.toUserString(yearEnd), company.getName());
+        List<List<String>> messageList = sas.displayOfferSums(company, startDate, endDate);
+
+        if (messageList.isEmpty() ) {
+            List<String> line = new ArrayList();
+            line.add(MessageFormat.format("keine Service-Angebote {0}/{1} an Firma {2}",
+                                               NLS.toUserString(priorYear), NLS.toUserString(yearEnd), company.getName()));
+            messageList.add(line);
+        }
+        ctx.respondWith().template("templates/xrm/offerSums.html.pasta", company, messageList, title);
+    }
+
 }

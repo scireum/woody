@@ -195,9 +195,9 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "acceptanceDate", null);
         rowFetch(map, row, "accountingDate", null);
         rowFetch(map, row, "accountingInterval", null);
-        rowFetch(map, row, "baseProduct", null);
+//        rowFetch(map, row, "baseProduct", null);
         rowFetch(map, row, "cyclicPrice", null);
-        rowFetch(map, row, "developeDate", null);
+        rowFetch(map, row, "developeDate", "completionDate");
         rowFetch(map, row, "keyword", null);
         rowFetch(map, row, "offer", null);
         rowFetch(map, row, "offerDate", null);
@@ -205,17 +205,18 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "orderDate", null);
         rowFetch(map, row, "packageDefinition", null);
         rowFetch(map, row, "position", null);
-        rowFetch(map, row, "price", null);
+//        rowFetch(map, row, "price", null);
         rowFetch(map, row, "priceBase", null);
         rowFetch(map, row, "quantity", null);
-        rowFetch(map, row, "quantityUnit", null);
-        if("Monat".equals(map.get("quantityUnit"))) {
-            map.put("quantityUnit", "MONTH");
-        }
+//        rowFetch(map, row, "quantityUnit", null);
+//        if("Monat".equals(map.get("quantityUnit"))) {
+//            map.put("quantityUnit", "MONTH");
+//        }
         rowFetch(map, row, "salesConfirmationDate", null);
         rowFetch(map, row, "singlePrice", null);
         rowFetch(map, row, "state", null);
         rowFetch(map, row, "text", null);
+        rowFetch(map, row, "history", null);
         return map;
     }
 

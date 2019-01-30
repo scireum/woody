@@ -1,0 +1,45 @@
+<!-- displays the license sale per year of a company                    -->
+<i:arg type="woody.xrm.Company" name="company" />
+<i:arg type="List" name="tupleList" />
+<i:arg type="String" name="title" />
+
+<w:page titleKey="Company.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/companies">@i18n("Company.plural")</a></li>
+        <li><a href="/company/@company.getId()">@company.getName()</a></li>
+        <li><a href="/company/@company.getId()/showLicenseSales">Prognose Lizenz-Umsätze</a></li>
+    </i:block>
+
+    <w:pageHeader title="@title"/>
+    <div class="row">
+        <w:table data="tupleList" >
+            <table width=300>
+                <thead>
+                  <th>Produkt</th>
+                  <th align="right">Umsatz [EUR]</th>
+                </thead>
+                <tbody>
+                    <i:for type="sirius.kernel.commons.Tuple" var="tuple" items="tupleList">
+                        <tr>
+                            <td >
+                                @tuple.getFirst()
+                            </td>
+                            <td  align="right">
+                                @toUserString(tuple.getSecond())
+                            </td>
+                        </tr>
+                    </i:for>
+                </tbody>
+            </table>
+        </w:table>
+        <table width=300>
+            <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+            <tr><td><a href="/company/@company.getId()/showLicenseSalesMinus" class="btn btn-block">- 1 Jahr</a></td>
+                <td width = 80>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                <td><a href="/company/@company.getId()/showLicenseSalesPlus" class="btn btn-block">+ 1 Jahr</a></td>
+            </tr>
+        </table>
+
+    </div>
+
+</w:page>

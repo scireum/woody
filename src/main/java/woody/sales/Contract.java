@@ -384,6 +384,30 @@ public class Contract extends BizEntity {
         checkContractIsSingle(contractList);
     }
 
+    /**
+     * calculates the price per month of a license with
+     * quantity, discount and discountAbsolute
+     */
+    public Amount calculateMonthPrice() {
+        Amount price = Amount.ZERO;
+        if(unitPrice != null && unitPrice.getAmount() != null) {
+            price = price.add(unitPrice);
+        }
+        if(discountAbsolute != null && discountAbsolute.getAmount() != null) {
+            price = price.subtract(discountAbsolute);
+        }
+        if(discountPercent != null && discountPercent.getAmount() != null) {
+            Amount discount = discountPercent.divideBy(Amount.ONE_HUNDRED).times(price);
+            price = price.subtract(discount);
+        }
+        Amount quantity = Amount.ONE;
+        if(this.quantity != null ) {
+            quantity = Amount.of(this.quantity);
+        }
+        price = price.times(quantity);
+        return price;
+
+    }
 
     /**
      * check the contracts in the given list

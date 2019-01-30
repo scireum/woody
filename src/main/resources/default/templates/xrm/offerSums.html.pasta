@@ -1,0 +1,41 @@
+<!-- displays the offerSums of a company                    -->
+<i:arg type="woody.xrm.Company" name="company" />
+<i:arg type="List" name="messageList" />
+<i:arg type="String" name="title" />
+
+<w:page titleKey="Company.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/companies">@i18n("Company.plural")</a></li>
+        <li><a href="/company/@company.getId()">@company.getName()</a></li>
+        <li><a href="/company/@company.getId()/showServiceSales">Prognose Service-Umsätze</a></li>
+    </i:block>
+    <w:pageHeader title="@title"/>
+    <div class="row">
+        <w:table data="messageList" >
+            <table width=500>
+                <thead>
+                    <th>Anzahl</th>
+                    <th></th>
+                    <th>Status</th>
+                    <th align="right">Wert</th>
+                    <th align="right">PT</th>
+                </thead>
+                <tbody>
+                    <i:for type="List" var="message" items="messageList">
+                        <tr>
+                            <td align="center"> @message.get(0) </td>
+                            @if(message.size() > 1) {
+                               <td>@message.get(1)</td>
+                               <td>@message.get(2)</td>
+                               <td align="right">@message.get(3)</td>
+                               <td align="right">@message.get(4)</td>
+
+                            }
+                        </tr>
+                    </i:for>
+                </tbody>
+            </table>
+        </w:table>
+    </div>
+
+</w:page>

@@ -18,6 +18,7 @@ import sirius.kernel.commons.Context;
 import sirius.kernel.commons.DataCollector;
 import sirius.kernel.commons.NumberFormat;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.ConfigValue;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
@@ -46,10 +47,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -438,7 +445,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                     }
                     if (OfferItemType.LICENSE.equals(item.getOfferItemType())) {
                         offer.setLicenceItemPresent(true);
-                        licenceItemCyclicUnit = item.getAccountingUnitComplete();
+                        licenceItemCyclicUnit = item.translateAccountingUnit();
                     }
                     // speichern, um Neuberechnung der accountingUnitComplete zu erzwingen
                     oma.update(item);
@@ -988,7 +995,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             newOfferitem.setPosition(o.getPosition());
             newOfferitem.setPriceBase(o.getPriceBase());
             newOfferitem.setQuantity(o.getQuantity());
-            newOfferitem.setAccountingUnitComplete(o.getAccountingUnitComplete());
+//            newOfferitem.setAccountingUnitComplete(o.getAccountingUnitComplete());
             newOfferitem.setSinglePrice(o.getSinglePrice());
             newOfferitem.setCyclicPrice(o.getCyclicPrice());
             newOfferitem.setText(o.getText());
@@ -1449,4 +1456,99 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         String md5 = sb.toString();
         return md5;
     }
+
+    @Override
+    public List<Tuple<String, Amount>> licenseSalesPerYear(Company company, int year) {
+
+        LocalDate thisYearStart = LocalDate.of(year, 1, 1);
+        LocalDate nextYearStart = thisYearStart.plusYears(1);
+        List<Contract> contractList = oma.select(Contract.class)
+                                         .eq(Contract.COMPANY, company).queryList();
+
+        HashMap<Product, Amount> map = new HashMap();
+
+        for (Contract contract : contractList) {
+            if (contract.getEndDate() == null || (contract.getEndDate().isAfter(thisYearStart)))  {
+                if(contract.getStartDate().isBefore(nextYearStart)) {
+                    Product product = contract.getPackageDefinition().getValue().getProduct().getValue();
+                    Amount value = contract.calculateMonthPrice();
+                    value = value.times(Amount.of(12));
+                    Amount mapValue = map.get(product);
+                    if (mapValue == null) {
+                        mapValue = value;
+                    } else {
+                        mapValue = mapValue.add(value);
+                    }
+                    map.put(product, mapValue);
+                }
+            }
+        }
+
+        List<Tuple<String, Amount>> tupleList = new ArrayList();
+        for(Product product : map.keySet()) {
+            Amount value = map.get(product);
+            value = value.round(NumberFormat.NO_DECIMAL_PLACES);
+            Tuple<String, Amount> tuple = new Tuple(product.getName(), value);
+            tupleList.add(tuple);
+        }
+
+        Amount companySum = Amount.ZERO;
+        for(Tuple<String, Amount> tuple : tupleList) {
+            companySum = companySum.add(tuple.getSecond());
+        }
+        if(tupleList.size() > 1) {
+            tupleList.add(new Tuple("-------------------------------", null));
+            tupleList.add(new Tuple("Gesamt: ", companySum));
+        }
+
+        return tupleList;
+
+    }
+
+    @Override
+    public List<List<String>> displayOfferSums(Company company, LocalDate startDate, LocalDate endDate) {
+        List<List<String>> messageList = new ArrayList();
+
+        boolean printHeader = true;
+        List<OfferInfo> oInfoList = generateOfferInfo(company);
+        OfferItemState[] states = {OfferItemState.OFFER, OfferItemState.ORDERED, OfferItemState.CONFIRMED,
+                                   OfferItemState.DEVELOPED, OfferItemState.ACCEPTED, OfferItemState.ACCOUNTED, OfferItemState.CANCELED};
+        int anzSum = 0;
+        for (OfferItemState state : states) {
+            Amount sum = Amount.ZERO;
+            Amount quantity = Amount.ZERO;
+            int anz = 0;
+            for (OfferInfo oInfo : oInfoList) {
+                if (state.equals(oInfo.getState())) {
+                    if (oInfo.getDate().isAfter(startDate)) {
+                        if (oInfo.getDate().isAfter(endDate)) {
+                            continue;
+                        }
+                        anz++;
+                        sum = sum.add(oInfo.getValue());
+                        quantity = quantity.add(oInfo.getQuantity());
+                    }
+                }
+            }
+            anzSum = anzSum + anz;
+
+            if(anz > 0) {
+                String[] line = {NLS.toUserString(anz), "Angebote mit dem Status:", state.toString(), sum.toString() + " EUR", quantity.toString() + " PT"};
+                List<String> message = new ArrayList();
+                message.add(NLS.toUserString(anz));
+                message.add("Angebote mit dem Status:");
+                message.add(state.toString());
+                message.add(sum.toString() + " EUR");
+                DecimalFormat df = new DecimalFormat();
+                df.applyPattern("###,###.0");
+                BigDecimal value = quantity.getAmount();
+                String quantityString = df.format(value) + " PT";
+                message.add(quantityString);
+                messageList.add(message);
+            }
+        }
+        return messageList;
+    }
+
+
 }

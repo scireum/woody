@@ -46,6 +46,15 @@ public class Product extends TenantAware {
     private Boolean collectBugs = false;
     public static final Column COLLECTBUGS = Column.named("collectBugs");
 
+    // this product is a Software as a Service (SaaS)
+    @Autoloaded
+    private boolean saas = false;
+    public static final Column SAAS = Column.named("saas");
+
+    @Autoloaded
+    private boolean payMaintenance = false;
+    public static final Column PAYMAINTENANCE = Column.named("payMaintenance");
+
     @NullAllowed
     @Autoloaded
     @Length(255)
@@ -108,5 +117,21 @@ public class Product extends TenantAware {
 
     public void setProductType(ProductType productType) {
         this.productType = productType;
+    }
+
+    public boolean isSaas() {
+        return saas;
+    }
+
+    public void setSaas(boolean saas) {
+        this.saas = saas;
+    }
+
+    public boolean isPayMaintenance() {
+        return payMaintenance;
+    }
+
+    public void setPayMaintenance(boolean payMaintenance) {
+        this.payMaintenance = payMaintenance;
     }
 }

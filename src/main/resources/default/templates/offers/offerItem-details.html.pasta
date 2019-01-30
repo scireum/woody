@@ -26,7 +26,7 @@
 
                 <w:textfield name="quantity" value="@toUserString(offerItem.getQuantity())" labelKey="OfferItem.quantity" required="false" />
 
-                <w:textfield name="accountingUnit" value="@offerItem.getPackageDefinition().getValue().as(woody.sales.PackageDefinition.class).getName()" labelKey="OfferItem.accountingUnitComplete" readonly="true" />
+                <w:textfield name="accountingUnit" value="@offerItem.translateAccountingUnit()" labelKey="OfferItem.accountingUnitComplete" readonly="true" />
 
                 <w:singleSelect name="packageDefinition" labelKey="OfferItem.packageDefinition"  optional="false">
                     <i:for type="woody.sales.PackageDefinition" var="pd" items="offerItem.getAllPackageDefinitionsOrderedByProduct()">

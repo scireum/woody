@@ -13,6 +13,7 @@ import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.Context;
 
 import sirius.kernel.commons.DataCollector;
+import sirius.kernel.commons.Tuple;
 import woody.offers.Offer;
 import woody.offers.OfferItem;
 import woody.offers.OfferItemState;
@@ -170,5 +171,16 @@ public interface ServiceAccountingService {
      * builds a Md5 -Herx-String of the given string
      */
     public String buildMd5HexString(String s);
+
+    /**
+     * Calculates the license-sales per year for each product of the given company
+     */
+    public List<Tuple<String, Amount>> licenseSalesPerYear(Company company, int year);
+
+    /**
+     * display the sums for offers of the given company for this and the last <yaersBack> years.
+     */
+    public List<List<String>> displayOfferSums(Company company, LocalDate startDate, LocalDate endDate);
+
 
 }
