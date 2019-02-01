@@ -74,6 +74,9 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
     @Part
     private static AccountingService as;
 
+    @Part
+    private static ServiceAccountingService sas;
+
     @ConfigValue(value = "mail.scireumSupportMailAddress", required = true)
     private String scireumSupportMailAddress = "support@scireum.de";
 
@@ -518,7 +521,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 context.set("offerline", offerline);
                 context.set("licenceItemCyclicUnit", licenceItemCyclicUnit);
                 context.set("headlinePrefix", headlinePrefix);
-               // context.set("salutation", offer.getPerson().getValue().getLetterSalutation());
+                context.set("salutation", sas.getLetterHeadline(offer.getPerson().getValue()));
                 context.set("offerState", offerStateString);
                 context.set("offer", offer);
                 context.set("offerItemList", offerItemList);
@@ -597,6 +600,16 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         return context;
 
         // TODO in offer.html umstellen: ${toolkit.nl2br(${toolkit.escapeXML($item.text)})}
+    }
+
+    @Override
+    public String getLetterHeadline(Person person) {
+        String line = "Sehr geehrte";
+        if("SIR".equals(person.getPerson().getSalutation())) {
+            line = line + "r";
+        }
+        line = line + " " + person.getPerson().getAddressableName() + ",";
+        return line;
     }
 
     @Override

@@ -1,0 +1,4 @@
+<i:arg type="woody.core.mails.Mail" name="mail"/>
+<i:invoke template="templates/mails/mail.html.pasta" mail="mail" page="overview">
+    <woody:overview object="@mail"/>
+</i:invoke>

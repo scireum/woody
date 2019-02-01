@@ -55,4 +55,6 @@ public interface SendMailService {
     public void sendMail(String senderAddress, String senderName, String receiverAddress, String receiverName,
                          String subject, String mailText, DataSource attachment, String attachmentName) throws Exception;
 
+    public String transformToHtml(String string);
+
 }

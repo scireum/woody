@@ -18,6 +18,7 @@ import sirius.kernel.commons.Context;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
+import sirius.kernel.nls.NLS;
 import sirius.web.controller.Controller;
 import sirius.web.controller.Message;
 import sirius.web.controller.Routed;
@@ -320,10 +321,8 @@ public class OffersController extends BizController {
         setOrVerify(offer, offer.getCompany(), company);
         Context context = sas.prepareContext(offer, ServiceAccountingService.OFFER);
         OutputStream out = ctx.respondWith().outputStream(HttpResponseStatus.OK, MimeHelper.APPLICATION_PDF);
-        // ToDo auf pasta umstellen
-        templates.generator().useTemplate("templates/offer.pdf.vm").applyContext(context).generateTo(out);
-//        templates.generator().useTemplate("templates/offer.pdf.pasta").applyContext(context).generateTo(out);
-        File file = new File("test123.pdf");
+
+        File file = new File("Angebot_" + NLS.toUserString(offer.getNumber()) + ".pdf");
         try {
             out = new FileOutputStream(file);
             templates.generator().useTemplate("templates/offer.pdf.pasta").applyContext(context).generateTo(out);

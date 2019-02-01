@@ -94,6 +94,7 @@ public class OfferItem extends BizEntity {
     public static final Column TEXT = Column.named("text");
 
     @Autoloaded
+    @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount quantity = Amount.NOTHING;
     public static final Column QUANTITY = Column.named("quantity");
@@ -110,14 +111,23 @@ public class OfferItem extends BizEntity {
 //    private String accountingUnitComplete;
 //    public static final Column ACCOUNTINGUNITCOMPLETE = Column.named("accountingUnitComplete");
 
-    /* singlePrice:
-     * licenses = one times singlePrice
-     * service  = price / day                */
+    /** singlePrice:
+     * licenses: = one times singlePrice
+     * service:  = price / day                */
     @Autoloaded
     @NullAllowed
     @Numeric(scale = 2, precision = 15)
     private Amount singlePrice = Amount.NOTHING;
     public static final Column SINGLEPRICE = Column.named("singlePrice");
+
+    /** cyclicPrice:
+     * licenses = price e.g. per month
+     * service  = not used                */
+    @Autoloaded
+    @NullAllowed
+    @Numeric(scale = 2, precision = 15)
+    private Amount cyclicPrice = Amount.NOTHING;
+    public static final Column CYCLICPRICE = Column.named("cyclicPrice");
 
     @NullAllowed
     @Length(20)
@@ -129,15 +139,6 @@ public class OfferItem extends BizEntity {
     @Numeric(scale = 2, precision = 15)
     private Amount discount = Amount.NOTHING;
     public static final Column DISCOUNT = Column.named("discount");
-
-    /* cyclicPrice:
-     * licenses = price e.g. per month
-     * service  = not used                */
-    @Autoloaded
-    @NullAllowed
-    @Numeric(scale = 2, precision = 15)
-    private Amount cyclicPrice = Amount.NOTHING;
-    public static final Column CYCLICPRICE = Column.named("cyclicPrice");
 
     @Autoloaded
     private OfferItemState state;
@@ -375,7 +376,7 @@ public class OfferItem extends BizEntity {
                 sas.checkValue(quantity, true, false, false, false,  null, NLS.get("OfferItem.quantity"));
                 sas.checkValue(singlePrice, true, false, false, false,  null, NLS.get("OfferItem.singlePrice"));
                 sas.checkValue(discount, true, false, false, true,  Amount.of(100), NLS.get("OfferItem.discount"));
-                sas.checkValue(cyclicPrice, true, false, false, false,  null, NLS.get("OfferItem.cyclicPrice"));
+                sas.checkValue(cyclicPrice, false, false, false, false,  null, NLS.get("OfferItem.cyclicPrice"));
 
                 // store the dates
                 if (OfferItemState.OFFER.equals(state)) {
@@ -617,60 +618,7 @@ public class OfferItem extends BizEntity {
     }
 
 
-    /**
-     * Replaces new line with <br>
-     * tags
-     */
-    private static String nl2br(String content) {
-        if (content == null) {
-            return null;
-        }
-        return content.replace("\n", " <br /> ");
-    }
 
-    /**
-     * Escapes the given string for use in XML or HTML.
-     */
-    private static String escapeXML(Object aText) {
-        if (Strings.isEmpty(aText)) {
-            return "";
-        }
-        final StringBuilder result = new StringBuilder();
-        final StringCharacterIterator iterator = new StringCharacterIterator(aText.toString());
-        char character = iterator.current();
-        while (character != CharacterIterator.DONE) {
-            if (character == '<') {
-                result.append("&lt;");
-            } else if (character == '>') {
-                result.append("&gt;");
-            } else if (character == '\"') {
-                result.append("&quot;");
-            } else if (character == '\'') {
-                result.append("&#039;");
-            } else if (character == '&') {
-                result.append("&amp;");
-            } else {
-                // the char is not a special one
-                // add it to the result as is
-                result.append(character);
-            }
-            character = iterator.next();
-        }
-        return result.toString();
-    }
-    // ToDo allgemeine Lösung als Makro machen
-    public static String transformToHtml(String string) {
-        string = escapeXML(string);
-        string = nl2br(string);
-        return string;
-    }
-
-    // ToDo allgemeine Lösung als Makro machen
-    public static boolean notEmpty(String string) {
-        if(string == null) {return false;}
-        if(Strings.isFilled(string)) {return true;}
-        return false;
-    }
 
     public List<OfferItemType> getOfferItemTypeValues() {
         List<OfferItemType> offerItemTypeList = new ArrayList();

@@ -33,6 +33,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -121,6 +122,9 @@ public class MigrationTableServiceBean implements MigrationTableService {
                         case "industry":
                             map = buildIndustryMap(map, row);
                             break;
+                        case "mailtemplate":
+                            map = buildMailtemplateMap(map, row);
+                            break;
                         default:
                             System.out.println("   Die Verarbeitung der Tabelle '" + crmTable + "' fehlt!");
                             break;
@@ -195,7 +199,6 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "acceptanceDate", null);
         rowFetch(map, row, "accountingDate", null);
         rowFetch(map, row, "accountingInterval", null);
-//        rowFetch(map, row, "baseProduct", null);
         rowFetch(map, row, "cyclicPrice", null);
         rowFetch(map, row, "developeDate", "completionDate");
         rowFetch(map, row, "keyword", null);
@@ -205,13 +208,8 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "orderDate", null);
         rowFetch(map, row, "packageDefinition", null);
         rowFetch(map, row, "position", null);
-//        rowFetch(map, row, "price", null);
         rowFetch(map, row, "priceBase", null);
         rowFetch(map, row, "quantity", null);
-//        rowFetch(map, row, "quantityUnit", null);
-//        if("Monat".equals(map.get("quantityUnit"))) {
-//            map.put("quantityUnit", "MONTH");
-//        }
         rowFetch(map, row, "salesConfirmationDate", null);
         rowFetch(map, row, "singlePrice", null);
         rowFetch(map, row, "state", null);
@@ -349,6 +347,93 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "signature", "Employee_signature");
         map.put("version", 0);
         return map;
+    }
+
+    private HashMap<String,Object> buildMailtemplateMap(HashMap<String, Object> map, Row row) {
+        rowFetch(map, row, "name", null);
+        rowFetch(map, row, "mailcontent", null);
+        rowFetch(map, row, "subject", null);
+        migrateVelocityToTagliatelle(map, "mailcontent");
+        return map;
+    }
+
+    /**
+     * migrates a Velocity-mailtemplate into a tagliatelle-mailtemplate
+     */
+    private void migrateVelocityToTagliatelle(HashMap<String, Object> map, String key) {
+        String value = (String) map.get(key);
+        if (Strings.isEmpty(value)) {
+            return;
+        }
+        // Look for the arguments which start with a $-sign
+        List<String> argumentList = new ArrayList();
+        int index = 0;
+        do {
+            int indexStart = value.indexOf("$", index);
+            if(indexStart < 0) {
+                break;
+            }
+            index = indexStart + 1;
+            // the end of a argument is a space " " or a line feed ("\n"
+            int indexEnd1 = value.indexOf(" ", indexStart + 1);
+            int indexEnd2 = value.indexOf("\n", indexStart + 1);
+            int indexEnd = -1;
+            if(indexEnd1 > 0 && indexEnd2 > 0) {
+                if(indexEnd1 <= indexEnd2) {
+                    indexEnd = indexEnd1;
+                } else {
+                    indexEnd = indexEnd2;
+                }
+            }
+            if(indexEnd1 > 0 && indexEnd2 < 0) {
+                indexEnd = indexEnd1;
+            }
+            if(indexEnd2 > 0 && indexEnd1 < 0) {
+                indexEnd = indexEnd2;
+            }
+            if(indexEnd < 0) {
+                indexEnd = value.length();
+            }
+            String argument = value.substring(indexStart + 1, indexEnd);
+            argumentList.add(argument);
+        } while(1==1);
+        // replace the $ and \n
+        value = replaceAll(value, "$", "@");
+        value = value.trim();
+
+        // builfd thje tagliatelle-mailtemplate
+        String targetString = "";
+        for(String variable : argumentList) {
+            String type = "String";
+            if(value.startsWith("@person.")) {
+                type = "woody.xrm.Person";
+            }
+            targetString = targetString + "<i:type=\"" + type + "\" name=\""+ variable + "\"/>" + "\n";
+        }
+        targetString = targetString + value;
+        map.put(key, targetString);
+    }
+
+    /**
+     * replaces in the given value all stings <source> with the string <target>
+     */
+    private String replaceAll(String value, String source, String target) {
+        String targetString = "";
+        int lastindex = 0;
+        do {
+           int index = value.indexOf(source, lastindex);
+            if(index  < 0) {
+                targetString = targetString + value.substring(lastindex, value.length());
+                break;
+            } else {
+                if(index-1 > 0) {
+                    targetString = targetString + value.substring(lastindex, index);
+                }
+                targetString = targetString + target;
+                lastindex = index + source.length();
+            }
+        } while (1==1);
+        return targetString;
     }
 
     /**

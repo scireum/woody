@@ -19,9 +19,12 @@ import sirius.db.mixing.annotations.Lob;
 import sirius.db.mixing.annotations.Mixin;
 import sirius.db.mixing.annotations.NullAllowed;
 import sirius.db.mixing.annotations.Transient;
+import sirius.kernel.commons.Strings;
 import woody.core.employees.Employee;
 import woody.xrm.Person;
 
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.time.LocalDateTime;
 
 /**
@@ -124,6 +127,18 @@ public class Mail extends BizEntity {
     @NullAllowed
     private String function;
     public static final Column FUNCTION = Column.named("function");
+
+    /**
+     * Replaces new line with <br>
+     * tags
+     */
+    private static String nl2br(String content) {
+        if (content == null) {
+            return null;
+        }
+        return content.replace("\n", " <br /> ");
+    }
+
 
     public String getUsageId() {
         return usageId;

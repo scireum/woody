@@ -1,0 +1,40 @@
+<i:arg type="woody.core.mails.Mail" name="mail"/>
+<i:arg type="String" name="page"/>
+
+<w:page title="@mail.getReceiverAddress()">
+    <i:block name="breadcrumbs">
+        <li><a href="/mails">@i18n("Mail.plural")</a></li>
+        <li><a href="/mail/@mail.getId()">@mail.getReceiverAddress()</a></li>
+        <i:render name="breadcrumbs" />
+    </i:block>
+
+    <w:pageHeader title="Mail an @mail.getReceiverAddress()"/>
+
+    <div class="row">
+        <i:if test="!mail.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('MAIL')">
+                    <w:infoboxElement labelKey="Mail.receiverAddress" value="@mail.getReceiverAddress()"/>
+
+                    <i:extensions name="templates-mail-sidebar-infos" mail="mail" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-mail-sidebar-additional" mail="mail" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Mail.sendMail" url="@apply('/mail/%s/sendMail', mail.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Mail.sendNotMail" url="@apply('/mail/%s/sendNotMail', mail.getId())"
+                                  active="page == 'details'"/>
+
+                    <i:extensions name="templates-mail-sidebar-menu" mail="mail" page="page"/>
+                </w:navbox>
+
+                <a href="/mails" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (mail.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

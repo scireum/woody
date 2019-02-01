@@ -56,6 +56,7 @@ public class MigrationJobBean implements MigrationJob{
         mas.transferEmployeeInUserAccount(null);
 
         // migrate the other tables, do not change the order!
+        mts.migrateCrmDataToWoody("mailtemplate", null);
         mts.migrateCrmDataToWoody("industry", null);
         mts.migrateCrmDataToWoody("tag", null);
         mts.migrateCrmDataToWoody("company", null);
@@ -121,6 +122,7 @@ public class MigrationJobBean implements MigrationJob{
         mts.deleteContentOfTable(dbWoody, "person");
         mts.deleteContentOfTable(dbWoody, "industry");
         mts.deleteContentOfTable(dbWoody, "company");
+        mts.deleteContentOfTable(dbWoody, "mailtemplate");
 
         System.out.println("Ende delete Woody" );
 

@@ -21,6 +21,7 @@ import woody.sales.Contract;
 import woody.sales.Lineitem;
 import woody.sales.PackageDefinition;
 import woody.xrm.Company;
+import woody.xrm.Person;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -181,6 +182,12 @@ public interface ServiceAccountingService {
      * display the sums for offers of the given company for this and the last <yaersBack> years.
      */
     public List<List<String>> displayOfferSums(Company company, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Generates a headline like Sehr geehrte Frau Dr. Maier,   or
+     *                           Sehr geehrter Herr Müller
+     */
+    public String getLetterHeadline(Person person);
 
 
 }

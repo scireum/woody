@@ -34,7 +34,8 @@
                                   active="page == 'details'"/>
                     <w:navboxLink labelKey="OfferItem.plural" url="@apply('/company/%s/offer/%s/offerItems', company.getId(), offer.getId())"
                                   active="page == 'details'"/>
-
+                    <w:navboxLink label="Angebot anzeigen" url="@apply('/company/%s/offer/%s/viewOffer', company.getId(), offer.getId())"
+                                  active="page == 'details'"/>
                     <i:extensions name="templates-offer-sidebar-menu" company="offer" page="page"/>
                 </w:navbox>
 

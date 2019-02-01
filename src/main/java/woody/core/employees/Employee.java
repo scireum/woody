@@ -100,6 +100,15 @@ public class Employee extends Mixable {
         relateable = new Relateable(owner);
     }
 
+    /**
+     * contains the mail-signature of the employee
+     */
+    @Autoloaded
+    @NullAllowed
+    @Length(2000)
+    private String signature;
+    public static final Column SIGNATURE = Column.named("signature");
+
     @BeforeSave
     protected void checkIntegrity(UserAccount parent) {
         if (getDischargeDate() != null && !parent.getLogin().isAccountLocked()) {
@@ -155,5 +164,13 @@ public class Employee extends Mixable {
 
     public void setShortName(String shortName) {
         this.shortName = shortName;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 }

@@ -13,6 +13,7 @@ import sirius.biz.tenants.UserAccount;
 import sirius.db.mixing.OMA;
 import sirius.kernel.commons.Context;
 
+import sirius.kernel.commons.Strings;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
 
@@ -21,6 +22,7 @@ import sirius.web.http.MimeHelper;
 import sirius.web.mails.Mails;
 import sirius.web.templates.Templates;
 
+import woody.core.employees.Employee;
 import woody.offers.Offer;
 import woody.offers.OfferItem;
 
@@ -36,7 +38,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.CharacterIterator;
 import java.text.MessageFormat;
+import java.text.StringCharacterIterator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -70,13 +74,18 @@ public class SendMailServiceBean implements SendMailService {
         String function = mail.getFunction();
         Context context = null;
         LocalDateTime sendTime = null;
-        String plainText = mail.getText();
+        String text = mail.getText();
+        UserAccount uac = mail.getEmployeeEntity().getValue();
+        Employee employee = uac.as(Employee.class);
+        String signature = employee.getSignature();
+        text = text + "\n\n" + signature;
+        mail.setText(text);
+        String plainText = text;
         Person person = mail.getPersonEntity().getValue();
         String subject  = mail.getSubject();
-        UserAccount uac = mail.getEmployeeEntity().getValue();
         String senderName = uac.getPerson().getAddressableName();
-        String text0 =  "Mail mit Id: {0} an {1} wurde versendet";
-        String text = "";
+        String messageTemplate =  "Mail mit Id: {0} an {1} wurde versendet";
+        String message = "";
         switch (function) {
 
             case ServiceAccountingService.OFFER:
@@ -125,18 +134,18 @@ public class SendMailServiceBean implements SendMailService {
                 sendTime = LocalDateTime.now();
                 mail.setSendDate(sendTime);
 
-                text = MessageFormat.format(
-                        text0, mail.getId(), mail.getReceiverAddress());
-                messageList.add(text);
+                message = MessageFormat.format(
+                        messageTemplate, mail.getId(), mail.getReceiverAddress());
+                messageList.add(message);
 
                 if (context.get("buyerMail") != null) {
                     sendMail((String) context.get("employeeMail"), senderName,
                              (String) context.get("buyerMail"), (String) context.get("buyerName"),
                              subject, plainText, dataSource, filenamePDF);
                     mail.setCcAddress((String) context.get("buyerMail"));
-                    text = MessageFormat.format(
-                            text0, mail.getId(), (String) context.get("buyerMail"));
-                    messageList.add(text);
+                    message = MessageFormat.format(
+                            messageTemplate, mail.getId(), (String) context.get("buyerMail"));
+                    messageList.add(message);
                 }
 
                 break;
@@ -151,9 +160,9 @@ public class SendMailServiceBean implements SendMailService {
                          null);
                 sendTime = LocalDateTime.now();
                 mail.setSendDate(sendTime);
-                text = MessageFormat.format(
-                        text0, mail.getId(), mail.getSenderAddress());
-                messageList.add(text);
+                message = MessageFormat.format(
+                        messageTemplate, mail.getId(), mail.getReceiverAddress());
+                messageList.add(message);
 
                 break;
         }
@@ -191,32 +200,88 @@ public class SendMailServiceBean implements SendMailService {
 
     }
 
-    // send-Button was clicked
-        @Override
-        public void sendMail(String senderAddress, String senderName, String receiverAddress, String receiverName,
-                             String subject, String mailText, DataSource attachment, String attachmentName) {
 
-
-            if (attachmentName != null) {
-                List<DataSource> listDataSource = new ArrayList<DataSource>();
-                listDataSource.add(attachment);
-                 // send the mail with attachment
-                mail.createEmail()
-                    .from(senderAddress, senderName)
-                    .subject(subject)
-                    .to(receiverAddress, receiverName)
-                    .textContent(mailText)
-                    .addAttachment(attachment)
-                    .send();
+    @Override
+    public void sendMail(String senderAddress, String senderName, String receiverAddress, String receiverName,
+                         String subject, String mailText, DataSource attachment, String attachmentName) {
+        if (attachmentName != null) {
+            List<DataSource> listDataSource = new ArrayList<DataSource>();
+            listDataSource.add(attachment);
+            // send the mail with attachment
+            mail.createEmail()
+                .from(senderAddress, senderName)
+                .subject(subject)
+                .to(receiverAddress, receiverName)
+                .textContent(mailText)
+                .addAttachment(attachment)
+                .send();
+        } else {
+            mail.createEmail()
+                .from(senderAddress, senderName)
+                .subject(subject)
+                .to(receiverAddress, receiverName)
+                .textContent(mailText)
+                .send();
+        }
+    }
+    /**
+     * Escapes the given string for use in XML or HTML.
+     */
+    private static String escapeXML(Object aText) {
+        if (Strings.isEmpty(aText)) {
+            return "";
+        }
+        final StringBuilder result = new StringBuilder();
+        final StringCharacterIterator iterator = new StringCharacterIterator(aText.toString());
+        char character = iterator.current();
+        while (character != CharacterIterator.DONE) {
+            if (character == '<') {
+                result.append("&lt;");
+            } else if (character == '>') {
+                result.append("&gt;");
+            } else if (character == '\"') {
+                result.append("&quot;");
+            } else if (character == '\'') {
+                result.append("&#039;");
+            } else if (character == '&') {
+                result.append("&amp;");
             } else {
-                mail.createEmail()
-                    .from(senderAddress, senderName)
-                    .subject(subject)
-                    .to(receiverAddress, receiverName)
-                    .textContent(mailText)
-                    .send();
+                // the char is not a special one
+                // add it to the result as is
+                result.append(character);
             }
+            character = iterator.next();
+        }
+        return result.toString();
+    }
 
+    /**
+     * Replaces new line with <br>
+     * tags
+     */
+    private static String nl2br(String content) {
+        if (content == null) {
+            return null;
+        }
+        content = content.replace("\n", "<br />");
+        content = content.replace("\r", "");
+        return content;
+    }
+
+    // ToDo allgemeine Lösung als Makro machen
+    @Override
+    public String transformToHtml(String string) {
+        string = escapeXML(string);
+        string = nl2br(string);
+        return string;
+    }
+
+    // ToDo allgemeine Lösung als Makro machen
+    public static boolean notEmpty(String string) {
+        if(string == null) {return false;}
+        if(Strings.isFilled(string)) {return true;}
+        return false;
+    }
 
 
 //
@@ -267,7 +332,7 @@ public class SendMailServiceBean implements SendMailService {
 //            person = OMA.saveEntity(Realm.BACKEND, personFill);
 //
 
-        }
+
 
 
 

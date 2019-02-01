@@ -1,0 +1,54 @@
+<!-- displays a mail               -->
+<i:arg type="woody.core.mails.Mail" name="mail"/>
+<i:arg type="List" name="mailtemplateList"/>
+<i:arg type="String" name="function"/>
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.xrm.Person" name="person"/>
+<i:invoke template="templates/xrm/person.html.pasta" company="company" person="person" page="details">
+
+    <w:editForm url="@apply('/mail/%s/edit', mail.getIdAsString())">
+        <div class="row">
+            <w:singleSelect name="mailtemplate" labelKey="Mail.mailtemplate"  optional="false">
+                <i:for type="woody.core.mails.Mailtemplate" var="mailtemplate" items="mailtemplateList">
+                    <option value="@mailtemplate.getIdAsString()" @if (mail.getTemplate().equals(mailtemplate)) { selected = "selected" }>@mailtemplate.getName()</option>
+                </i:for>
+            </w:singleSelect>
+
+            <w:textfield name="senderAddress" value="@mail.getSenderAddress()" labelKey="Mail.senderAddress" required="false" />
+            <w:textfield name="receiverAddress" value="@mail.getReceiverAddress()" labelKey="Mail.receiverAddress" required="false" />
+            <w:textfield name="subject" value="@mail.getSubject()" labelKey="Mail.subject" required="false" />
+            <w:textarea name="text" value="@mail.getText()" labelKey="Mail.text" required="false" />
+            <w:textfield name="attachmentName" value="@mail.getAttachmentName()" labelKey="Mail.attachmentName" required="false" />
+
+
+        </div>
+
+    </w:editForm>
+       <div>
+            <tr>
+                <td> <b>Mail </b></td>
+                <td>
+                    <a class="link" href="/mail/@mail.getId()/sendMail"> senden </a>
+                </td>
+                <td> oder </td>
+                <td>
+                    <a class="link" href="/mail/@mail.getId()/sendNotMail"> nicht senden </a>
+                </td>
+            </tr>
+       </div>
+
+
+
+
+    <w:formBar>
+        <w:tracing trace="@mail.getTrace()" />
+    </w:formBar>
+
+</i:invoke>
+
+
+
+
+
+
+
