@@ -330,6 +330,7 @@ public class OffersController extends BizController {
             e.printStackTrace();
         }
         int iii = 1;
+        ctx.respondWith().template("templates/offers/offer-overview.html.pasta", company, offer);
     }
 
     @LoginRequired

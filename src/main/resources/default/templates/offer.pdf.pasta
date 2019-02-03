@@ -1,16 +1,16 @@
 <i:arg type="woody.xrm.Company" name="company" />
 <i:arg type="woody.offers.Offer" name="offer" />
 <i:arg type="woody.xrm.Person" name="person" />
+<i:arg type="woody.xrm.Person" name="buyer" default=""/>
 <i:arg type="sirius.biz.tenants.UserAccount" name="uac" />
 <i:arg type="String" name="dateString" />
 <i:arg type="String" name="headlinePrefix" />
 <i:arg type="String" name="offerline" />
 <i:arg type="List" name="offerItemList" />
 <i:arg type="String" name="licenceItemCyclicUnit" />
-<i:arg type="List" name="NettoSum" />
-<i:arg type="String" name="VatSum" />
-<i:arg type="String" name="BruttoSum" />
-<i:arg type="java.lang.Boolean" name="isLicenseItemPresent" />
+
+<i:arg type="boolean" name="isLicenseItemPresent" />
+<i:arg type="String" name="offerState" />
 <i:arg type="String" name="vatRate" />
 <i:arg type="String" name="priceNettoSum" />
 <i:arg type="String" name="priceVatSum" />
@@ -20,14 +20,32 @@
 <i:arg type="String" name="cyclicPriceBruttoSum" />
 <i:arg type="String" name="termsOfPayment" />
 <i:arg type="String" name="validityPeriod" />
-<i:arg type="String" name="offerPeriodNetto" />
-<i:arg type="String" name="offerPeriodStart" />
-<i:arg type="String" name="offerPeriodEnd" />
-<i:arg type="String" name="offerPeriodMonths" />
-<i:arg type="String" name="vatOfferPeriodLicence" />
-<i:arg type="String" name="offerPeriodLicenceBrutto" />
-<i:arg type="java.lang.Boolean" name="isOfferPeriodPresent" />
-<i:arg type="java.lang.Boolean" name="isOffer" />
+<i:arg type="String" name="offerPeriodNetto" default="" />
+<i:arg type="String" name="offerPeriodStart"  default=""/>
+<i:arg type="String" name="offerPeriodEnd"  default=""/>
+<i:arg type="String" name="offerPeriodMonths"  default=""/>
+<i:arg type="String" name="vatOfferPeriodLicence"  default=""/>
+<i:arg type="String" name="offerPeriodLicenceBrutto"  default=""/>
+<i:arg type="String" name="letterHeadline" />
+<i:arg type="boolean" name="isOfferPeriodPresent" />
+<i:arg type="boolean" name="isOffer" />
+<i:arg type="boolean" name="isCompanyVAT" />
+<i:arg type="String" name="employeePhone" />
+
+
+<i:arg type="String" name="offerPeriodMonthsNy"  default=""/>
+<i:arg type="String" name="cyclicPriceNettoSumPositiv"  default=""/>
+<i:arg type="String" name="priceNettoSumNy" default=""/>
+<i:arg type="String" name="offerPeriodNettoNy"  default="" />
+<i:arg type="String" name="priceVatSumNy"  default=""/>
+<i:arg type="String" name="vatOfferPeriodLicenceNy" default="" />
+<i:arg type="String" name="priceBruttoSumNy"  default=""/>
+<i:arg type="String" name="offerPeriodLicenceBruttoNy"  default=""/>
+
+<i:arg type="boolean" name="isPayMaintenacePresent" />
+<i:arg type="String" name="payMaintenanceSumString" default=""/>
+<i:arg type="String" name="payMaintenanceSumYearString"  default=""/>
+
 
 <html>
 
@@ -53,19 +71,19 @@
 </div>
 
 <div style="padding-top: 2.5cm;font-weight: bold; font-size: 14pt">
-@headlinePrefix Angebot Nr. @offer.getNumber() vom @toUserString(offer.getDate() @offerState.toString()
+@headlinePrefix Angebot Nr. @offer.getNumber() vom @toUserString(offer.getDate()) @offerState
 </div>
 <br />
 <table style="font-size:9pt">
  <tr><td>Kundennummer:</td><td> @company.getCustomerNumber()</td><td></td><td></td> </tr>
- <tr><td>Ihre Kontaktperson:</td><td> @person.getPerson().getValue().getAddressableName(),</td><td>Tel.: @person.getContact.getValue().getPhone(),</td><td>E-Mail: @person.getContact.getValue().getMail()</td> </tr>
- <tr><td>Unsere Kontaktperson:</td><td>@uac.getPerson.getValue().getAdressableName(),</td><td>Tel.: @uac.getContact(),getValue().getPhone(),</td><td>E-Mail: @uac.getContact.getValue().getMmail()  </td></tr>
- @if(offer.getBuyer != null) {<tr><td>Ihr kfm. Besteller:</td><td>$!buyer</td><td>Tel.: $!buyer.phone,</td><td>E-Mail: $!buyer.email </td></tr>}
- @if(Strings(offer.getReference).isFilled) {<tr><td>Ihre kfm. Referenz:</td><td colspan="3" >@offer.getReference</td></tr>}
+ <tr><td>Ihre Kontaktperson:</td><td> @person.getPerson().getAddressableName(),</td><td>Tel.: @person.getContact().getPhone(),</td><td>E-Mail: @person.getContact().getEmail()</td> </tr>
+ <tr><td>Unsere Kontaktperson:</td><td>@uac.getPerson().getAddressableName(),</td><td>Tel.: @employeePhone,</td><td>E-Mail: @uac.getEmail()  </td></tr>
+ @if(offer.getBuyer() != null) {<tr><td>Ihr kfm. Besteller:</td><td>@buyer.getPerson().getAddressableName()</td><td>Tel.: @buyer.getContact().getPhone(),</td><td>E-Mail: @buyer.getContact().getEmail() </td></tr>}
+ @if(offer.getReference() != null) {<tr><td>Ihre kfm. Referenz:</td><td colspan="3" >@offer.getReference()</td></tr>}
 </table>
 
 <br></br>
-@salutation
+@letterHeadline
 <br></br><br></br>
 @offerline
 
@@ -75,71 +93,67 @@
 </div>
 <br></br>
 
- <table>
+ <table width="175mm">
       <i:for type="woody.offers.OfferItem" var="item" items="offerItemList">
-
-
-
-
          @if(item.isInfoText()) {
                 <br></br>
-               <tr><th style="width:2cm" valign="top">Pos.</th><th>Information</th><th></th><th></th><th></th><th></th></tr>
-               <tr><td style="width:2cm" valign="top">$item.position</td><td colspan = "4">$item.text</td></tr>
+               <tr><th style="width:2cm" >Pos.</th><th>Information</th><th></th><th></th><th></th><th></th></tr>
+               <tr><td style="width:2cm" >@toUserString(item.getPosition())</td><td colspan = "4">@item.getText()</td></tr>
              }
-         @else {
+         else {
             @if(item.isSum()) {
                 <br></br><br></br>
                 <tr>
-                    <th>Pos.</th><th>Information</th><th></th><th ></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:4cm" align= "right">Preis je @licenceItemCyclicUnit</th>
+                    <th >Pos.</th><th>Information</th><th></th><th ></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:4cm" align= "right">Preis je @item.getTranslatedAccountingUnit()</th>
                 </tr>
                 <tr>
-                    <td >$item.position</td>
-                    <td colspan = "3"><b>$item.text</b></td>
-                    <td align="right"><b>$nls.toUserString($item.price) €</b></td>
-                    <td align="right"><b>$nls.toUserString($item.cyclicPrice) €</b></td>
+                    <td >@toUserString(item.getPosition())</td>
+                    <td colspan = "3"><b>@item.getText()</b></td>
+                    <td align="right"><b>@toUserString(item.getSinglePrice()) €</b></td>
+                    <td align="right"><b>@toUserString(item.getCyclicPrice()) €</b></td>
                 </tr>
                 <br></br><br></br> }
-            @else {
+            else {
                 <br></br>
                 @if(item.isLicense()) {
-                    <tr><th style="width:2cm" valign="top">Pos.</th><th>Menge</th><th></th><th>@if(item.stateIsVisible){Hinweis}</th>
+                    <tr><th style="width:2cm" >Pos.</th><th valign="top">Menge</th><th></th><th>@if(item.isStateVisible()){Hinweis}</th>
                         <th align="right">@if(item.isPackageDefinitionSinglePricePresent()){einmaliger Preis}</th>
-                        <th align="right">Preis je @item.getPackageDefinition().getValue().getAccountingUnit()</th>
+                        <th align="right" valign="top">Preis je @item.getTranslatedAccountingUnit()</th>
                     </tr>
                 }
-                if(item.isService()) {
-                    <tr><th>Pos.</th><th style="width:4cm">Menge</th><th style="width:4cm">Einzelpreis</th><th style="width:4cm">@if(item.stateIsVisible){Hinweis}</th>
+                @if(item.isService()) {
+                    <tr><th >Pos.</th><th style="width:4cm">Menge</th><th style="width:4cm">Einzelpreis</th><th style="width:4cm">@if(item.isStateVisible()){Hinweis}</th>
                     <th  style="width:4cm" align="right">einmaliger Preis</th><th style="width:4cm"></th></tr>
                 }
-                <tr><td style="width:2cm" valign="top">@toUserString(item.getPosition())</td>
+                <tr><td style="width:2cm" >@toUserString(item.getPosition())</td>
                       @if(item.isLicense()) {
-                          <td style="width:4cm">@toUserString(item.getQuantity()) Lizenz</td>
+                          <td style="width:4cm">@toUserString(item.getQuantity()) @item.getLicenseSpec()</td>
                       }
                       @if(item.isService()) {
-                        <td style="width:4cm">@toUserString(item.Quantity) @item.getPackageDefinition.getValue().getAccountingUnit()</td>
+                        <td style="width:4cm">@toUserString(item.getQuantity()) @item.getPackageDefinition().getValue()as(woody.sales.PackageDefinition.class).getAccountingUnit()</td>
                       }
                       @if(item.isService()) {
-                         <td style="width:4cm">@toUserString(@item.getSinglePrice()) € / @item.getPackageDefinition.getValue().getAccountingUnit()</td>
+                         <td style="width:4cm">@toUserString(item.getSinglePrice()) € / @item.getPackageDefinition().getValue()as(woody.sales.PackageDefinition.class).getAccountingUnit()</td>
                       }
                       @if(item.isLicense()) {
-                        <td style="width:4cm">@item.getPackageDefinition().getValue().getName()</td>
+                        <td style="width:4cm">@item.getPackageDefinition().getValue().as(woody.sales.PackageDefinition.class).getName()</td>
                       }
 
-                      <td style="width:4cm">@if(item.stateIsVisible){@item.getState().toString()}</td>
+                      <td style="width:4cm">@if(item.isStateVisible()){@item.getState().toString()}</td>
                       @if(item.isService()) {
-                        <td style="width:4cm" align="right">@toUserString(item.getSingePriceComplete() € </td>
+                        <td style="width:4cm" align="right">@toUserString(item.getSinglePricePosition()) € </td>
                       }
                       @if(item.isLicense()) {
-                        <td style="width:4cm" align="right">@if(@item.isPackageDefinitionSinglePricePresent()){@toUserString(item.offerSinglePriceComplete()) € }</td>
-                        <td style="width:4cm" align="right">@toUserString($item.offerCyclicPriceComplete()) € </td>
+                        <td style="width:4cm" align="right">@if(item.isPackageDefinitionSinglePricePresent()){@toUserString(item.getSinglePricePosition()) € }</td>
+                        <td style="width:4cm" align="right">@toUserString(item.getCyclicPricePosition()) € </td>
                       }
                 </tr>
 
-                @if(item.discountPresent) {
+                @if(item.isDiscountPresent()) {
                     <tr><td></td><td colspan = "4">Beim Preis wurde ein Rabatt von @toUserString(item.getDiscount()) % berücksichtigt.</td></tr>
                 }
-                @if(Strings(item.getKeyword).isFilled) {
-                     <tr><td></td> <td colspan = "4"><b>$item.keyword</b></td></tr>
+                @if(item.getKeyword() != null) {
+                     <tr><td></td> <td colspan = "4"><b>@item.getKeyword()</b></td></tr>
                 }
                 <tr><td></td> <td colspan = "4">@item.getText()</td></tr>
             }
@@ -153,15 +167,15 @@
 <table>
     <tr>
         <th style="width:13cm"></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:3cm" align= "right">
-           @if(isLicenseItemPresent)Preis je @licenceItemCyclicUnit }</th>
+           @if(isLicenseItemPresent){Preis je @licenceItemCyclicUnit }</th>
     </tr>
       <tr><td style="width:13cm">End-Summe netto:</td><td align="right" style="width:4cm" >@priceNettoSum €</td><td style="width:3cm" align="right">
-           @if(isLicenseItemPresent)@cyclicPriceNettoSum € }</td></tr>
-           @if(company.isVAT())
-              <tr><td style="width:13cm">zuzüglich @vatRate MWSt:</td> <td  align="right">@priceVatSum €</td><td  align="right">
-                   @if($isLicenseItemPresent)@cyclicPriceVatSum € }</td></tr>
+           @if(isLicenseItemPresent){@cyclicPriceNettoSum € }</td></tr>
+           @if(isCompanyVAT) {
+              <tr><td style="width:13cm">zuzüglich @vatRate % MWSt:</td> <td  align="right">@priceVatSum €</td><td  align="right">
+                   @if(isLicenseItemPresent){@cyclicPriceVatSum € }</td></tr>
               <tr><td style="width:13cm">Endbetrag:</td><td  align="right">@priceBruttoSum €</td><td  align="right">
-                   @if(isLicenseItemPresent)@cyclicPriceBruttoSum € }</td></tr>
+                   @if(isLicenseItemPresent){@cyclicPriceBruttoSum € }</td></tr>
            }
 </table>
 
@@ -169,32 +183,56 @@
 <br></br>
 
 
-@if(!@company.isVAT()) {
+@if(!isCompanyVAT) {
     Der Auftraggeber ist Schuldner der ggfs. anfallenden Mehrwert - oder Umsatzsteuer.
     <br></br><br></br>
 }
 
-$termsOfPayment
-$validityPeriod
+@termsOfPayment
+@validityPeriod
 
 <br></br> <br></br>
 @if(isOfferPeriodPresent) {
-@if($isOffer) {
+@if(isOffer) {
 <br></br>
   Beispielrechnung zu Ihrer Information:<br></br>
-  im Leistungszeitraum vom @offerPeriodStart bis zum @offerPeriodEnd = @offerPeriodMonths Monate würden folgende Kosten fällig:
+  im Leistungszeitraum vom @offerPeriodStart bis zum @offerPeriodEnd = @offerPeriodMonths Monate würden folgende Kosten fällig:<br></br>
+    Basis ist die Differenz zwischen den Preisen für neue Pakete minus den ggfs. wegfallenden Verträgen:
+    <br></br><br></br>
   <table>
     <tr>
         <th style="width:13cm"></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:3cm" align= "right">wiederkehrende Kosten</th>
     </tr>
-      <tr><td style="width:13cm">Endbeträge netto im Leistungszeitraum:</td><td align="right" style="width:4cm" >$priceNettoSum €</td><td style="width:3cm" align="right">
+      <tr><td style="width:13cm">Endbeträge netto im Leistungszeitraum: (@offerPeriodMonths x @cyclicPriceNettoSum €)</td><td align="right" style="width:4cm" >@priceNettoSum €</td><td style="width:3cm" align="right">
            @if(isLicenseItemPresent) {@offerPeriodNetto € }</td></tr>
-           @if($company.isVAT())
-              <tr><td style="width:13cm">zuzüglich @vatRate MWSt:</td> <td  align="right">@priceVatSum €</td><td  align="right">
-                   @if(isLicenseItemPresent)@vatOfferPeriodLicence € }</td></tr>
-              <tr><td style="width:13cm">Endbeträge brutto im Leistungszeitraum:</td><td  align="right">$priceBruttoSum €</td><td  align="right">
-                   @if(isLicenseItemPresent)@offerPeriodLicenceBrutto € }</td></tr>
+           @if(isCompanyVAT) {
+              <tr><td style="width:13cm">zuzüglich @vatRate % MWSt:</td> <td  align="right">@priceVatSum €</td><td  align="right">
+                   @if(isLicenseItemPresent){@vatOfferPeriodLicence € }</td></tr>
+              <tr><td style="width:13cm">Endbeträge brutto im Leistungszeitraum:</td><td  align="right">@priceBruttoSum €</td><td  align="right">
+                   @if(isLicenseItemPresent){@offerPeriodLicenceBrutto € }</td></tr>
            }
+   </table>
+    <br></br> <br></br>
+    Im Folgejahr = @offerPeriodMonthsNy Monate würden folgende Kosten fällig; <br></br>
+    Basis sind die monatlichen Lizenzpreise für die neuen Pakete:
+    <table>
+      <tr>
+          <th style="width:13cm"></th><th style="width:4cm" align="right">einmaliger Preis</th><th style="width:3cm" align= "right">wiederkehrende Kosten</th>
+      </tr>
+        <tr><td style="width:13cm">Endbeträge netto im Folgejahr: (@offerPeriodMonthsNy x @cyclicPriceNettoSumPositiv €)</td><td align="right" style="width:4cm" >@priceNettoSumNy €</td><td style="width:3cm" align="right">
+             @if(isLicenseItemPresent){@offerPeriodNettoNy €}</td></tr>
+             @if(isCompanyVAT){
+                <tr><td style="width:13cm">zuzüglich @vatRate % MWSt:</td> <td  align="right">@priceVatSumNy €</td><td  align="right">
+                     @if(isLicenseItemPresent){@vatOfferPeriodLicenceNy €}</td></tr>
+                <tr><td style="width:13cm">Endbeträge brutto im Folgejahr:</td><td  align="right">@priceBruttoSumNy €</td><td  align="right">
+                     @if(isLicenseItemPresent){@offerPeriodLicenceBruttoNy €}</td></tr>
+             }
+
+             @if(isPayMaintenacePresent) {
+                <br></br><br></br>
+                <tr><td style="width:13cm">Wartungskosten netto im Folgejahr (12 x @payMaintenanceSumString EUR):</td><td  align="right"></td><td  align="right">@payMaintenanceSumYearString €</td></tr>
+             }
+
   </table>
 
   <br></br><br></br>

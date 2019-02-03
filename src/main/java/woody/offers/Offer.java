@@ -154,12 +154,12 @@ public class Offer extends BizEntity {
 
         // check the dates for offerPeriod
         if((offerPeriodStart == null && offerPeriodEnd != null) || (offerPeriodStart != null && offerPeriodEnd == null))  {
-            throw Exceptions.createHandled().withNLSKey("OfferItem.offerPeriodWrong").handle();
+            throw Exceptions.createHandled().withNLSKey("Offer.offerPeriodWrong").handle();
 
         }
         if(offerPeriodStart != null && offerPeriodEnd != null) {
-            if (offerPeriodStart.compareTo(offerPeriodEnd) != -1) {
-                throw Exceptions.createHandled().withNLSKey("offerPeriodChanged").handle();
+            if (offerPeriodStart.compareTo(offerPeriodEnd) >= 0) {
+                throw Exceptions.createHandled().withNLSKey("Offer.offerPeriodChanged").handle();
             }
         }
 

@@ -52,10 +52,7 @@ import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -328,6 +325,8 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         Amount cyclicPriceVatSum = Amount.ZERO;
         Amount priceNettoSumBlock = Amount.ZERO;
         Amount cyclicPriceNettoSumBlock = Amount.ZERO;
+        Amount payMaintenanceSum = Amount.of(0);
+        Amount cyclicPriceNettoSumPositiv = Amount.of(0);
         String licenceItemCyclicUnit = "";
         String offerline = "";
         String headlinePrefix = "";
@@ -337,7 +336,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
         String subject = "";
         String filePostfix = "";
         String offerStateString = "";
-
+        boolean isCompanyVAT = false;
         switch (function) {
             default:
                 break;
@@ -347,6 +346,9 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 company = offer.getCompany().getValue();
                 referenceDate = offer.getDate();
                 vatRate = getVatRateForCompany(company, referenceDate);
+                if(vatRate.isPositive()) {
+                    isCompanyVAT = true;
+                }
                 break;
         }
         switch (function) {
@@ -373,6 +375,8 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 offer.setLicenceItemPresent(false);
                 offer.setServiceItemPresent(false);
 
+                boolean isPayMaintenacePresent = false;
+
                 for (OfferItem item : offerItemList) {
                     String nn = "";
                     positions = positions + item.getPosition() + ", ";
@@ -393,48 +397,48 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                         // singleprice
                         Amount vatItem = Amount.ZERO;
                         Amount bruttoPrice = Amount.ZERO;
-                        Amount singlePrice = item.getSinglePrice().fill(Amount.ZERO);
+                        Amount singlePricePosition = item.getSinglePrice().fill(Amount.ZERO);
                         Amount discount = item.getDiscount().fill(Amount.ZERO);
                         if (item.isService()) {
-                            Amount price = singlePrice.times(item.getQuantity());
+                            Amount price = singlePricePosition.times(item.getQuantity());
                             price = price.decreasePercent(discount);
                             vatItem = price;
-                            item.setSinglePriceComplete(price);
+                            item.setSinglePricePosition(price);
                             bruttoPrice = price;
                             priceNettoSum = priceNettoSum.add(price);
                             priceNettoSumBlock = priceNettoSumBlock.add(price);
                         }
                         if (item.isLicense()) {
-                            singlePrice = singlePrice.times(item.getQuantity());
-                            singlePrice = singlePrice.decreasePercent(discount);
-                            item.setSinglePriceComplete(singlePrice);
-                            priceNettoSum = priceNettoSum.add(singlePrice);
-                            priceNettoSumBlock = priceNettoSumBlock.add(singlePrice);
-                            vatItem = singlePrice;
-                            bruttoPrice = singlePrice;
+                            singlePricePosition = singlePricePosition.times(item.getQuantity());
+                            singlePricePosition = singlePricePosition.decreasePercent(discount);
+                            item.setSinglePricePosition(singlePricePosition);
+                            priceNettoSum = priceNettoSum.add(singlePricePosition);
+                            priceNettoSumBlock = priceNettoSumBlock.add(singlePricePosition);
+                            vatItem = singlePricePosition;
+                            bruttoPrice = singlePricePosition;
                         }
-                        vatItem = vatItem.times(vatRate);
-                        vatItem = vatItem.divideBy(Amount.ONE_HUNDRED);
+                        vatItem = vatItem.times(vatRate).divideBy(Amount.ONE_HUNDRED);
                         priceVatSum = priceVatSum.add(vatItem);
                         bruttoPrice = bruttoPrice.add(vatItem);
                         priceBruttoSum = priceBruttoSum.add(bruttoPrice);
 
                         //cyclicPrice
                         if (item.isLicense()) {
-                            Amount price = item.getCyclicPrice().fill(Amount.ZERO);
-                            price = price.times(item.getQuantity());
-                            price = price.decreasePercent(discount);
-                            item.setCyclicPriceComplete(price);
-                            //item.setSinglePriceComplete(Amount.ZERO);
-                            cyclicPriceNettoSum = cyclicPriceNettoSum.add(price);
-                            cyclicPriceNettoSumBlock = cyclicPriceNettoSumBlock.add(price);
-                            vatItem = price;
-                            vatItem = vatItem.times(vatRate);
-                            vatItem = vatItem.divideBy(Amount.ONE_HUNDRED);
+                            Amount cyclicPricePosition = item.getCyclicPrice().fill(Amount.ZERO);
+                            cyclicPricePosition = cyclicPricePosition.times(item.getQuantity());
+                            cyclicPricePosition = cyclicPricePosition.decreasePercent(discount);
+                            item.setCyclicPricePosition(cyclicPricePosition);
+                            cyclicPriceNettoSum = cyclicPriceNettoSum.add(cyclicPricePosition);
+                            cyclicPriceNettoSumBlock = cyclicPriceNettoSumBlock.add(cyclicPricePosition);
+                            vatItem = cyclicPricePosition;
+                            vatItem = vatItem.times(vatRate).divideBy(Amount.ONE_HUNDRED);
                             cyclicPriceVatSum = cyclicPriceVatSum.add(vatItem);
-                            bruttoPrice = price;
+                            bruttoPrice = cyclicPricePosition;
                             bruttoPrice = bruttoPrice.add(vatItem);
                             cyclicPriceBruttoSum = cyclicPriceBruttoSum.add(bruttoPrice);
+                            if(cyclicPricePosition.isPositive()) {
+                                cyclicPriceNettoSumPositiv = cyclicPriceNettoSumPositiv.add(cyclicPricePosition);
+                            }
                         }
                     }
                     if (OfferItemState.CANCELED.equals(item.getState())) {
@@ -448,11 +452,24 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                     }
                     if (OfferItemType.LICENSE.equals(item.getOfferItemType())) {
                         offer.setLicenceItemPresent(true);
-                        licenceItemCyclicUnit = item.translateAccountingUnit();
+                        licenceItemCyclicUnit = item.getTranslatedAccountingUnit();
                     }
-                    // speichern, um Neuberechnung der accountingUnitComplete zu erzwingen
+                    if(OfferItemType.LICENSE.equals(item.getOfferItemType()) ||
+                       OfferItemType.SERVICE.equals(item.getOfferItemType())) {
+                        if (item.isPayMaintenance()) {
+                            isPayMaintenacePresent = true;
+                            payMaintenanceSum = payMaintenanceSum.add(item.getPayMaintenancePrice());
+                        }
+                    }
+
+                    // speichern
                     oma.update(item);
                 }
+
+                context.set("isPayMaintenacePresent",isPayMaintenacePresent);
+                context.set("payMaintenanceSumString", payMaintenanceSum.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                context.set("payMaintenanceSumYearString", payMaintenanceSum.times(Amount.of(12)).toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+
 
                 positions = positions.substring(0, positions.length() - 2);
                 context.set("positions", positions);
@@ -507,58 +524,63 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
             case SALES_CONFIRMATION:
                 //prepare the context
 
-                if (Strings.isFilled(offerState)) {
+                if (Strings.isFilled(offerState) ) {
                     offerStateString = ", Status: " + offerState + "!";
                 }
-
+                Person person = offer.getPerson().getValue();
+                context.set("person", person);
+                context.set("isCompanyVAT", isCompanyVAT);
                 context.set("subject", subject);
                 String dateString = NLS.toUserString(LocalDate.now());
                 context.set("mailText", mailText);
                 context.set("street", company.getAddress().getStreet());
-                String city = company.getAddress().getZip() + " " + company.getAddress().getCity();
-                context.set("city", city);
+//                String city = company.getAddress().getZip() + " " + company.getAddress().getCity();
+//                context.set("city", city);
                 context.set("dateString", dateString);
                 context.set("offerline", offerline);
                 context.set("licenceItemCyclicUnit", licenceItemCyclicUnit);
                 context.set("headlinePrefix", headlinePrefix);
-                context.set("salutation", sas.getLetterHeadline(offer.getPerson().getValue()));
+                context.set("letterHeadline", sas.getLetterHeadline(offer.getPerson().getValue()));
                 context.set("offerState", offerStateString);
                 context.set("offer", offer);
                 context.set("offerItemList", offerItemList);
 
                 context.set("company", company);
-                Person person = offer.getPerson().getValue();
+
                 context.set("personName", person.getPerson().toString());
                 context.set("personPhone", person.getContact().getPhone());
                 context.set("personMail", person.getContact().getEmail());
-                Person buyer = offer.getBuyer().getValue();
-                if (buyer != null) {
-                    context.set("buyerPhone", buyer.getContact().getPhone());
-                    context.set("buyerName", buyer.getPerson().toString());
-                    context.set("buyerMail", buyer.getContact().getEmail());
-                } else {
-                    context.set("buyerPhone", null);
-                    context.set("buyerName", null);
-                    context.set("buyerMail", null);
+                Person buyer = null;
+                if(offer.getBuyer() != null) {
+                    buyer = offer.getBuyer().getValue();
                 }
+//                if (buyer != null) {
+//                    context.set("buyerPhone", buyer.getContact().getPhone());
+//                    context.set("buyerName", buyer.getPerson().toString());
+//                    context.set("buyerMail", buyer.getContact().getEmail());
+//                } else {
+//                    context.set("buyerPhone", null);
+//                    context.set("buyerName", null);
+//                    context.set("buyerMail", null);
+//                }
 
                 Employee employee = offer.getEmployee().getValue().as(Employee.class);
              //   String signature = employee.getSignature();
              //   context.set("employeeSignature", signature);
                 UserAccount user = offer.getEmployee().getValue().as(UserAccount.class);
-                context.set("employeeName", user.toString());
-          //      context.set("employeePhone", employee.getPhoneNr());
-                context.set("employeeMail", user.getEmail());
-                context.set("priceBruttoSum", priceBruttoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
-                context.set("priceNettoSum", priceNettoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
-                context.set("priceVatSum", priceVatSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
+                context.set("uac", user);
+                context.set("employeePhone", "07151/90316-"+employee.getPhoneExtension());
+//                context.set("employeeMail", user.getEmail());
+                context.set("priceBruttoSum", priceBruttoSum.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                context.set("priceNettoSum", priceNettoSum.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                context.set("priceVatSum", priceVatSum.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
                 if (vatRate != null) {
-                    context.set("vatRateString", NLS.toUserString(vatRate) + "%");
+                    context.set("vatRate", NLS.toUserString(vatRate));
                 }
-                context.set("cyclicPriceBruttoSum", cyclicPriceBruttoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
-                context.set("cyclicPriceNettoSum", cyclicPriceNettoSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
-                context.set("cyclicPriceVatSum", cyclicPriceVatSum.toString(NumberFormat.TWO_DECIMAL_PLACES));
-                context.set("isLicenceItemPresent", offer.isLicenceItemPresent());
+                context.set("cyclicPriceBruttoSum", cyclicPriceBruttoSum.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                context.set("cyclicPriceNettoSum", cyclicPriceNettoSum.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                context.set("cyclicPriceVatSum", cyclicPriceVatSum.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                context.set("isLicenseItemPresent", offer.isLicenceItemPresent());
 
                 if (offer.isOfferPeriodPresent()) {
                     context.set("isOfferPeriodPresent", offer.isOfferPeriodPresent());
@@ -576,14 +598,42 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                     context.set("offerPeriodMonths", NLS.toUserString(months));
 
                     Amount offerPeriodNetto = cyclicPriceNettoSum.times(Amount.of(months));
-                    context.set("offerPeriodNetto", offerPeriodNetto.toString(NumberFormat.TWO_DECIMAL_PLACES));
-                    Amount vatOfferPeriodLicence = offerPeriodNetto.times(vatRate);
+
+                    context.set("offerPeriodNetto", offerPeriodNetto.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                    Amount vatOfferPeriodLicence = offerPeriodNetto.times(vatRate).divideBy(Amount.ONE_HUNDRED);
                     context.set("vatOfferPeriodLicence",
-                                vatOfferPeriodLicence.toString(NumberFormat.TWO_DECIMAL_PLACES));
+                                vatOfferPeriodLicence.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
                     Amount offerPeriodLicenceBrutto = offerPeriodNetto.add(vatOfferPeriodLicence);
                     context.set("offerPeriodLicenceBrutto",
-                                offerPeriodLicenceBrutto.toString(NumberFormat.TWO_DECIMAL_PLACES));
+                                offerPeriodLicenceBrutto.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+
+                    // calculate for the next whole year
+                    LocalDate offerPeriodStartNy = offerPeriodStart.plusDays(1);
+                    LocalDate offerPeriodEndNy = offerPeriodEnd.plusYears(1);
+                    context.set("offerPeriodStartNy", NLS.toUserString(offerPeriodStartNy));
+                    context.set("offerPeriodEndNy", NLS.toUserString(offerPeriodEndNy));
+
+                    int monthsNy = 12;
+                    context.set("offerPeriodMonthsNy", NLS.toUserString(monthsNy));
+                    context.set("cyclicPriceNettoSumPositiv", cyclicPriceNettoSumPositiv.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+
+                    Amount offerPeriodNettoNy = cyclicPriceNettoSumPositiv.times(Amount.of(monthsNy));
+                    context.set("offerPeriodNettoNy", offerPeriodNettoNy.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                    Amount vatOfferPeriodLicenceNy =  offerPeriodNettoNy.times(vatRate).divideBy(Amount.ONE_HUNDRED);
+                    context.set("vatOfferPeriodLicenceNy", vatOfferPeriodLicenceNy.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                    Amount offerPeriodLicenceBruttoNy =  offerPeriodNettoNy.add(vatOfferPeriodLicenceNy);
+                    context.set("offerPeriodLicenceBruttoNy", offerPeriodLicenceBruttoNy.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+
+                    context.set("priceBruttoSumNy", Amount.ZERO.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                    context.set("priceNettoSumNy", Amount.ZERO.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+                    context.set("priceVatSumNy", Amount.ZERO.toString(NumberFormat.TWO_DECIMAL_PLACES).asString());
+
+
+                } else {
+                    context.set("isOfferPeriodPresent", false);
                 }
+
+
                 String buyerMessage = "";
                 if (offer.getBuyer().isFilled()) {
                     buyerMessage = offer.getBuyer().getValue().getPerson().getAddressableName()
@@ -1360,7 +1410,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
                 Amount quantity = oi.getQuantity();
                 Amount price = oi.getSinglePrice();
                 price = price.times(quantity);
-                if (oi.getDiscountPresent()) {
+                if (oi.isDiscountPresent()) {
                     price.decreasePercent(oi.getDiscount());
                 }
                 OfferItemState state = oi.getState();

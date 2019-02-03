@@ -92,11 +92,11 @@ $!salutation
 
                      <td style="width:4cm">#if($item.stateIsVisible)$item.state#end</td>
                      #if($item.isService())
-                        <td style="width:4cm" align="right">$item.singlePriceComplete € </td>
+                        <td style="width:4cm" align="right">$item.singlePricePosition € </td>
                      #end
                      #if($item.isLicense())
                         <td style="width:4cm" align="right">#if($item.isPackageDefinitionSinglePricePresent())$item.singlePriceComplete € #end</td>
-                        <td style="width:4cm" align="right">$item.cyclicPriceComplete € </td>
+                        <td style="width:4cm" align="right">$item.cyclicPricePosition € </td>
                     #end
                 </tr>
                 #if($item.discountPresent)

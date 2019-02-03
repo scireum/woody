@@ -9,9 +9,6 @@
 package woody.offers;
 
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hashing;
-
 import sirius.biz.codelists.CodeLists;
 import sirius.biz.model.BizEntity;
 import sirius.biz.tenants.Tenants;
@@ -35,16 +32,12 @@ import sirius.kernel.nls.NLS;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
 import woody.sales.CompanyAccountingData;
-import woody.sales.Contract;
 import woody.sales.PackageDefinition;
 import woody.sales.Product;
 import woody.sales.ProductType;
 import woody.xrm.Company;
 
 import java.math.BigDecimal;
-import java.text.CharacterIterator;
-import java.text.MessageFormat;
-import java.text.StringCharacterIterator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -104,7 +97,7 @@ public class OfferItem extends BizEntity {
 //    private String quantityUnit;
 //    public static final Column QUANTITYUNIT = Column.named("quantityUnit");
 
-//    durch die Methode translateAccountingUnit ersetzt!
+//    durch die Methode getTranslateAccountingUnit ersetzt!
 //    /* contains the via codelist 'accountingUnit' translated value */
 //    @Autoloaded
 //    @Length(20)
@@ -185,13 +178,21 @@ public class OfferItem extends BizEntity {
     public static final Column HISTORY = Column.named("history");
 
 
-    /* used for offer: singlePriceComplete = (100-discount)/100 * quantity * singlePrice    */
+    /** used for offer: singlePricePosition = (100-discount)/100 * quantity * singlePrice    */
     @Transient
-    private Amount singlePriceComplete = Amount.NOTHING;
+    private Amount singlePricePosition = Amount.NOTHING;
 
-    /* used for offer: cyclicPriceComplete = 100-discount)/100 * quantity * cyclicPrice */
+    /** used for offer: cyclicPricePosition = 100-discount)/100 * quantity * cyclicPrice */
     @Transient
-    private Amount cyclicPriceComplete = Amount.NOTHING;
+    private Amount cyclicPricePosition = Amount.NOTHING;
+
+    /**
+     * this is the maintenance percent value.
+     * 1,5% meaning 1,5% from the monthly position-price
+     */
+    public Amount getMaintenancePercent() {
+        return Amount.of(1.5D);
+    }
 
     @Part
     private static ServiceAccountingService sas;
@@ -287,7 +288,7 @@ public class OfferItem extends BizEntity {
                 }
 
                 // translate the accountingUnit
-                String  unitTranslated = translateAccountingUnit();
+                String  unitTranslated = getTranslatedAccountingUnit();
 
                 // check the translated accountingUnit
                 if (Strings.isEmpty(unitTranslated)) {
@@ -476,7 +477,7 @@ public class OfferItem extends BizEntity {
        sas.updateOfferState(offer, true);
     }
 
-    public String translateAccountingUnit() {
+    public String getTranslatedAccountingUnit() {
         String accUnit = this.getPackageDefinition().getValue().getAccountingUnit();
         Tuple<String, String> tuple = cls.getValues("accountingUnit", accUnit);
         return tuple.getFirst();
@@ -498,7 +499,7 @@ public class OfferItem extends BizEntity {
         } else {
             s = s+o.getPriceBase() + NLS.toUserString(o.getSinglePrice()) + NLS.toUserString(o.getQuantity()) +
             o.getOffer().getValue().getUniqueName(); // getUnqiueObjectName();
-            if(getDiscountPresent()) {
+            if(isDiscountPresent()) {
                 s = s + NLS.toUserString(discount.toString());
             }
         }
@@ -516,7 +517,7 @@ public class OfferItem extends BizEntity {
         }
     }
 
-   public boolean getStateIsVisible() {
+   public Boolean isStateVisible() {
         if(state.equals(OfferItemState.OFFER)) {
             return false ;
         }  else {
@@ -524,13 +525,14 @@ public class OfferItem extends BizEntity {
         }
     }
 
-    public boolean getDiscountPresent() {
+    public Boolean isDiscountPresent() {
         if(discount != null && discount.isPositive()) {
             return true ;
         }  else {
             return false;
         }
     }
+
 
     public boolean isService() {
         return isIs(OfferItemType.SERVICE, true);
@@ -585,9 +587,7 @@ public class OfferItem extends BizEntity {
         return false;
     }
 
-    public Amount getMaintenancePercent() {
-        return Amount.of(1.5D);
-    }
+
 
     public boolean isPayMaintenance() {
         Product product = this.getPackageDefinition().getValue().getProduct().getValue();
@@ -600,7 +600,7 @@ public class OfferItem extends BizEntity {
     public String maintenanceIndividuellText() {
         if(this.isPayMaintenance()) {
             String  text = "Ab dem der Abnahme folgenden Jahr betragen die monatlichen Kosten für die Wartung "
-                           + NLS.toUserString(this.getMaintenancePercent()) + "% von " + NLS.toUserString(this.getCyclicPriceComplete()) +
+                           + NLS.toUserString(this.getMaintenancePercent()) + "% von " + NLS.toUserString(this.getCyclicPricePosition()) +
                            " EUR = " + NLS.toUserString(this.getPayMaintenancePrice()) + " EUR.";
             return text;
         } else {
@@ -608,17 +608,24 @@ public class OfferItem extends BizEntity {
         }
     }
 
+    public String getLicenseSpec() {
+        String licenseSpec = "Lizenz";
+        if(quantity != null) {
+            if(quantity.getAmount().compareTo(BigDecimal.valueOf(1)) > 0) {
+               licenseSpec = "Lizenzen";
+            }
+        }
+        return licenseSpec;
+    }
+
     /**
      * calculates the payMaintenancePrice per month for the given offerItem
      */
     public Amount getPayMaintenancePrice() {
-        Amount price = this.getCyclicPriceComplete().times(this.getMaintenancePercent());
+        Amount price = this.getCyclicPricePosition().times(this.getMaintenancePercent());
         price = price.divideBy(Amount.of(100D));
         return price;
     }
-
-
-
 
     public List<OfferItemType> getOfferItemTypeValues() {
         List<OfferItemType> offerItemTypeList = new ArrayList();
@@ -692,14 +699,6 @@ public class OfferItem extends BizEntity {
     public Amount getSinglePrice() {
         return singlePrice;
     }
-
-//    public String getAccountingUnitComplete() {
-//        return accountingUnitComplete;
-//    }
-//
-//    public void setAccountingUnitComplete(String accountingUnitComplete) {
-//        this.accountingUnitComplete = accountingUnitComplete;
-//    }
 
     public void setSinglePrice(Amount singlePrice) {
         this.singlePrice = singlePrice;
@@ -805,20 +804,20 @@ public class OfferItem extends BizEntity {
         this.contractStartDate = contractStartDate;
     }
 
-    public Amount getSinglePriceComplete() {
-        return singlePriceComplete;
+    public Amount getSinglePricePosition() {
+        return singlePricePosition;
     }
 
-    public void setSinglePriceComplete(Amount singlePriceComplete) {
-        this.singlePriceComplete = singlePriceComplete;
+    public void setSinglePricePosition(Amount singlePricePosition) {
+        this.singlePricePosition = singlePricePosition;
     }
 
-    public Amount getCyclicPriceComplete() {
-        return cyclicPriceComplete;
+    public Amount getCyclicPricePosition() {
+        return cyclicPricePosition;
     }
 
-    public void setCyclicPriceComplete(Amount cyclicPriceComplete) {
-        this.cyclicPriceComplete = cyclicPriceComplete;
+    public void setCyclicPricePosition(Amount cyclicPricePosition) {
+        this.cyclicPricePosition = cyclicPricePosition;
     }
 
 //    public String getQuantityUnit() {
