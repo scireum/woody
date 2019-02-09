@@ -8,7 +8,7 @@
 
 package woody.xrm;
 
-import sirius.biz.jdbc.model.PersonData;
+import sirius.biz.model.PersonData;
 import sirius.db.jdbc.OMA;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;

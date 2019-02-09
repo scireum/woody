@@ -8,8 +8,7 @@
 
 package woody.sales.accounting;
 
-
-import sirius.biz.jdbc.model.BizEntity;
+import sirius.biz.jdbc.BizEntity;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Numeric;
@@ -25,17 +24,18 @@ import java.time.LocalDateTime;
 
 public class Lineitem extends BizEntity {
 
-
     // Collmex-PositionType
     public static final int COLLMEX_NORMALPOSITION = 0;
+
     public int getLineitemCollmexNormalposition() {
-        return  COLLMEX_NORMALPOSITION;
+        return COLLMEX_NORMALPOSITION;
     }
 
     // private static final int COLLMEX_SUMMENPOSITION = 1; // current not used
     public static final int COLLMEX_TEXTPOSITION = 2;
+
     public int getLineitemCollmexTextposition() {
-        return  COLLMEX_TEXTPOSITION;
+        return COLLMEX_TEXTPOSITION;
     }
     // private static final int COLLMEX_KOSTENLOSPOSITION = 3; // current not used
 

@@ -9,8 +9,7 @@
 package woody.organization;
 
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import sirius.biz.jdbc.tenants.Tenants;
+import sirius.biz.tenants.Tenants;
 import sirius.db.jdbc.OMA;
 import sirius.db.mixing.Mixing;
 import sirius.db.mixing.query.QueryField;
@@ -42,16 +41,12 @@ public abstract class BasicRelationProvider implements RelationProvider {
     @Part
     protected Tenants tenants;
 
-    @NotNull
     protected abstract Class<? extends BasicElement<?>> getType();
 
-    @NotNull
     protected abstract String getURLPrefix();
 
-    @NotNull
     protected abstract Class<? extends BasicType> getMetaType();
 
-    @NotNull
     protected abstract String getCategoryTypeName();
 
     @Nonnull
@@ -95,11 +90,11 @@ public abstract class BasicRelationProvider implements RelationProvider {
     public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
         Tuple<String, String> typeAndId = Mixing.splitUniqueName(uniqueObjectName);
         return oma.select(getType())
-                  .fields(BasicElement.ID, BasicElement.NAME)
+                  .fields(BasicElement.ID, BasicElement.NAME, BasicElement.TYPE)
                   .eq(BasicElement.ID, typeAndId.getSecond())
                   .eq(BasicElement.TENANT, tenants.getRequiredTenant())
                   .first()
-                  .map(item -> ComparableTuple.create(item.getName(), getURLPrefix() + "/" + item.getIdAsString()));
+                  .map(item -> ComparableTuple.create(item.getFullName(), getURLPrefix() + "/" + item.getIdAsString()));
     }
 
     @Override

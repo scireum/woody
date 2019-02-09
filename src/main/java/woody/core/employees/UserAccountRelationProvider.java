@@ -8,10 +8,10 @@
 
 package woody.core.employees;
 
-import sirius.biz.jdbc.model.LoginData;
-import sirius.biz.jdbc.model.PersonData;
-import sirius.biz.jdbc.tenants.Tenants;
-import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.biz.model.LoginData;
+import sirius.biz.model.PersonData;
+import sirius.biz.tenants.Tenants;
+import sirius.biz.tenants.UserAccount;
 import sirius.db.jdbc.OMA;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.Mixing;
@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * Helps to build relations from and to <tt>UserAcconts</tt> our in our case {@link Employee}s.
+ * Helps to build relations from and to {@link UserAccount user accounts} our in our case {@link Employee employees}.
  */
 @Register
 public class UserAccountRelationProvider implements RelationProvider {

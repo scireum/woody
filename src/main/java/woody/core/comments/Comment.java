@@ -8,7 +8,6 @@
 
 package woody.core.comments;
 
-import sirius.biz.jdbc.tenants.UserAccount;
 import sirius.db.jdbc.SQLEntity;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Index;
@@ -54,7 +53,7 @@ public class Comment extends SQLEntity {
 
     /**
      * Contains the unique name of the person which created the comment which is probably either a {@link
-     * UserAccount} or {@link woody.xrm.Person}.
+     * sirius.biz.tenants.UserAccount} or {@link woody.xrm.Person}.
      */
     public static final Mapping PERSON_ENTITY = Mapping.named("personEntity");
     @Length(255)

@@ -8,7 +8,7 @@
 
 package woody.modules.collmex;
 
-import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.biz.tenants.UserAccount;
 import woody.xrm.Company;
 
 import java.util.HashMap;

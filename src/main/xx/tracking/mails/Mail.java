@@ -8,8 +8,8 @@
 
 package woody.xrm.tracking.mails;
 
-import sirius.biz.jdbc.model.BizEntity;
-import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.biz.jdbc.BizEntity;
+import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.jdbc.SQLEntityRef;
 import sirius.db.mixing.Mapping;

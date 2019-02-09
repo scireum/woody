@@ -8,7 +8,7 @@
 
 package woody.core.tags;
 
-import sirius.biz.jdbc.model.BizEntity;
+import sirius.biz.jdbc.BizEntity;
 import sirius.db.mixing.Mapping;
 
 /**

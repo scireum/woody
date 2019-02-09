@@ -8,7 +8,7 @@
 
 package woody.core.tags;
 
-import sirius.biz.jdbc.tenants.Tenants;
+import sirius.biz.tenants.Tenants;
 import sirius.db.jdbc.OMA;
 import sirius.db.jdbc.SQLEntity;
 import sirius.db.mixing.Composite;

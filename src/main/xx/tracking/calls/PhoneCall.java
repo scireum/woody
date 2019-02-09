@@ -8,9 +8,9 @@
 
 package woody.xrm.tracking.calls;
 
-import sirius.biz.jdbc.model.BizEntity;
-import sirius.db.mixing.Mapping;
+import sirius.biz.jdbc.BizEntity;
 import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.Lob;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -18,8 +18,8 @@ import sirius.kernel.commons.Strings;
 import sirius.kernel.nls.NLS;
 import woody.xrm.Company;
 import woody.xrm.Person;
-import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
 
 public class PhoneCall extends BizEntity {
 
@@ -27,14 +27,13 @@ public class PhoneCall extends BizEntity {
     private LocalDateTime starttime;
     public static final Mapping STARTTIME = Mapping.named("starttime");
 
-
-//    @Filter
+    //    @Filter
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
     @Length(20)
     private String state;
     public static final Mapping STATE = Mapping.named("state");
 
-//    @Filter(position = 1)
+    //    @Filter(position = 1)
     @NullAllowed
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
     private boolean top = false;
@@ -46,12 +45,11 @@ public class PhoneCall extends BizEntity {
     private String reason;
     public static final Mapping REASON = Mapping.named("reason");
 
-//    @Filter
+    //    @Filter
     @NullAllowed
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
     private boolean answered;
     public static final Mapping ANSWERED = Mapping.named("answered");
-
 
     @Length(255)
     @NullAllowed
@@ -64,7 +62,7 @@ public class PhoneCall extends BizEntity {
     private boolean incoming;
     public static final Mapping INCOMING = Mapping.named("incoming");
 
-//    @Filter(position=2)
+    //    @Filter(position=2)
     @Length(20)
     @NullAllowed
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
@@ -77,12 +75,11 @@ public class PhoneCall extends BizEntity {
     private boolean directionIn = false;
     public static final Mapping DIRECTIONIN = Mapping.named("directionIn");
 
-//    @Filter(position=2)
+    //    @Filter(position=2)
     @NullAllowed
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
     private boolean save = false;
     public static final Mapping SAVE = Mapping.named("save");
-
 
     private long callId;
     public static final Mapping CALLID = Mapping.named("callId");
@@ -90,8 +87,7 @@ public class PhoneCall extends BizEntity {
     private long cdrId;
     public static final Mapping CDRID = Mapping.named("cdrId");
 
-
-//    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
+    //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
     @Length(255)
     private String callercallerid;
     public static final Mapping CALLERCALLERID = Mapping.named("callercallerid");
@@ -101,7 +97,6 @@ public class PhoneCall extends BizEntity {
     @Length(255)
     private String calledcallerid;
     public static final Mapping CALLEDCALLERID = Mapping.named("calledcallerid");
-
 
     @NullAllowed
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
@@ -136,20 +131,18 @@ public class PhoneCall extends BizEntity {
     private long duration = 0;
     public static final Mapping DURATION = Mapping.named("duration");
 
-
     @NullAllowed
     @Length(50)
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
     private String callresult;
     public static final Mapping CALLRESULT = Mapping.named("callresult");
 
-//    @Filter(position=20)
+    //    @Filter(position=20)
     @NullAllowed
     @Length(50)
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})
     private String employeeShortName;
     public static final Mapping EMPLOYEESHORTNAME = Mapping.named("employeeShortName");
-
 
     @NullAllowed
 //    @Params({@Param(name = ParamsFieldConstants.PARAM_READONLY, value = "true")})

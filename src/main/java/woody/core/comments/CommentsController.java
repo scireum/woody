@@ -10,7 +10,7 @@ package woody.core.comments;
 
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
-import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
 import sirius.db.jdbc.SQLEntity;
 import sirius.kernel.commons.Strings;

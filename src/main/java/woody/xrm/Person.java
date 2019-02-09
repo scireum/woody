@@ -8,12 +8,12 @@
 
 package woody.xrm;
 
-import sirius.biz.jdbc.model.AddressData;
-import sirius.biz.jdbc.model.BizEntity;
-import sirius.biz.jdbc.model.ContactData;
-import sirius.biz.jdbc.model.InternationalAddressData;
-import sirius.biz.jdbc.model.LoginData;
-import sirius.biz.jdbc.model.PersonData;
+import sirius.biz.jdbc.BizEntity;
+import sirius.biz.model.AddressData;
+import sirius.biz.model.ContactData;
+import sirius.biz.model.InternationalAddressData;
+import sirius.biz.model.LoginData;
+import sirius.biz.model.PersonData;
 import sirius.biz.sequences.Sequences;
 import sirius.biz.web.Autoloaded;
 import sirius.db.jdbc.SQLEntityRef;
@@ -175,6 +175,11 @@ public class Person extends BizEntity implements HasComments, HasRelations {
     @Override
     public Relations getRelations() {
         return relations;
+    }
+
+    @Override
+    public String getTargetsString() {
+        return "XRM-PERSON";
     }
 
     public String getUniquePath() {

@@ -7,7 +7,7 @@
 
     <w:pageHeader titleKey="Person.plural"/>
 
-    <w:taggedSearch page="persons" baseUrl="/persons" suggestionsName="PERSON" />
+    <w:taggedSearch page="persons" baseUrl="/persons" suggestionsName="XRM-PERSON" />
 
     <w:table data="persons">
         <thead>

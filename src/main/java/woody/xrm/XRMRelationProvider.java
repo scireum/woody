@@ -9,9 +9,9 @@
 package woody.xrm;
 
 import com.google.common.collect.Lists;
-import sirius.biz.jdbc.model.AddressData;
-import sirius.biz.jdbc.model.PersonData;
-import sirius.biz.jdbc.tenants.Tenants;
+import sirius.biz.model.AddressData;
+import sirius.biz.model.PersonData;
+import sirius.biz.tenants.Tenants;
 import sirius.db.jdbc.OMA;
 import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.ComparableTuple;

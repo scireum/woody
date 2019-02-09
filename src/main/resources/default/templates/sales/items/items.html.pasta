@@ -1,0 +1,57 @@
+<i:arg type="Page" name="items"/>
+
+<w:page titleKey="Item.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/items">@i18n("Item.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Item.plural"/>
+
+    <w:taggedSearch page="items" baseUrl="/items" suggestionsName="ITEM">
+        <a class="btn btn-primary" href="/item/new">@i18n("Model.create")</a>
+    </w:taggedSearch>
+
+    <w:table data="items">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")
+            </th>
+            <th>
+                @i18n("Tag.targetType")
+            </th>
+            <th>
+                @i18n("Tag.viewInList")
+            </th>
+            <th>
+                @i18n("Model.color")
+            </th>
+            <th/>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.core.tags.Tag" var="tag" items="tags.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/tag/@tag.getId()">@tag.getName()</a>
+                </td>
+                <td>
+                    @controller.translateType(tag.getTargetType())
+                </td>
+                <td>
+                    @toUserString(tag.isViewInList())
+                </td>
+                <td>
+                    <woody:colorBox colorData="@tag.getColor()"/>
+                </td>
+
+                <td class="col-md-2 align-center">
+                    <w:deleteLink url="@apply('/tag/%s/delete',tag.getId())" page="tags"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="tags" baseUrl="tags"/>
+</w:page>

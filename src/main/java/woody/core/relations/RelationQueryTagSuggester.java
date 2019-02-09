@@ -8,7 +8,7 @@
 
 package woody.core.relations;
 
-import sirius.biz.jdbc.tenants.Tenants;
+import sirius.biz.tenants.Tenants;
 import sirius.biz.web.QueryTagSuggester;
 import sirius.db.jdbc.OMA;
 import sirius.db.mixing.BaseEntity;

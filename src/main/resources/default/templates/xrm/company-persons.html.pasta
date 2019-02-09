@@ -6,7 +6,9 @@
         <li><a href="/company/@company.getId()/persons">@i18n("Person.plural")</a></li>
     </i:block>
 
-    <w:taggedSearch page="persons" baseUrl="@apply('/company/%s/persons', company.getId())" suggestionsName="PERSON"/>
+    <w:taggedSearch page="persons" baseUrl="@apply('/company/%s/persons', company.getId())" suggestionsName="XRM-PERSON">
+        <a class="btn btn-primary" href="@apply('/company/%s/person/new', company.getId())">@i18n("Model.create")</a>
+    </w:taggedSearch>
 
     <w:table data="persons">
         <thead>

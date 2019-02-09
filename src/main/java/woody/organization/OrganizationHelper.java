@@ -58,8 +58,9 @@ public class OrganizationHelper {
     @Part
     private static OMA oma;
 
+    //TODO
     private static Cache<String, List<Category>> categoriesPerTenant =
-            CacheManager.createCache("categories-per-tenant");
+            CacheManager.createLocalCache("categories-per-tenant");
 
     public static void flushCategoryCache(Long tenantId) {
         if (tenantId == null) {

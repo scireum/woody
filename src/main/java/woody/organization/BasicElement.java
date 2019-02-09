@@ -8,13 +8,14 @@
 
 package woody.organization;
 
-import sirius.biz.jdbc.tenants.SQLTenantAware;
 import sirius.biz.protocol.JournalData;
 import sirius.biz.protocol.Journaled;
 import sirius.biz.sequences.Sequences;
+import sirius.biz.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.jdbc.SQLEntityRef;
 import sirius.db.mixing.Mapping;
+import sirius.db.mixing.Mixing;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -101,7 +102,7 @@ public abstract class BasicElement<T extends BasicType> extends SQLTenantAware
     }
 
     private long generateCode() {
-        return sequences.generateId(mixing.getNameForType(getType().getValue().getClass())
+        return sequences.generateId(Mixing.getNameForType(getType().getValue().getClass())
                                     + "-"
                                     + getType().getId()
                                     + "-"
@@ -146,6 +147,10 @@ public abstract class BasicElement<T extends BasicType> extends SQLTenantAware
 
     public String getName() {
         return name;
+    }
+
+    public String getFullName() {
+        return getType().getValue().getName() + ": " + name;
     }
 
     public void setName(String name) {

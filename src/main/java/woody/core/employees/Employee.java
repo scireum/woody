@@ -8,7 +8,7 @@
 
 package woody.core.employees;
 
-import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.Mixable;

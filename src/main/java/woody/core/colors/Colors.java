@@ -30,9 +30,10 @@ import java.util.stream.Collectors;
 public class Colors {
 
     public static final String FALLBACK_COLOR = "#cccccc";
-    private final Cache<String, String> colorCache = CacheManager.createCache("colors");
+    //TODO
+    private final Cache<String, String> colorCache = CacheManager.createLocalCache("colors");
     private final Cache<Tuple<String, String>, String> colorAssignmentCache =
-            CacheManager.createCache("color-assignments");
+            CacheManager.createLocalCache("color-assignments");
 
     @Part
     private OMA oma;

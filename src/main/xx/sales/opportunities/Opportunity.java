@@ -8,6 +8,7 @@
 
 package woody.sales.opportunities;
 
+import sirius.biz.jdbc.BizEntity;
 import sirius.biz.jdbc.model.BizEntity;
 import sirius.biz.jdbc.model.PersonData;
 import sirius.biz.jdbc.tenants.Tenants;

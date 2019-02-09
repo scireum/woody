@@ -8,7 +8,7 @@
 
 package woody.core.relations;
 
-import sirius.biz.jdbc.tenants.SQLTenantAware;
+import sirius.biz.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Length;
@@ -28,6 +28,7 @@ public class RelationType extends SQLTenantAware {
 
     public static final Mapping SOURCE_TYPE = Mapping.named("sourceType");
     @Length(100)
+    @NullAllowed
     @Trim
     private String sourceType;
 

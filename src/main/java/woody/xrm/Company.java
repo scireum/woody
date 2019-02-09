@@ -8,11 +8,11 @@
 
 package woody.xrm;
 
-import sirius.biz.jdbc.codelists.CodeLists;
-import sirius.biz.jdbc.model.AddressData;
-import sirius.biz.jdbc.model.ContactData;
-import sirius.biz.jdbc.model.InternationalAddressData;
-import sirius.biz.jdbc.tenants.SQLTenantAware;
+import sirius.biz.codelists.CodeLists;
+import sirius.biz.model.AddressData;
+import sirius.biz.model.ContactData;
+import sirius.biz.model.InternationalAddressData;
+import sirius.biz.tenants.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
@@ -52,6 +52,8 @@ public class Company extends SQLTenantAware implements HasComments, HasRelations
     public static final Mapping CUSTOMER_NUMBER = Mapping.named("customerNumber");
     @NullAllowed
     @Length(50)
+    @Trim
+    @Autoloaded
     private String customerNumber;
 
     public static final Mapping WEBSITE = Mapping.named("website");

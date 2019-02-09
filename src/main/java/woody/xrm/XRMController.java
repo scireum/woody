@@ -8,8 +8,8 @@
 
 package woody.xrm;
 
-import sirius.biz.jdbc.model.AddressData;
-import sirius.biz.jdbc.model.PersonData;
+import sirius.biz.model.AddressData;
+import sirius.biz.model.PersonData;
 import sirius.biz.web.BizController;
 import sirius.biz.web.SQLPageHelper;
 import sirius.db.jdbc.SmartQuery;
@@ -82,27 +82,16 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/edit")
     public void editCompany(WebContext ctx, String companyId) {
-        Company cl = findForTenant(Company.class, companyId);
-        if (ctx.isPOST()) {
-            try {
-                boolean wasNew = cl.isNew();
-                if (cl.isNew()) {
-                    cl.getTenant().setValue(tenants.getRequiredTenant());
-                }
-                load(ctx, cl);
-                oma.update(cl);
-                cl.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
-                showSavedMessage();
-                if (wasNew) {
-                    ctx.respondWith().redirectTemporarily("/company/" + cl.getId());
-                    return;
-                }
-            } catch (Throwable e) {
-                UserContext.handle(e);
-            }
-        }
+        Company company = findForTenant(Company.class, companyId);
 
-        ctx.respondWith().template("templates/xrm/company-details.html.pasta", cl);
+        boolean requestHandled = prepareSave(ctx).withAfterSaveURI("/company/${id}").withPostSaveHandler(isNew -> {
+            company.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
+        }).saveEntity(company);
+
+        if (!requestHandled) {
+            validate(company);
+            ctx.respondWith().template("templates/xrm/company-details.html.pasta", company);
+        }
     }
 
     @LoginRequired
@@ -167,10 +156,13 @@ public class XRMController extends BizController {
     public void person(WebContext ctx, String companyId, String personId) {
         Company company = findForTenant(Company.class, companyId);
         Person person = find(Person.class, personId);
-        assertNotNew(company);
         setOrVerify(person, person.getCompany(), company);
 
-        ctx.respondWith().template("templates/xrm/person-overview.html.pasta", company, person);
+        if (person.isNew()) {
+            ctx.respondWith().template("templates/xrm/person-details.html.pasta", company, person);
+        } else {
+            ctx.respondWith().template("templates/xrm/person-overview.html.pasta", company, person);
+        }
     }
 
     @LoginRequired
@@ -202,11 +194,14 @@ public class XRMController extends BizController {
 
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
-    @Routed("/person/:1/css")
-    public void personCSS(WebContext ctx, String personId) {
+    @Routed("/company/:1/person/:2/css")
+    public void personCSS(WebContext ctx, String companyId, String personId) {
+        Company company = findForTenant(Company.class, companyId);
         Person person = find(Person.class, personId);
+        assertNotNew(company);
         assertNotNew(person);
-        assertTenant(person.getCompany().getValue());
+        setOrVerify(person, person.getCompany(), company);
+
         if (ctx.ensureSafePOST()) {
             try {
                 load(ctx, person);
@@ -216,6 +211,6 @@ public class XRMController extends BizController {
                 UserContext.handle(e);
             }
         }
-        ctx.respondWith().template("templates/xrm/person-css.html.pasta", person.getCompany().getValue(), person);
+        ctx.respondWith().template("templates/xrm/person-css.html.pasta", company, person);
     }
 }

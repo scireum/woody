@@ -7,7 +7,7 @@
 
     <w:pageHeader titleKey="Company.plural"/>
 
-    <w:taggedSearch page="companies" baseUrl="/companies" suggestionsName="COMPANY">
+    <w:taggedSearch page="companies" baseUrl="/companies" suggestionsName="XRM-COMPANY">
         <a class="btn btn-primary" href="/company/new">@i18n("Model.create")</a>
     </w:taggedSearch>
 

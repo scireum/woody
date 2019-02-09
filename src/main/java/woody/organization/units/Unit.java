@@ -10,6 +10,7 @@ package woody.organization.units;
 
 import sirius.db.jdbc.SQLEntityRef;
 import sirius.db.mixing.Mapping;
+import sirius.db.mixing.Mixing;
 import sirius.db.mixing.annotations.AfterDelete;
 import sirius.db.mixing.annotations.Index;
 import sirius.db.mixing.annotations.Length;
@@ -43,7 +44,7 @@ public class Unit extends BasicElement<UnitType> {
 
     @Override
     public String getTargetString() {
-        return mixing.getNameForType(Unit.class) + "-" + getUniquePath() + "*";
+        return Mixing.getNameForType(Unit.class) + "-" + getUniquePath() + "*";
     }
 
     public SQLEntityRef<Unit> getParent() {

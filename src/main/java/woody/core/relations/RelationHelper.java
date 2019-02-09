@@ -8,7 +8,7 @@
 
 package woody.core.relations;
 
-import sirius.biz.jdbc.tenants.Tenants;
+import sirius.biz.tenants.Tenants;
 import sirius.db.jdbc.OMA;
 import sirius.kernel.cache.Cache;
 import sirius.kernel.cache.CacheManager;
@@ -42,8 +42,9 @@ public class RelationHelper {
 
     private static final ComparableTuple<String, String> EMPTY = ComparableTuple.create("-", null);
 
+    //TODO
     private final Cache<String, ComparableTuple<String, String>> targetNameCache =
-            CacheManager.createCache("relation-targets");
+            CacheManager.createLocalCache("relation-targets");
 
     public String getTargetName(Relation relation) {
         return getTargetNameAndUri(relation).getFirst();

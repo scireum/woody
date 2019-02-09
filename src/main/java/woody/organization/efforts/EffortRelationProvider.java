@@ -8,7 +8,6 @@
 
 package woody.organization.efforts;
 
-import org.jetbrains.annotations.NotNull;
 import sirius.kernel.di.std.Register;
 import woody.core.relations.RelationProvider;
 import woody.organization.BasicElement;
@@ -20,28 +19,23 @@ import woody.organization.BasicRelationProvider;
 @Register(classes = RelationProvider.class)
 public class EffortRelationProvider extends BasicRelationProvider {
 
-    @NotNull
     @Override
     protected Class<? extends BasicElement<?>> getType() {
         return Effort.class;
     }
 
-    @NotNull
     @Override
     protected String getURLPrefix() {
         return "/effort";
     }
 
-    @NotNull
     @Override
     protected Class<EffortType> getMetaType() {
         return EffortType.class;
     }
 
-    @NotNull
     @Override
     protected String getCategoryTypeName() {
         return EffortCategoryTypeProvider.TYPE_NAME;
     }
-
 }

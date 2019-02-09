@@ -8,10 +8,10 @@
 
 package woody.sales.accounting;
 
-import sirius.biz.jdbc.model.BizEntity;
+import sirius.biz.jdbc.BizEntity;
 import sirius.biz.web.Autoloaded;
-import sirius.db.mixing.Mapping;
 import sirius.db.jdbc.SQLEntityRef;
+import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -105,7 +105,6 @@ public class PackageDefinition extends BizEntity {
     @Part
     private static ServiceAccountingService sas;
 
-
     @BeforeSave
     private void beforeSave() {
         // check the values (interval-test)
@@ -113,7 +112,7 @@ public class PackageDefinition extends BizEntity {
         sas.checkValue(singlePrice, true, false, false, false, null, NLS.get("PackageDefinition.singlePrice"));
 
         // check te parameter-syntax
-     //   as.checkParameterSyntax(parameter);
+        //   as.checkParameterSyntax(parameter);
     }
 
     public SQLEntityRef<Product> getProduct() {

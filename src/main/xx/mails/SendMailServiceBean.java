@@ -8,7 +8,7 @@
 
 package woody.core.mails;
 
-import sirius.biz.jdbc.tenants.UserAccount;
+import sirius.biz.tenants.UserAccount;
 import sirius.db.jdbc.OMA;
 import sirius.kernel.commons.Context;
 import sirius.kernel.di.std.Part;

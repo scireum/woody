@@ -8,7 +8,8 @@
 
 package woody.xrm
 
-import sirius.biz.jdbc.tenants.Tenants
+
+import sirius.biz.tenants.Tenants
 import sirius.db.jdbc.OMA
 import sirius.kernel.BaseSpecification
 import sirius.kernel.commons.Amount

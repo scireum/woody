@@ -8,7 +8,7 @@
 
 package woody.core.lifecycles;
 
-import sirius.biz.jdbc.tenants.SQLTenantAware;
+import sirius.biz.tenants.SQLTenantAware;
 import sirius.db.mixing.Mapping;
 
 public class LifecycleState extends SQLTenantAware {

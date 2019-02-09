@@ -12,7 +12,7 @@
     <w:editForm url="@apply('/relations/type/%s', type.getIdAsString())">
         <div class="row">
             <i:if test="type.isNew()">
-                <w:singleSelect name="sourceType" labelKey="RelationType.sourceType">
+                <w:singleSelect name="sourceType" labelKey="RelationType.sourceType" optional="true">
                     <i:for type="String" var="t" items="controller.getSourceTypes()">
                         <option value="@t" @if (t.equals(type.getSourceType())) { selected="selected" }>@controller.translateType(t)</option>
                     </i:for>

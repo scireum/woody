@@ -8,7 +8,6 @@
 
 package woody.organization.units;
 
-import org.jetbrains.annotations.NotNull;
 import sirius.kernel.di.std.Register;
 import woody.core.relations.RelationProvider;
 import woody.organization.BasicElement;
@@ -21,25 +20,21 @@ import woody.organization.BasicType;
 @Register(classes = RelationProvider.class)
 public class UnitRelationProvider extends BasicRelationProvider {
 
-    @NotNull
     @Override
     protected Class<? extends BasicElement<?>> getType() {
         return Unit.class;
     }
 
-    @NotNull
     @Override
     protected String getURLPrefix() {
         return "/unit";
     }
 
-    @NotNull
     @Override
     protected Class<? extends BasicType> getMetaType() {
         return UnitType.class;
     }
 
-    @NotNull
     @Override
     protected String getCategoryTypeName() {
         return UnitCategoryTypeProvider.TYPE_NAME;
