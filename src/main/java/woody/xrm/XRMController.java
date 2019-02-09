@@ -174,22 +174,16 @@ public class XRMController extends BizController {
         assertNotNew(company);
         setOrVerify(person, person.getCompany(), company);
 
-        if (ctx.ensureSafePOST()) {
-            try {
-                boolean wasNew = person.isNew();
-                load(ctx, person);
-                oma.update(person);
-                person.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
-                showSavedMessage();
-                if (wasNew) {
-                    ctx.respondWith().redirectTemporarily("/company/" + company.getId() + "/person/" + person.getId());
-                    return;
-                }
-            } catch (Exception e) {
-                UserContext.handle(e);
-            }
+        boolean requestHandled = prepareSave(ctx).withAfterSaveURI("/company/" + company.getId() + "/person/${id}")
+                                                 .withPostSaveHandler(isNew -> {
+                                                     person.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
+                                                 })
+                                                 .saveEntity(company);
+
+        if (!requestHandled) {
+            validate(person);
+            ctx.respondWith().template("templates/xrm/person-details.html.pasta", company, person);
         }
-        ctx.respondWith().template("templates/xrm/person-details.html.pasta", company, person);
     }
 
     @LoginRequired
