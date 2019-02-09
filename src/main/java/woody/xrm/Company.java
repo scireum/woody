@@ -110,6 +110,11 @@ public class Company extends SQLTenantAware implements HasComments, HasRelations
         }
     }
 
+    @Override
+    public String getTargetsString() {
+        return "XRM-COMPANY";
+    }
+
     //
 //    @Part
 //    private static Mails mails;

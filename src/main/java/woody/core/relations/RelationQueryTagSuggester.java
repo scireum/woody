@@ -61,12 +61,9 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
         if (!searchTerm.startsWith("!:") && !searchTerm.startsWith(":")) {
             return;
         }
-        if (entityType == null) {
-            return;
-        }
+
         boolean inverted = searchTerm.startsWith("!:");
         String effectiveQuery = searchTerm.substring(inverted ? 2 : 1);
-        String sourceTypeName = mixing.getNameForType(entityType);
 
         oma.select(RelationType.class)
            .fields(RelationType.ID,
@@ -77,8 +74,9 @@ public class RelationQueryTagSuggester implements QueryTagSuggester {
                    RelationType.MULTIPLE,
                    RelationType.COLOR.inner(ColorData.COLOR).join(ColorDefinition.HEX_CODE))
            .eq(RelationType.TENANT, tenants.getRequiredTenant())
-           .where(OMA.FILTERS.or(OMA.FILTERS.eq(RelationType.SOURCE_TYPE, sourceTypeName),
-                                 OMA.FILTERS.like(RelationType.SOURCE_TYPE).matches(sourceTypeName + "-*").build()))
+           .where(OMA.FILTERS.or(OMA.FILTERS.eq(RelationType.SOURCE_TYPE, null),
+                                 OMA.FILTERS.eq(RelationType.SOURCE_TYPE, type),
+                                 OMA.FILTERS.like(RelationType.SOURCE_TYPE).matches(type + "-*").build()))
            .orderAsc(RelationType.SOURCE_TYPE)
            .orderAsc(RelationType.TARGET_TYPE)
            .iterateAll(relationType -> {
