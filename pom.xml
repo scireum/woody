@@ -15,10 +15,10 @@
     <url>https://github.com/scireum/woody</url>
 
     <properties>
-        <sirius.kernel>12.9</sirius.kernel>
+        <sirius.kernel>12.9.1</sirius.kernel>
         <sirius.web>22.1</sirius.web>
         <sirius.db>7.4</sirius.db>
-        <sirius.biz>9.5</sirius.biz>
+        <sirius.biz>9.5.1</sirius.biz>
     </properties>
 
     <dependencies>

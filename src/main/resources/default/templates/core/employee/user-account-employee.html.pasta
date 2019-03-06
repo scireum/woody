@@ -1,6 +1,6 @@
 <i:arg type="sirius.biz.tenants.UserAccount" name="account" />
 
-<i:invoke template="/templates/tenants/user-account.html.pasta" account="account" page="employee">
+<i:invoke template="/templates/biz/tenants/user-account.html.pasta" account="account" page="employee">
     <w:editForm url="@apply('/user-account/%s/employee', account.getIdAsString())">
         <div class="row">
             <w:textfield name="Employee_employeeNumber" value="@account.as(woody.core.employees.Employee.class).getEmployeeNumber()" labelKey="Employee.employeeNumber" span="4" />
