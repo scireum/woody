@@ -8,6 +8,7 @@
 
 package woody.core.colors;
 
+import sirius.biz.tenants.jdbc.SQLTenant;
 import sirius.biz.web.BizController;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
@@ -66,7 +67,7 @@ public class TypeColorAssignmentController extends BizController {
                                             .queryFirst();
         if (assignment == null) {
             assignment = new TypeColorAssignment();
-            assignment.getTenant().setValue(tenants.getRequiredTenant());
+            assignment.getTenant().setValue((SQLTenant) tenants.getRequiredTenant());
             assignment.setType(type);
         }
 

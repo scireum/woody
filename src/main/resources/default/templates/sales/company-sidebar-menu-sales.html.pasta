@@ -1,0 +1,5 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="String" name="page"/>
+
+<w:navboxLink labelKey="Discount.plural" url="@apply('/company/%s/discounts', company.getId())"
+              active="page == 'discounts'"/>

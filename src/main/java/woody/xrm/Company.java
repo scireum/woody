@@ -12,7 +12,7 @@ import sirius.biz.codelists.CodeLists;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.ContactData;
 import sirius.biz.model.InternationalAddressData;
-import sirius.biz.tenants.SQLTenantAware;
+import sirius.biz.tenants.jdbc.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
@@ -277,7 +277,7 @@ public class Company extends SQLTenantAware implements HasComments, HasRelations
     }
 
     @Part
-    private static CodeLists cls;
+    private static CodeLists<?, ?, ?> cls;
 
     public String getCountryName() {
         String countryCode = this.getAddress().getCountry();

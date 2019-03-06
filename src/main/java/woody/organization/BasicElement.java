@@ -11,7 +11,7 @@ package woody.organization;
 import sirius.biz.protocol.JournalData;
 import sirius.biz.protocol.Journaled;
 import sirius.biz.sequences.Sequences;
-import sirius.biz.tenants.SQLTenantAware;
+import sirius.biz.tenants.jdbc.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.jdbc.SQLEntityRef;
 import sirius.db.mixing.Mapping;
@@ -26,8 +26,6 @@ import sirius.kernel.nls.NLS;
 import woody.core.colors.Colors;
 import woody.core.comments.Commented;
 import woody.core.comments.HasComments;
-import woody.core.lifecycles.HasLifecycle;
-import woody.core.lifecycles.LifecycleData;
 import woody.core.relations.HasRelations;
 import woody.core.relations.IsRelateable;
 import woody.core.relations.Relateable;
@@ -38,7 +36,7 @@ import woody.core.tags.Tagged;
  * Created by aha on 13.01.17.
  */
 public abstract class BasicElement<T extends BasicType> extends SQLTenantAware
-        implements HasComments, HasRelations, IsRelateable, HasLifecycle, Journaled {
+        implements HasComments, HasRelations, IsRelateable, Journaled {
 
     public static final Mapping TYPE = Mapping.named("type");
     private final SQLEntityRef<T> type;
@@ -77,9 +75,6 @@ public abstract class BasicElement<T extends BasicType> extends SQLTenantAware
 
     public static final Mapping JOURNAL = Mapping.named("journal");
     private final JournalData journal = new JournalData(this);
-
-    public static final Mapping LIFECYCLE = Mapping.named("lifecycle");
-    private final LifecycleData lifecycle = new LifecycleData(this, LIFECYCLE);
 
     @Part
     private static Sequences sequences;
@@ -195,10 +190,5 @@ public abstract class BasicElement<T extends BasicType> extends SQLTenantAware
     @Override
     public JournalData getJournal() {
         return journal;
-    }
-
-    @Override
-    public LifecycleData getLifecycle() {
-        return lifecycle;
     }
 }

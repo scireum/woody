@@ -9,6 +9,7 @@
 package woody.core.employees;
 
 import sirius.biz.tenants.UserAccount;
+import sirius.biz.tenants.jdbc.SQLUserAccount;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.Mixable;
@@ -27,7 +28,7 @@ import java.util.function.Consumer;
 /**
  * Extends a <tt>UserAccount</tt> with information related to an employee.
  */
-@Mixin(UserAccount.class)
+@Mixin(SQLUserAccount.class)
 public class Employee extends Mixable {
 
     /**
@@ -89,13 +90,13 @@ public class Employee extends Mixable {
      *
      * @param owner the entity for which this mixin was created.
      */
-    public Employee(UserAccount owner) {
+    public Employee(SQLUserAccount owner) {
         relateable = new Relateable(owner);
     }
 
     @OnValidate
-    protected void checkIntegrity(UserAccount parent, Consumer<String> problemConsumer) {
-        if (getDischargeDate() != null && !parent.getLogin().isAccountLocked()) {
+    protected void checkIntegrity(SQLUserAccount parent, Consumer<String> problemConsumer) {
+        if (getDischargeDate() != null && !parent.getUserAccountData().getLogin().isAccountLocked()) {
             problemConsumer.accept(NLS.get("Employee.cannotDischargeWithoutLock"));
         }
     }

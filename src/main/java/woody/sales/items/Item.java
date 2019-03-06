@@ -8,7 +8,7 @@
 
 package woody.sales.items;
 
-import sirius.biz.tenants.SQLTenantAware;
+import sirius.biz.tenants.jdbc.SQLTenantAware;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -47,11 +47,9 @@ public class Item extends SQLTenantAware implements HasComments, HasRelations {
     @Numeric(scale = 3, precision = 15)
     private Amount monthlyCharge = Amount.NOTHING;
 
-    public static final Mapping PRICE_FACTOR_GROUP = Mapping.named("priceFactorGroup");
-    @Trim
-    @Length(10)
-    @NullAllowed
-    private String priceFactorGroup;
+    public static final Mapping PRICE_QUANTITY = Mapping.named("priceQuantity");
+    @Numeric(scale = 3, precision = 15)
+    private Amount priceQuantity = Amount.ONE;
 
     public static final Mapping DISCOUNT_GROUP = Mapping.named("discountGroup");
     @Trim
@@ -68,6 +66,14 @@ public class Item extends SQLTenantAware implements HasComments, HasRelations {
     @Trim
     @Length(10)
     private String quantityUnit;
+
+    public static final Mapping MIN_QUANTITY = Mapping.named("minQuantity");
+    @Numeric(scale = 3, precision = 15)
+    private Amount minQuantity = Amount.ONE;
+
+    public static final Mapping QUANTITY_STEP = Mapping.named("quantityStep");
+    @Numeric(scale = 3, precision = 15)
+    private Amount quantityStep = Amount.ONE;
 
     private final Tagged tags = new Tagged(this);
     public static final Mapping TAGS = Mapping.named("tags");

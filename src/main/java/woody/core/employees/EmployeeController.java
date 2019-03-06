@@ -8,8 +8,8 @@
 
 package woody.core.employees;
 
-import sirius.biz.tenants.UserAccount;
 import sirius.biz.tenants.UserAccountController;
+import sirius.biz.tenants.jdbc.SQLUserAccount;
 import sirius.biz.web.BizController;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.Controller;
@@ -34,7 +34,7 @@ public class EmployeeController extends BizController {
     @LoginRequired
     @Permission(UserAccountController.PERMISSION_MANAGE_USER_ACCOUNTS)
     public void employee(WebContext ctx, String accountId) {
-        UserAccount userAccount = findForTenant(UserAccount.class, accountId);
+        SQLUserAccount userAccount = findForTenant(SQLUserAccount.class, accountId);
 
         prepareSave(ctx).saveEntity(userAccount);
         validate(userAccount);

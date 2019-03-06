@@ -1,0 +1,51 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="Page" name="discounts"/>
+
+<i:invoke template="/templates/xrm/company.html.pasta" company="company" page="discounts">
+    <i:block name="breadcrumbs">
+        <li><a href="/company/@company.getId()/discounts">@i18n("Discount.plural")</a></li>
+    </i:block>
+
+    <w:tableSearchHeader page="discounts" baseUrl="@apply('/company/%s/discounts', company.getId())">
+        <a class="btn btn-primary" href="/company/@company.getId()/discount/new">@i18n("Model.create")</a>
+    </w:tableSearchHeader>
+
+    <w:table data="discounts">
+        <thead>
+        <tr>
+            <th>
+                @i18n("Model.name")
+            </th>
+            <th class="align-right">
+                @i18n("Discount.discountInPercent")
+            </th>
+            <th class="align-right">
+                @i18n("Discount.monthlyChargeDiscountInPercent")
+            </th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.sales.items.Discount" var="discount" items="discounts.getItems()">
+            <tr>
+                <td>
+                    <a class="link" href="/company/@company.getId()/discount/@discount.getId()">@discount.getDiscountGroup()</a>
+                </td>
+                <td class="align-right">
+                    @discount.getDiscountInPercent().toString(FORMAT_PERCENT)
+                </td>
+                <td class="align-right">
+                    @discount.getMonthlyChargeDiscountInPercent().toString(FORMAT_PERCENT)
+                </td>
+                <td class="col-md-2 align-center">
+                    <w:deleteLink
+                            url="@apply('/company/%s/discount/%s/delete',company.getIdAsString(), discount.getIdAsString())"
+                            page="discounts"/>
+                </td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="discounts" baseUrl="@apply('/company/%s/discounts', company.getId())"/>
+</i:invoke>

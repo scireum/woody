@@ -8,7 +8,7 @@
 
 package woody.organization;
 
-import sirius.biz.tenants.SQLTenantAware;
+import sirius.biz.tenants.jdbc.SQLTenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.jdbc.SQLEntityRef;
 import sirius.db.mixing.Mapping;

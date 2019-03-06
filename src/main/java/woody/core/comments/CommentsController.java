@@ -10,7 +10,7 @@ package woody.core.comments;
 
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
-import sirius.biz.tenants.UserAccount;
+import sirius.biz.tenants.jdbc.SQLUserAccount;
 import sirius.biz.web.BizController;
 import sirius.db.jdbc.SQLEntity;
 import sirius.kernel.commons.Strings;
@@ -71,7 +71,10 @@ public class CommentsController extends BizController {
         SQLEntity target = oma.resolveOrFail(object);
         if (target instanceof HasComments) {
             ((HasComments) target).getComments()
-                                  .addComment(getUser().getUserObject(UserAccount.class).getPerson().toString(),
+                                  .addComment(getUser().getUserObject(SQLUserAccount.class)
+                                                       .getUserAccountData()
+                                                       .getPerson()
+                                                       .toString(),
                                               getUser().getUserId(),
                                               ctx.get("comment").asString(),
                                               ctx.get("publicVisible").asBoolean());

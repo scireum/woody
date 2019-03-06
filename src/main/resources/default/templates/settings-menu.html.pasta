@@ -9,6 +9,11 @@
     <w:menuItem titleKey="TypeColorAssignment.plural" url="/colors/assignments" />
 </w:permission>
 
+<w:permission permission="permission-manage-items">
+    <li class="divider"></li>
+    <w:menuItem title="Item.plural" url="/sale/items" />
+</w:permission>
+
 
 <w:permission permission="permission-manage-categories,permission-manage-relation-types,permission-manage-unit-types,permission-manage-thing-types,permission-manage-effort-types">
     <li class="divider"></li>

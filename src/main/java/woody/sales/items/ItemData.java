@@ -51,9 +51,21 @@ public class ItemData extends Composite {
     @Numeric(scale = 3, precision = 15)
     private Amount quantity = Amount.ONE;
 
+    public static final Mapping MIN_QUANTITY = Mapping.named("minQuantity");
+    @Numeric(scale = 3, precision = 15)
+    private Amount minQuantity = Amount.ONE;
+
+    public static final Mapping QUANTITY_STEP = Mapping.named("quantityStep");
+    @Numeric(scale = 3, precision = 15)
+    private Amount quantityStep = Amount.ONE;
+
     public static final Mapping ONE_OFF_PRICE = Mapping.named("oneOffPrice");
     @Numeric(scale = 3, precision = 15)
     private Amount oneOffPrice = Amount.NOTHING;
+
+    public static final Mapping PRICE_QUANTITY = Mapping.named("priceQuantity");
+    @Numeric(scale = 3, precision = 15)
+    private Amount priceQuantity = Amount.ONE;
 
     public static final Mapping ABSOLUTE_DISCOUNT = Mapping.named("absoluteDiscount");
     @Numeric(scale = 3, precision = 15)

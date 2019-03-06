@@ -51,11 +51,9 @@
     </w:editForm>
 
     <w:formBar>
-        <i:if test="@person.isNew()">
-            <a href="@apply('/company/%s/persons', company.getIdAsString())" class="btn">@i18n("NLS.back")</a>
-            <i:else>
-                <w:tracing trace="@person.getTrace()" />
-            </i:else>
+        <a href="@apply('/company/%s/persons', company.getIdAsString())" class="btn">@i18n("NLS.back")</a>
+        <i:if test="!person.isNew()">
+            <w:tracing trace="@person.getTrace()" />
         </i:if>
     </w:formBar>
 </i:invoke>

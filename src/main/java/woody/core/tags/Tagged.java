@@ -9,6 +9,7 @@
 package woody.core.tags;
 
 import sirius.biz.tenants.Tenants;
+import sirius.biz.tenants.jdbc.SQLTenants;
 import sirius.db.jdbc.OMA;
 import sirius.db.jdbc.SQLEntity;
 import sirius.db.mixing.Composite;
@@ -38,15 +39,16 @@ public class Tagged extends Composite {
     @Transient
     protected final SQLEntity owner;
 
-    public Tagged(SQLEntity owner) {
-        this.owner = owner;
-    }
-
     @Part
     private static OMA oma;
 
     @Part
-    private static Tenants tenants;
+    private static SQLTenants tenants;
+
+    public Tagged(SQLEntity owner) {
+        this.owner = owner;
+    }
+
 
     @BeforeDelete
     protected void onDelete() {

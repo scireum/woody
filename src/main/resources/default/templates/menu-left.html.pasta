@@ -1,6 +1,10 @@
 <w:menuItem titleKey="Company.plural" url="/companies" permission="permission-manage-xrm" />
 <w:menuItem titleKey="Person.plural" url="/persons" permission="permission-manage-xrm" />
-<w:menuItem titleKey="Task.plural" url="/tasks" permission="permission-manage-tasks" />
+<w:menuDropdown titleKey="Menu.sales" permission="permission-manage-contracts,permission-manage-offers">
+    <w:menuItem title="Contract.plural" url="/sale/contracts"  permission="permission-manage-contracts" />
+    <w:menuItem title="Offer.plural" url="/sale/offers"  permission="permission-manage-offers" />
+</w:menuDropdown>
+
 
 <i:local name="categories" value="organization.getAccessibleCategories()" />
 

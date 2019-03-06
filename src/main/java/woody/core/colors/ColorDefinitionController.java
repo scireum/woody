@@ -8,6 +8,7 @@
 
 package woody.core.colors;
 
+import sirius.biz.tenants.jdbc.SQLTenant;
 import sirius.biz.web.BizController;
 import sirius.biz.web.SQLPageHelper;
 import sirius.db.mixing.query.QueryField;
@@ -67,7 +68,7 @@ public class ColorDefinitionController extends BizController {
                                        .queryFirst();
             if (color == null) {
                 color = new ColorDefinition();
-                color.getTenant().setValue(tenants.getRequiredTenant());
+                color.getTenant().setValue((SQLTenant) tenants.getRequiredTenant());
                 color.setName(name);
                 color.setPalette(palette);
             }

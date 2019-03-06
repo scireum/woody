@@ -1,0 +1,30 @@
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.sales.items.Discount" name="discount"/>
+<i:invoke template="/templates/xrm/company.html.pasta" company="company" page="discounts">
+    <w:editForm url="@apply('/company/%s/discount/%s', company.getIdAsString(), discount.getIdAsString())">
+        <div class="row">
+            <w:codelistSelect name="discountGroup"
+                              value="@discount.getDiscountGroup()"
+                              list="discountgroups"
+                              optional="false"
+                              labelKey="Model.discountGroup"/>
+        </div>
+        <div class="row">
+            <w:textfield name="discountInPercent"
+                         value="@discount.getDiscountInPercent().toString(FORMAT_TWO_DECIMAL_PLACES).asString()"
+                         addonText="%"
+                         labelKey="Discount.discountInPercent"/>
+            <w:textfield name="monthlyChargeDiscountInPercent"
+                         value="@discount.getMonthlyChargeDiscountInPercent().toString(FORMAT_TWO_DECIMAL_PLACES).asString()"
+                         addonText="%"
+                         labelKey="Discount.monthlyChargeDiscountInPercent"/>
+        </div>
+    </w:editForm>
+
+    <w:formBar>
+        <a href="@apply('/company/%s/discounts', company.getIdAsString())" class="btn">@i18n("NLS.back")</a>
+        <i:if test="!discount.isNew()">
+            <w:tracing trace="@discount.getTrace()" journal="@discount.getJournal()"/>
+        </i:if>
+    </w:formBar>
+</i:invoke>

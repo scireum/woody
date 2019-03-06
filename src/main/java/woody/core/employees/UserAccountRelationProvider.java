@@ -10,8 +10,10 @@ package woody.core.employees;
 
 import sirius.biz.model.LoginData;
 import sirius.biz.model.PersonData;
-import sirius.biz.tenants.Tenants;
 import sirius.biz.tenants.UserAccount;
+import sirius.biz.tenants.UserAccountData;
+import sirius.biz.tenants.jdbc.SQLTenants;
+import sirius.biz.tenants.jdbc.SQLUserAccount;
 import sirius.db.jdbc.OMA;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.Mixing;
@@ -44,7 +46,7 @@ public class UserAccountRelationProvider implements RelationProvider {
     private Mixing mixing;
 
     @Part
-    protected Tenants tenants;
+    protected SQLTenants tenants;
 
     @Nonnull
     @Override
@@ -54,22 +56,25 @@ public class UserAccountRelationProvider implements RelationProvider {
 
     @Override
     public void computeSearchSuggestions(String subType, String query, Consumer<Tuple<String, String>> consumer) {
-        oma.select(UserAccount.class)
-           .fields(UserAccount.ID,
-                   UserAccount.LOGIN.inner(LoginData.USERNAME),
+        oma.select(SQLUserAccount.class)
+           .fields(SQLUserAccount.ID,
+                   UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.LOGIN).inner(LoginData.USERNAME),
                    Mapping.mixin(Employee.class).inner(Employee.SHORT_NAME),
-                   UserAccount.PERSON.inner(PersonData.FIRSTNAME),
-                   UserAccount.PERSON.inner(PersonData.LASTNAME))
+                   UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.PERSON).inner(PersonData.FIRSTNAME),
+                   UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.PERSON).inner(PersonData.LASTNAME))
            .eq(UserAccount.TENANT, tenants.getRequiredTenant())
            .queryString(query,
-                        QueryField.contains(UserAccount.LOGIN.inner(LoginData.USERNAME)),
+                        QueryField.contains(UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.LOGIN)
+                                                                         .inner(LoginData.USERNAME)),
                         QueryField.contains(Mapping.mixin(Employee.class).inner(Employee.SHORT_NAME)),
-                        QueryField.contains(UserAccount.PERSON.inner(PersonData.LASTNAME)),
-                        QueryField.contains(UserAccount.PERSON.inner(PersonData.FIRSTNAME)))
+                        QueryField.contains(UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.PERSON)
+                                                                         .inner(PersonData.LASTNAME)),
+                        QueryField.contains(UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.PERSON)
+                                                                         .inner(PersonData.FIRSTNAME)))
            .orderAsc(Mapping.mixin(Employee.class).inner(Employee.SHORT_NAME))
-           .orderAsc(UserAccount.LOGIN.inner(LoginData.USERNAME))
-           .orderAsc(UserAccount.PERSON.inner(PersonData.LASTNAME))
-           .orderAsc(UserAccount.PERSON.inner(PersonData.FIRSTNAME))
+           .orderAsc(UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.LOGIN).inner(LoginData.USERNAME))
+           .orderAsc(UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.PERSON).inner(PersonData.LASTNAME))
+           .orderAsc(UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.PERSON).inner(PersonData.FIRSTNAME))
            .iterateAll(user -> consumer.accept(Tuple.create(getName() + "-" + user.getIdAsString(),
                                                             renderUserAccount(user))));
     }
@@ -84,22 +89,22 @@ public class UserAccountRelationProvider implements RelationProvider {
     @Override
     public Optional<ComparableTuple<String, String>> resolveNameAndUri(String uniqueObjectName) {
         Tuple<String, String> typeAndId = Mixing.splitUniqueName(uniqueObjectName);
-        return oma.select(UserAccount.class)
-                  .fields(UserAccount.ID,
-                          UserAccount.LOGIN.inner(LoginData.USERNAME),
+        return oma.select(SQLUserAccount.class)
+                  .fields(SQLUserAccount.ID,
+                          UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.LOGIN).inner(LoginData.USERNAME),
                           Mapping.mixin(Employee.class).inner(Employee.SHORT_NAME),
-                          UserAccount.PERSON.inner(PersonData.FIRSTNAME),
-                          UserAccount.PERSON.inner(PersonData.LASTNAME))
-                  .eq(UserAccount.ID, typeAndId.getSecond())
+                          UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.PERSON).inner(PersonData.FIRSTNAME),
+                          UserAccount.USER_ACCOUNT_DATA.inner(UserAccountData.PERSON).inner(PersonData.LASTNAME))
+                  .eq(SQLUserAccount.ID, typeAndId.getSecond())
                   .first()
                   .map(user -> ComparableTuple.create(renderUserAccount(user),
                                                       "/user-account/" + user.getIdAsString()));
     }
 
-    protected String renderUserAccount(UserAccount user) {
+    protected String renderUserAccount(SQLUserAccount user) {
         return Strings.isFilled(user.as(Employee.class).getShortName()) ?
                user.as(Employee.class).getShortName() :
-               user.getLogin().getUsername();
+               user.getUserAccountData().getLogin().getUsername();
     }
 
     @Override

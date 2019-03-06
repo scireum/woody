@@ -140,14 +140,14 @@ public class XRMController extends BizController {
     @LoginRequired
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1/person/:2/delete")
-    public void deletePerson(WebContext ctx, String companyId, String personId) {//TODO ???
+    public void deletePerson(WebContext ctx, String companyId, String personId) {
         Optional<Person> person = tryFind(Person.class, personId);
         if (person.isPresent()) {
             assertTenant(person.get().getCompany().getValue());
             oma.delete(person.get());
             showDeletedMessage();
         }
-        companyPersons(ctx, companyId);
+        ctx.respondWith().redirectToGet("/company/" + companyId + "/persons");
     }
 
     @LoginRequired
@@ -178,7 +178,7 @@ public class XRMController extends BizController {
                                                  .withPostSaveHandler(isNew -> {
                                                      person.getTags().updateTagsToBe(ctx.getParameters("tags"), false);
                                                  })
-                                                 .saveEntity(company);
+                                                 .saveEntity(person);
 
         if (!requestHandled) {
             validate(person);
