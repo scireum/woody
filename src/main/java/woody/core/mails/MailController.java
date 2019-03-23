@@ -12,6 +12,7 @@ import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
 import sirius.kernel.commons.Context;
 import sirius.kernel.commons.Strings;
+import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
@@ -55,32 +56,40 @@ public class MailController extends BizController {
     @Part
     private static Templates templates;
 
+//    @Part
+//    private static SendMailService sms;
+
     @Part
-    private static SendMailService sms;
+    private static MailService msv;
 
     // Taste 'Mail senden' wurde gedrückt
     @LoginRequired
     @Permission(MANAGE_XRM)
     @Routed("/mail/:1/sendMail")
     public void sendMail(WebContext ctx, String mailId) {
-
         Mail mail = find(Mail.class, mailId);
         Person person = mail.getPersonEntity().getValue();
         Company company = person.getCompany().getValue();
-        Offer offer = null;
-        List<Mailtemplate> templateList = new ArrayList();
-        if(mail.getTemplate() != null) {
-            templateList.add(oma.select(Mailtemplate.class).eq(Mailtemplate.NAME,mail.getTemplate()).queryFirst());
-        }
-        if(mail == null) {
-            ctx.respondWith().template("templates/mails/mail-details.html", templateList, mail, mail.getFunction());
-            return;
-        }
+        List<Mailtemplate> templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
+        invokeMailtemplate(mail, person, company);
+//        if(mail.getMailtemplate() != null) {
+//            templateList.add(mail.getMailtemplate().getValue());
+//        }
+//        if(mail == null) {
+//            ctx.respondWith().template("templates/mails/mail-details.html", templateList, mail, mail.getFunction());
+//            return;
+//        }
         if(Strings.isEmpty(mail.getSubject())) {
             UserContext.message(Message.info("Bei der Mail ist der 'Betreff' leer, deshalb kann keine Mail gesendet werden."));
-            ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person);
+            ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
             return;
         }
+        if(Strings.isEmpty(mail.getText())) {
+            UserContext.message(Message.info("Bei der Mail ist der 'Text' leer, deshalb kann keine Mail gesendet werden."));
+            ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
+            return;
+        }
+        Offer offer = null;
         switch (mail.getFunction()) {
             case ServiceAccountingService.OFFER:
             case ServiceAccountingService.SALES_CONFIRMATION:
@@ -90,13 +99,14 @@ public class MailController extends BizController {
                 }
             case ServiceAccountingService.NORMAL_MAIL:
                 break;
+            default:
         }
-        List<String> messageList = sms.prepareAndSendMail(offer, mail);
+        List<String> messageList = msv.prepareAndSendMail(offer, mail);
         for(String s: messageList) {
             UserContext.message(Message.info(s));
         }
 
-        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person);
+        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
     }
 
     private Offer buildOfferFromMail(Mail mail) {
@@ -146,7 +156,7 @@ public class MailController extends BizController {
         mail.setReceiverAddress(receiver);
         mail.setSenderAddress(sender);
         mail.setFunction(function);
-        mail.setTemplate(mailTemplateName);
+        mail.getMailtemplate().setValue(null);
         mail.setAttachmentName("keine");
         Mailtemplate mailtemplate = oma.select(Mailtemplate.class).eq(Mailtemplate.NAME, mailTemplateName).queryFirst();
 
@@ -162,12 +172,12 @@ public class MailController extends BizController {
         oma.update(mail);
         // Mail-Template in Liste vorbelegen
         List<Mailtemplate> templateList = new ArrayList();
-        if (mail.getTemplate() != null) {
-            Mailtemplate template = oma.select(Mailtemplate.class).eq(Mailtemplate.NAME, mail.getTemplate()).queryFirst();
-            templateList.add(template);
+        if (mail.getMailtemplate() != null) {
+
+            templateList.add(mail.getMailtemplate().getValue());
         }
         Company company = person.getCompany().getValue();
-        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person);
+        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
     }
 
 
@@ -177,10 +187,15 @@ public class MailController extends BizController {
     @Routed("/mail/:1/edit")
     public void editMail(WebContext ctx, String mailId) {
         Mail mail = findForTenant(Mail.class, mailId);
+        Person person = mail.getPersonEntity().getValue();
+        Company company = person.getCompany().getValue();
         if (ctx.isPOST()) {
             try {
                 boolean wasNew = mail.isNew();
                 load(ctx, mail);
+                invokeMailtemplate(mail, person, company);
+                mail.setReceiverAddress(msv.getPersonMailAddress(person));
+                mail.setSenderAddress(msv.getUacMailAddress(mail.getEmployeeEntity().getValue()));
                 oma.update(mail);
                 showSavedMessage();
                 if (wasNew) {
@@ -191,16 +206,84 @@ public class MailController extends BizController {
                 UserContext.handle(e);
             }
         }
-        Person person = mail.getPersonEntity().getValue();
-        Company company = person.getCompany().getValue();
-        List<Mailtemplate> templateList = new ArrayList();
-        if(!mail.getTemplate().isEmpty()) {
-            templateList.add(oma.select(Mailtemplate.class).eq(Mailtemplate.NAME,mail.getTemplate()).queryFirst());
+
+//        List<Mailtemplate> templateList = new ArrayList();
+//        if(mail.getMailtemplate() != null ) {
+//            templateList.add(mail.getMailtemplate().getValue());
+//        } else {
+//            templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
+//        }
+        List<Mailtemplate> templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
+        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
+    }
+
+    private void invokeMailtemplate(Mail mail, Person person, Company company) {
+        // check the presence ogf a mailtemplate
+        if(mail.getMailtemplate() == null || mail.getMailtemplate().getValue() == null) {
+            return;
         }
-        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person);
+        if(Strings.isEmpty(mail.getFunction())) {
+            for(Tuple<String,String> tuple: MailService.mailFunctionTuples) {
+                if(tuple.getFirst().equals(mail.getMailtemplate().getValue().getName())) {
+                    mail.setFunction(tuple.getSecond());
+                    break;
+                }
+            }
+        }
+        if(Strings.isEmpty(mail.getFunction())) {
+            mail.setFunction(MailService.NORMAL_MAIL);
+        }
+        // check: is the subject tp prepare
+        boolean prepareSubject = false;
+        if(Strings.isEmpty(mail.getSubject()) || mail.getSubject().contains("@")) {
+            prepareSubject = true;
+        }
+        // ceck: is the text to prepare
+        boolean prepareText = false;
+        if(Strings.isEmpty(mail.getText()) || mail.getText().contains("@")) {
+            prepareText = true;
+        }
+        // if nothing to do --> return
+        if(!prepareSubject && !prepareText) {
+            return;
+        }
+        // get the mailtemplate and build the context
+        Mailtemplate template = mail.getMailtemplate().getValue();
+        Context context = new Context();
+        context.set("person", person);
+        if(company != null) {
+            context.set("company", company);
+        }
+        // prepare the subject
+        if(prepareSubject) {
+            String subject = templates.generator()
+                                      .direct(template.getSubject(), TagliatelleContentHandler.PASTA)
+                                      .applyContext(context)
+                                      .generate();
+            mail.setSubject(subject);
+        }
+        // prepare the text
+        if(prepareText) {
+            String text = templates.generator()
+                                   .direct(template.getMailcontent(), TagliatelleContentHandler.PASTA)
+                                   .applyContext(context)
+                                   .generate();
+            mail.setText(text);
+        }
     }
 
 
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/mail/:1/prepareMail")
+    public void prepareMailtemplate(WebContext ctx, String mailId, String templateId) {
+        Mail mail = findForTenant(Mail.class, mailId);
+//        Mailtemplate template = findForTenant(Mailtemplate.class, templateId);
+        Person person = mail.getPersonEntity().getValue();
+        Company company = person.getCompany().getValue();
+        List<Mailtemplate> templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
+        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
+    }
 //
 //    // Taste Speichern bei view 'mail-details.html' wurde gedrückt
 //    @LoginRequired

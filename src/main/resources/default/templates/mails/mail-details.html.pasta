@@ -4,23 +4,46 @@
 <i:arg type="String" name="function"/>
 <i:arg type="woody.xrm.Company" name="company"/>
 <i:arg type="woody.xrm.Person" name="person"/>
+<i:arg type="List" name="functionList"/>
+
 <i:invoke template="templates/xrm/person.html.pasta" company="company" person="person" page="details">
 
     <w:editForm url="@apply('/mail/%s/edit', mail.getIdAsString())">
+        <i:local name="mtSave" value="" />
+
         <div class="row">
-            <w:singleSelect name="mailtemplate" labelKey="Mail.mailtemplate"  optional="false">
+            <w:singleSelect name="mailtemplate" labelKey="Mailtemplate.plural"  optional="false">
                 <i:for type="woody.core.mails.Mailtemplate" var="mailtemplate" items="mailtemplateList">
-                    <option value="@mailtemplate.getIdAsString()" @if (mail.getTemplate().equals(mailtemplate)) { selected = "selected" }>@mailtemplate.getName()</option>
+                    <option value="@mailtemplate.getIdAsString()" @if (mail.getMailtemplate().getValue().equals(mailtemplate)) {
+                             selected = "selected" }>@mailtemplate.getName()
+                    </option>
                 </i:for>
             </w:singleSelect>
 
+            <w:textfield name="actualMailtemplate" value="@mail.getMailtemplate().getValue().as(woody.core.mails.Mailtemplate.class).getName()" labelKey="Mail.actualTemplate" required="false" />
+        </div>
+        <div class="row">
+                <w:singleSelect name="function" labelKey="Mail.functionList"  optional="false">
+                    <i:for type="String" var="function" items="functionList">
+                        <option value="@function" @if (mail.getFunction().equals(function)) {
+                                 selected = "selected" }>@function
+                        </option>
+                    </i:for>
+                </w:singleSelect>
+              <w:textfield name="actualfunction" value="@mail.getFunction()" labelKey="Mail.function" required="false" />
+        </div>
+        <div class="row">
             <w:textfield name="senderAddress" value="@mail.getSenderAddress()" labelKey="Mail.senderAddress" required="false" />
             <w:textfield name="receiverAddress" value="@mail.getReceiverAddress()" labelKey="Mail.receiverAddress" required="false" />
+        </div>
+        <div class="row">
             <w:textfield name="subject" value="@mail.getSubject()" labelKey="Mail.subject" required="false" />
+        </div>
+        <div class="row">
             <w:textarea name="text" value="@mail.getText()" labelKey="Mail.text" required="false" />
+        </div>
+        <div class="row">
             <w:textfield name="attachmentName" value="@mail.getAttachmentName()" labelKey="Mail.attachmentName" required="false" />
-
-
         </div>
 
     </w:editForm>

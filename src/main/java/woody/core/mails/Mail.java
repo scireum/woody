@@ -110,13 +110,12 @@ public class Mail extends BizEntity {
     public static final Column ATTACHMENTNAME = Column.named("attachmentName");
 
     @Autoloaded
-    @Length(50)
     @NullAllowed
-    private String template;
+    private final EntityRef<Mailtemplate> mailtemplate = EntityRef.on(Mailtemplate.class, EntityRef.OnDelete.REJECT);
     public static final Column TEMPLATE = Column.named("template");
 
     // the usageId contents the uniqueName of the business action, e.g. a offer or a invoice or ...
-    // is no business action present then te usageId = null.
+    // is no business action present then the usageId = null.
     @Autoloaded
     @Length(50)
     @NullAllowed
@@ -240,12 +239,8 @@ public class Mail extends BizEntity {
         return publicVisible;
     }
 
-    public String getTemplate() {
-        return template;
-    }
-
-    public void setTemplate(String template) {
-        this.template = template;
+    public EntityRef<Mailtemplate> getMailtemplate() {
+        return mailtemplate;
     }
 
     public LocalDateTime getSendDate() {

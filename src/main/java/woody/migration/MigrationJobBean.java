@@ -8,14 +8,17 @@
 
 package woody.migration;
 
+import org.apache.poi.ss.formula.functions.T;
 import sirius.db.jdbc.Database;
 import sirius.db.jdbc.Databases;
 import sirius.db.mixing.OMA;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
+import woody.opportunities.Opportunity;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * Created by gerhardhaufler on 01.01.19.
@@ -33,6 +36,9 @@ public class MigrationJobBean implements MigrationJob{
 
     @Part
     private static Databases databases;
+
+    @Part
+    private static OMA oma;
 
     @Override
     public void migrateCrmToWdody() {
@@ -59,6 +65,7 @@ public class MigrationJobBean implements MigrationJob{
         mts.migrateCrmDataToWoody("mailtemplate", null);
         mts.migrateCrmDataToWoody("industry", null);
         mts.migrateCrmDataToWoody("tag", null);
+        mts.migrateCrmDataToWoody("campaign", null);
         mts.migrateCrmDataToWoody("company", null);
         mts.migrateCrmDataToWoody("person", null);
         mts.migrateCrmDataToWoody("product", null);
@@ -67,6 +74,8 @@ public class MigrationJobBean implements MigrationJob{
         mts.migrateCrmDataToWoody("offer", null);
         mts.migrateCrmDataToWoody("offerItem", null);
         mts.migrateCrmDataToWoody("opportunity", null);
+        mts.saveAllOpportunities();
+        mts.migrateCrmDataToWoody("opportunityStateChanges", null);
         mts.migrateCrmDataToWoody("comment", null);
 
         // add more data to several tables
@@ -107,12 +116,14 @@ public class MigrationJobBean implements MigrationJob{
         // do not change the order!
         mts.deleteDataPrivacyPersonsInCompanies();
         mts.deleteContentOfTable(dbWoody, "phonecall");
+        mts.deleteContentOfTable(dbWoody, "opportunityStateChanges");
         mts.deleteContentOfTable(dbWoody, "tagassignment");
         mts.deleteContentOfTable(dbWoody, "tag");
         mts.deleteContentOfTable(dbWoody, "notemail");
         mts.deleteContentOfTable(dbWoody, "comment");
         mts.deleteContentOfTable(dbWoody, "mail");
         mts.deleteContentOfTable(dbWoody, "opportunity");
+        mts.deleteContentOfTable(dbWoody, "campaign");
         mts.deleteContentOfTable(dbWoody, "offerItem");
         mts.deleteContentOfTable(dbWoody, "offer");
         mts.deleteContentOfTable(dbWoody, "contract");
@@ -122,13 +133,11 @@ public class MigrationJobBean implements MigrationJob{
         mts.deleteContentOfTable(dbWoody, "person");
         mts.deleteContentOfTable(dbWoody, "industry");
         mts.deleteContentOfTable(dbWoody, "company");
+
         mts.deleteContentOfTable(dbWoody, "mailtemplate");
 
         System.out.println("Ende delete Woody" );
 
         run = false;
     }
-
-
-
 }

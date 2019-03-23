@@ -1,0 +1,38 @@
+<i:arg type="Page" name="opportunities" />
+
+<w:page titleKey="Opportunity.plural">
+    <i:block name="breadcrumbs">
+        <li><a href="/opportunities">@i18n("Opportunity.plural")</a></li>
+    </i:block>
+
+    <w:pageHeader titleKey="Opportunity.plural"/>
+
+    <w:taggedSearch page="opportunities" baseUrl="/opportunities" suggestionsName="OPPORTUNITY" />
+
+    <w:table data="opportunities">
+        <thead>
+        <tr>
+            <th>@i18n("Opportunity.company")</th>
+            <th>@i18n("Opportunity.source")</th>
+            <th>@i18n("Opportunity.employee")</th>
+            <th>@i18n("Opportunity.newState")</th>
+            <th>@i18n("Opportunity.nextInteraction")</th>
+            <th>@i18n("Opportunity.contractValue")</th>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="woody.opportunities.Opportunity" var="opportunity" items="opportunities.getItems()">
+            <tr>
+                <td>@opportunity.getCompany().getValue().as(woody.xrm.Company.class).getName()</td>
+                <td><a class="link" href="/company/@opportunity.getCompany().getId()/opportunity/@opportunity.getId()">@opportunity.getSource()</a></td>
+                <td>@opportunity.getUserAccount().getValue().as(woody.core.employees.Employee.class).getShortName()</td>
+                <td>@opportunity.getNewState().toString()</td>
+                <td>@toUserString(opportunity.getNextInteraction())</td>
+                <td>@toUserString(opportunity.getContractValue())</td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+
+    <w:pagination page="opportunities" baseUrl="opportunities"/>
+</w:page>

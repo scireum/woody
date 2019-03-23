@@ -11,6 +11,7 @@ package woody.xrm;
 import sirius.biz.model.AddressData;
 import sirius.biz.model.PersonData;
 import sirius.biz.sequences.Sequences;
+import sirius.biz.tenants.UserAccount;
 import sirius.biz.web.BizController;
 import sirius.biz.web.PageHelper;
 import sirius.db.mixing.SmartQuery;
@@ -34,10 +35,15 @@ import sirius.web.security.LoginRequired;
 import sirius.web.security.Permission;
 import sirius.web.security.UserContext;
 import sirius.web.security.UserInfo;
+import woody.core.employees.Employee;
+import woody.core.mails.Mail;
+import woody.core.mails.MailService;
+import woody.core.mails.Mailtemplate;
 import woody.core.relations.RelationHelper;
 import woody.core.tags.Tag;
 import woody.migration.MigrationJob;
 import woody.offers.ServiceAccountingService;
+import woody.phoneCalls.Starface;
 import woody.sales.AccountingService;
 import woody.sales.Contract;
 
@@ -73,6 +79,12 @@ public class XRMController extends BizController {
 
     @Part
     private static Sequences sequences;
+
+    @Part
+    private static Starface stf;
+
+    @Part
+    private static MailService msv;
 
     @DefaultRoute
     @Routed("/")
@@ -145,11 +157,11 @@ public class XRMController extends BizController {
     @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/company/:1")
     public void company(WebContext ctx, String companyId) {
-        Company cl = findForTenant(Company.class, companyId);
-        if (cl.isNew()) {
-            ctx.respondWith().template("templates/xrm/company-details.html.pasta", cl);
+        Company company = findForTenant(Company.class, companyId);
+        if (company.isNew()) {
+            ctx.respondWith().template("templates/xrm/company-details.html.pasta", company);
         } else {
-            ctx.respondWith().template("templates/xrm/company-overview.html.pasta", cl);
+            ctx.respondWith().template("templates/xrm/company-overview.html.pasta", company);
         }
     }
 
@@ -347,6 +359,51 @@ public class XRMController extends BizController {
             }
         }
         ctx.respondWith().template("templates/xrm/person-details.html.pasta", company, person);
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/person/:2/phonecall")
+    public void personPhonecall(WebContext ctx, String companyId, String personId) {
+        Company company = findForTenant(Company.class, companyId);
+        Person person = find(Person.class, personId);
+        assertNotNew(company);
+        setOrVerify(person, person.getCompany(), company);
+        UserInfo ui = UserContext.getCurrentUser();
+        Employee employee = ui.as(Employee.class);
+        stf.createPhoneCall(employee, person.getContact().getPhone());
+        ctx.respondWith().template("templates/xrm/person-details.html.pasta", company, person);
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/person/:2/mobilecall")
+    public void mobilePhonecall(WebContext ctx, String companyId, String personId) {
+        Company company = findForTenant(Company.class, companyId);
+        Person person = find(Person.class, personId);
+        assertNotNew(company);
+        setOrVerify(person, person.getCompany(), company);
+        UserInfo ui = UserContext.getCurrentUser();
+        Employee employee = ui.as(Employee.class);
+        stf.createPhoneCall(employee, person.getContact().getMobile());
+        ctx.respondWith().template("templates/xrm/person-details.html.pasta", company, person);
+    }
+
+    @LoginRequired
+    @Permission(PERMISSION_MANAGE_XRM)
+    @Routed("/company/:1/person/:2/prepareMail")
+    public void personPrepareMail(WebContext ctx, String companyId, String personId) {
+        Company company = findForTenant(Company.class, companyId);
+        Person person = find(Person.class, personId);
+        assertNotNew(company);
+        setOrVerify(person, person.getCompany(), company);
+        UserInfo ui = UserContext.getCurrentUser();
+        UserAccount uac = ui.as(UserAccount.class);
+        Employee employee = ui.as(Employee.class);
+        Mail mail = msv.createMailToPerson(person, uac);
+        List<Mailtemplate> mailtemplateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
+        String function = "";
+        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, mailtemplateList, function, company, person, msv.getFunctionList());
     }
 
     @LoginRequired

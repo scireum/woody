@@ -18,10 +18,12 @@ import sirius.kernel.commons.Context;
 import sirius.kernel.di.std.Framework;
 import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
+import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 import sirius.web.controller.Controller;
 import sirius.web.controller.Message;
 import sirius.web.controller.Routed;
+import sirius.web.data.ExcelExport;
 import sirius.web.http.MimeHelper;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
@@ -41,6 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -320,16 +323,57 @@ public class OffersController extends BizController {
         Offer offer = find(Offer.class, offerId);
         setOrVerify(offer, offer.getCompany(), company);
         Context context = sas.prepareContext(offer, ServiceAccountingService.OFFER);
-        OutputStream out = ctx.respondWith().outputStream(HttpResponseStatus.OK, MimeHelper.APPLICATION_PDF);
-
+//        OutputStream out = ctx.respondWith().outputStream(HttpResponseStatus.OK, MimeHelper.APPLICATION_PDF);
         File file = new File("Angebot_" + NLS.toUserString(offer.getNumber()) + ".pdf");
+
+        try (OutputStream out = ctx.respondWith()
+                                   .download(file.getName())
+                                   .outputStream(HttpResponseStatus.OK, MimeHelper.APPLICATION_PDF)) {
+
+            templates.generator()
+                     .useTemplate("templates/offer.pdf.pasta")
+                     .applyContext(context)
+                     .generateTo(out);
+        } catch (IOException e) {
+            throw Exceptions.handle( e);
+        }
+
+
+//        try {
+//            out = new FileOutputStream(file);
+//            templates.generator().useTemplate("templates/offer.pdf.pasta").applyContext(context).generateTo(out);
+////            ExcelExport  excelExport = new ExcelExport();
+//
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+        int iii = 1;
+//        ctx.respondWith().template("templates/offers/offer-overview.html.pasta", company, offer);
+    }
+
+    @LoginRequired
+    @Permission(VIEW_OFFER)
+    @Routed("/company/:1/offer/:2/viewOffer")
+    // Display the given offer
+    public void sendOffer(WebContext ctx, String companyId, String offerId) {
+        Company company = findForTenant(Company.class, companyId);
+        assertNotNew(company);
+        Offer offer = find(Offer.class, offerId);
+        setOrVerify(offer, offer.getCompany(), company);
+        Context context = sas.prepareContext(offer, ServiceAccountingService.OFFER);
+//        OutputStream out = ctx.respondWith().outputStream(HttpResponseStatus.OK, MimeHelper.APPLICATION_PDF);
+        File file = new File("Angebot_" + NLS.toUserString(offer.getNumber()) + ".pdf");
+
         try {
-            out = new FileOutputStream(file);
-            templates.generator().useTemplate("templates/offer.pdf.pasta").applyContext(context).generateTo(out);
+            OutputStream attachmentOut = new FileOutputStream(file);
+            templates.generator().useTemplate("templates/offer.pdf.pasta").applyContext(context).generateTo(attachmentOut);
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         int iii = 1;
+
+        // ToDo Mail senden
         ctx.respondWith().template("templates/offers/offer-overview.html.pasta", company, offer);
     }
 

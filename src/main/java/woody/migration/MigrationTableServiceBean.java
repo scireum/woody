@@ -15,6 +15,7 @@ package woody.migration;
 import sirius.db.jdbc.Database;
 import sirius.db.jdbc.Databases;
 import sirius.db.jdbc.Row;
+import sirius.db.mixing.Constraint;
 import sirius.db.mixing.OMA;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
@@ -23,6 +24,7 @@ import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Exceptions;
 import sirius.kernel.nls.NLS;
 import woody.offers.Offer;
+import woody.opportunities.Opportunity;
 import woody.xrm.Company;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -62,7 +64,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
         Database dbWoody = databases.get("mixing");
 
         // Delete the content of the woody-table
-//        deleteContentOfTable(dbWoody, woodyTable);
+        deleteContentOfTable(dbWoody, woodyTable);
 
         // read the data from the crmTable and migrate them to woody
         Long maxId = 0L;
@@ -90,6 +92,8 @@ public class MigrationTableServiceBean implements MigrationTableService {
                             break;
                         case "company": map = buildCompanyMap(map, row);
                             break;
+                        case "campaign": map = buildCampaignMap(map, row);
+                            break;
                         case "person": map = buildPersonMap(map, row);
                             break;
                         case "product": map = buildProductMap(map, row);
@@ -116,7 +120,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
                             map = buildOpportunityMap(map, row);
                             break;
                         case "comment":
-                            function = "comment";
+                            function = "nothing";
                             map = buildCommentMap(map, row);
                             break;
                         case "industry":
@@ -124,6 +128,10 @@ public class MigrationTableServiceBean implements MigrationTableService {
                             break;
                         case "mailtemplate":
                             map = buildMailtemplateMap(map, row);
+                            break;
+                        case "opportunityStateChanges":
+                            function = "nothing";
+                            map = buildOpportunityStateChangesMap(map, row);
                             break;
                         default:
                             System.out.println("   Die Verarbeitung der Tabelle '" + crmTable + "' fehlt!");
@@ -164,33 +172,18 @@ public class MigrationTableServiceBean implements MigrationTableService {
         return map;
     }
 
+
     private HashMap<String,Object> buildOpportunityMap(HashMap<String,Object> map, Row row) {
         rowFetch(map, row, "company", null);
+        rowFetch(map, row, "person", null);
         rowFetch(map, row, "contractValue", null);
-        rowFetch(map, row, "nextInteraction", null);
         rowFetch(map, row, "nextInteraction", null);
         rowFetch(map, row, "product", null);
         rowFetch(map, row, "source", null);
-        String state = row.getValue("state").getString();
-        String stateText = null;
-        switch (state) {
-            case "0":
-                stateText = "OPEN";
-                break;
-            case "1":
-                stateText = "ACCEPTED";
-                break;
-            case "2":
-                stateText = "REJECTED";
-                break;
-            case "3":
-                stateText = "CLOSED";
-                break;
-            default:
-                stateText = "Fehler";
-                break;
-        }
-        map.put( "state", stateText);
+        rowFetch(map, row, "oldState", null);
+        rowFetch(map, row, "newState", null);
+        rowFetch(map, row, "sortDate", null);
+        rowFetch(map, row, "sortValue", null);
         rowFetch(map, row, "employee", "userAccount");
         return map;
     }
@@ -339,7 +332,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "lastname", "person_lastname");
         rowFetch(map, row, "salutation", "person_salutation");
         rowFetch(map, row, "inaktiv", "Employee_inaktiv");
-        rowFetch(map, row, "pbxId", "Employee_pbxId");
+        rowFetch(map, row, "pbxId", "Employee_phoneExtension");
         String phone = row.getValue("pbxId").getString();
         phone = "+49 7151 90316-" + phone;
         map.put("Employee_phoneNr", phone);
@@ -354,6 +347,20 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "mailcontent", null);
         rowFetch(map, row, "subject", null);
         migrateVelocityToTagliatelle(map, "mailcontent");
+        return map;
+    }
+
+    private HashMap<String,Object> buildOpportunityStateChangesMap(HashMap<String, Object> map, Row row) {
+        rowFetch(map, row, "opportunity", null);
+        rowFetch(map, row, "datetime", null);
+//        String s = (String)map.get("datetime");
+//        String[] fields = s.split(" ");
+//        // the dateTime-format is yyyy-mm-ddThh:mm:ss
+//        s = fields[0] + "T" + fields[1].substring(0, 8);
+//        map.put("datetime", s);
+        rowFetch(map, row, "oldState", null);
+        rowFetch(map, row, "newState", null);
+        rowFetch(map, row, "employee", "userAccount");
         return map;
     }
 
@@ -397,25 +404,32 @@ public class MigrationTableServiceBean implements MigrationTableService {
             String argument = value.substring(indexStart + 1, indexEnd);
             argumentList.add(argument);
         } while(1==1);
-        // replace the $ and \n
+
+        // replace the $ to @
         value = replaceAll(value, "$", "@");
         value = value.trim();
 
-        // builfd thje tagliatelle-mailtemplate
+        value = replaceAll(value, "@person.letterSalutation", "@person.getLetterSalutation()");
+
+        // build the t<i:arg - tag for the tagliatelle-mailtemplate
         String targetString = "";
         for(String variable : argumentList) {
+            int indexP = variable.indexOf(".");
+            if(indexP > 0) {
+                variable = variable.substring(0, indexP);
+            }
             String type = "String";
             if(value.startsWith("@person.")) {
                 type = "woody.xrm.Person";
             }
-            targetString = targetString + "<i:type=\"" + type + "\" name=\""+ variable + "\"/>" + "\n";
+            targetString = targetString + "<i:arg type=\"" + type + "\" name=\""+ variable + "\"/>" + "\n";
         }
         targetString = targetString + value;
         map.put(key, targetString);
     }
 
     /**
-     * replaces in the given value all stings <source> with the string <target>
+     * replaces in the given value all strings <source> with the string <target>
      */
     private String replaceAll(String value, String source, String target) {
         String targetString = "";
@@ -496,10 +510,21 @@ public class MigrationTableServiceBean implements MigrationTableService {
         }
     }
 
+    private HashMap<String, Object> buildCampaignMap(HashMap<String, Object> map, Row row) {
+        map.put("tenant", TENANT);
+        rowFetch(map, row,"id", null);
+        rowFetch(map, row,"name", null);
+        rowFetch(map, row,"endDate", null);
+        rowFetch(map, row,"startDate", null);
+        rowFetch(map, row,"description", null);
+        rowFetch(map, row,"employee", "userAccount");
+        return map;
+    }
+
     private HashMap<String, Object> buildCompanyMap(HashMap<String, Object> map, Row row) {
         map.put("tenant", TENANT);
         rowFetch(map, row,"id", null);
-        rowFetch(map, row, "name", "name");
+        rowFetch(map, row, "name", null);
         rowFetch(map, row,"name2", null);
         if(checkIntegrityOfFields(row, "city, countryCode, street, zipCode")) {
             rowFetch(map, row, "city", "address_city");
@@ -689,7 +714,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
                 map.put("trace_createdBy", "Migration");
                 break;
             }
-            case "comment": {
+            case "nothing": {
                 return;
             }
 
@@ -726,9 +751,18 @@ public class MigrationTableServiceBean implements MigrationTableService {
         return TENANT;
     }
 
+    @Override
+    public void saveAllOpportunities() {
+        System.out.println("Start saveAllOpportunities");
+        List<Opportunity> list = oma.select(Opportunity.class).queryList();
+        for(Opportunity opportunity :list) {
+            oma.update(opportunity);
+        }
+        System.out.println("Ende saveAllOpportunities");
+    }
 
     /**
-     * translate a LocalDateTime-String (given as yyy-MM-dddThh:mm:ss) in the seconds of epoch
+     * translate a LocalDateTime-String (given as yyyy-MM-ddThh:mm:ss) in the seconds of epoch
      */
     private Long translateLocalDateTimeToEpoch(String date) {
         DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE_TIME;  // yyyy-MM-ddThh:mm:ss

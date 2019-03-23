@@ -63,4 +63,9 @@ public interface MigrationTableService {
      */
     public String getTENANT();
 
+    /**
+     * saves all opportunities
+     */
+    public void saveAllOpportunities();
+
 }

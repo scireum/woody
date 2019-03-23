@@ -123,6 +123,28 @@ public class Person extends BizEntity implements HasComments, HasRelations {
         }
     }
 
+    public String getLetterSalutation() {
+        StringBuilder sb = new StringBuilder();
+        PersonData person = this.getPerson();
+        sb.append("Sehr ");
+        if(Strings.isEmpty(person.getSalutation())){
+            sb.append("geehrte Damen und Herren,");
+        } else {
+            sb.append("SIR".equals(person.getSalutation()) ? "geehrter" : "geehrte");
+            sb.append(" ");
+            sb.append(person.getTranslatedSalutation());
+            sb.append(" ");
+            if( Strings.isFilled(person.getTitle())) {
+                sb.append(person.getTitle());
+                sb.append(" ");
+            }
+            sb.append(person.getLastname());
+            sb.append(",");
+        }
+        return sb.toString();
+    }
+
+
     public EntityRef<Company> getCompany() {
         return company;
     }

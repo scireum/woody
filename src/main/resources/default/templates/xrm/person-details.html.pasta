@@ -25,9 +25,36 @@
         <w:subHeading labelKey="Person.contact" />
         <div class="row">
             <w:textfield name="contact_phone" value="@person.getContact().getPhone()" labelKey="ContactData.phone" />
-            <w:textfield name="contact_email" value="@person.getContact().getEmail()" labelKey="ContactData.email" />
             <w:textfield name="contact_mobile" value="@person.getContact().getMobile()" labelKey="ContactData.mobile" />
+            <w:textfield name="contact_email" value="@person.getContact().getEmail()" labelKey="ContactData.email" />
             <w:textfield name="contact_fax" value="@person.getContact().getFax()" labelKey="ContactData.fax" />
+        </div>
+        <div class="md-12">
+        <table>
+          <tr>
+            <td>
+            @if(person.getContact() != null &&
+                     isFilled(person.getContact().getPhone())) {
+                <a class="btn btn-block" href="/company/@company.getId()/person/@person.getId()/phonecall" >Telefon-Anruf</a>
+            }
+            </td>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td>
+            @if(person.getContact() != null &&
+                     isFilled(person.getContact().getMobile())) {
+                <a class="btn btn-block" href="/company/@company.getId()/person/@person.getId()/mobilecall">Handy-Anruf</a>
+            }
+            </td>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td>
+            @if(person.getContact() != null &&
+                     isFilled(person.getContact().getEmail())) {
+                <a class="btn btn-block" href="/company/@company.getId()/person/@person.getId()/prepareMail">Mail senden</a>
+            }
+            <td>
+          </tr>
+        </table>
+
         </div>
 
         <w:subHeading labelKey="Model.address" />

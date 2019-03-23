@@ -1,0 +1,87 @@
+<!-- displays the details of a opportunity               -->
+
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.opportunities.Opportunity" name="opportunity"/>
+
+
+<i:invoke template="templates/opportunities/opportunity.html.pasta" company="company" opportunity = "opportunity" page="details">
+    <w:editForm url="@apply('/company/%s/opportunity/%s/edit', company.getIdAsString(), opportunity.getIdAsString())">
+
+   <div class="row">
+
+           <w:textfield name="source" value="@opportunity.getSource()" labelKey="Opportunity.source" required="true" />
+
+           <w:singleSelect name="prod" labelKey="Opportunity.product"  optional="false">
+               <i:for type="woody.sales.Product" var="prod" items="opportunity.getAllProducts()">
+                   <option value="@prod.getIdAsString()" @if (opportunity.getProduct().is(prod)) { selected = "selected" }>@prod.getName()</option>
+               </i:for>
+           </w:singleSelect>
+
+            <w:singleSelect name="state" labelKey="Opportunity.newState"  optional="false">
+                <i:for type="woody.opportunities.OpportunityState" var="state" items="opportunity.getOpportunityStateValues()">
+                    <option value="@state.name()" @if (opportunity.getNewState().equals(state)) { selected = "selected" }>@state.toString()</option>
+                </i:for>
+            </w:singleSelect>
+
+           <w:singleSelect name="uac" labelKey="Opportunity.employee"  optional="false">
+               <i:for type="sirius.biz.tenants.UserAccount" var="uac" items="opportunity.getAllUsers()">
+                   <option value="@uac.getIdAsString()" @if (opportunity.getUserAccount().is(uac)) { selected = "selected" }>@uac.as(woody.core.employees.Employee.class).getShortName()</option>
+               </i:for>
+           </w:singleSelect>
+
+           <w:singleSelect name="person" labelKey="Opportunity.person"  optional="false">
+               <i:for type="woody.xrm.Person" var="person" items="opportunity.getAllPersons()">
+                   <option value="@person.getIdAsString()" @if (opportunity.getPerson().is(person)) { selected = "selected" }>@person.toString()</option>
+               </i:for>
+           </w:singleSelect>
+    </div>
+
+    <div class="row">
+                <w:textfield name="email" value="@opportunity.getPerson().getValue().as(woody.xrm.Person.class).getContact().getPhone()" labelKey="ContactData.phone"  />
+            @if(opportunity.isPhoneNrPresent()) {
+                <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/phonecall">&nbsp;&nbsp;&nbsp;&nbsp;Telefon-Anruf</a>
+                <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/phonecallFailed">&nbsp;&nbsp;&nbsp;&nbsp;Am Telefon nicht erreicht</a>
+            }
+    </div>
+    <div class="row">
+            <w:textfield name="email" value="@opportunity.getPerson().getValue().as(woody.xrm.Person.class).getContact().getMobile()" labelKey="ContactData.mobile"  />
+            @if(opportunity.getPerson() != null && opportunity.getPerson().getValue().as(woody.xrm.Person.class).getContact() != null &&
+                     isFilled(opportunity.getPerson().getValue().as(woody.xrm.Person.class).getContact().getMobile())) {
+                <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/mobilecall">&nbsp;&nbsp;&nbsp;&nbsp;Handy-Anruf</a>
+                <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/mobilecallFailed">&nbsp;&nbsp;&nbsp;&nbsp;Am Handy nicht erreicht</a>
+            }
+    </div>
+    <div class="row">
+            <w:textfield name="email" value="@opportunity.getPerson().getValue().as(woody.xrm.Person.class).getContact().getEmail()" labelKey="ContactData.email"  />
+            @if(opportunity.isEmailAdrPresent()) {
+                <a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/sendMail">&nbsp;&nbsp;&nbsp;&nbsp;Mail senden</a>
+            }
+    </div>
+    <div class="row">
+           <w:textfield name="nextInteraction" value="@toUserString(opportunity.getNextInteraction())" labelKey="Opportunity.nextInteraction" required="true" />
+           <w:textfield name="contractValue" value="@toUserString(opportunity.getContractValue())" labelKey="Opportunity.contractValue" required="false" />
+    </div>
+
+    <div class="row">
+
+        <tr>
+            <td><b>Datum ändern</b></td>
+            <td style="border:1cm"><a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1d">&nbsp;&nbsp;+1d</a></td>
+            <td><a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1w">&nbsp;&nbsp;+1w</a></td>
+            <td><a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1m">&nbsp;&nbsp;+1m</a></td>
+            <td><a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/plus1y">&nbsp;&nbsp;+1y</a></td>
+            <td><a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/minus1d">&nbsp;&nbsp;-1d</a></td>
+            <td><a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/minus1w">&nbsp;&nbsp;-1w</a></td>
+            <td><a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/minus1m">&nbsp;&nbsp;-1m</a></td>
+            <td><a class="link" href="/company/@company.getId()/opportunity/@opportunity.getId()/minus1y">&nbsp;&nbsp;-1y</a></td>
+        </tr>
+    </div>
+
+
+    </w:editForm>
+
+    <w:formBar>
+        <w:tracing trace="@opportunity.getTrace()" />
+    </w:formBar>
+
+</i:invoke>

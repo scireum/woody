@@ -1,0 +1,44 @@
+<!-- displays an overview of a offerItem with a sidebar              --->
+<i:arg type="woody.xrm.Company" name="company"/>
+<i:arg type="woody.opportunities.Opportunity" name="opportunity"/>
+<i:arg type="String" name="page"/>
+
+<w:page title="@opportunity.toString()">
+    <i:block name="breadcrumbs">
+        <li><a href="/companies">@i18n("Company.plural")</a></li>
+        <li><a href="/company/@company.getId()">@company.getName()</a></li>
+        <li><a href="/company/@company.getId()/opportunities">@i18n("Opportunity.plural")</a></li>
+        <li><a href="/company/@company.getId()/opportunity/@opportunity.getId()">@opportunity</a></li>
+        <i:render name="breadcrumbs" />
+    </i:block>
+
+    <w:pageHeader title="@opportunity.toString()"/>
+
+    <div class="row">
+        <i:if test="!opportunity.isNew()">
+            <div class="col-md-3">
+                <w:infobox titleKey="Model.details" color="@colors.getColorForType('OPPORTUNITY')">
+                    <w:infoboxElement labelKey="Model.company" value="@company"/>
+                    <w:infoboxElement labelKey="Opportunity" value="@opportunity"/>
+                    <i:extensions name="templates-opportunity-sidebar-infos" company="opportunity" page="page"/>
+                </w:infobox>
+
+                <i:extensions name="templates-opportunity-sidebar-additional" company="opportunity" page="page"/>
+
+                <w:navbox labelKey="Model.links">
+                    <w:navboxLink labelKey="Model.overview" url="@apply('/company/%s/opportunity/%s', company.getId(), opportunity.getId())"
+                                  active="page == 'overview'"/>
+                    <w:navboxLink labelKey="Model.details" url="@apply('/company/%s/opportunity/%s/edit', company.getId(), opportunity.getId())"
+                                  active="page == 'details'"/>
+
+                    <i:extensions name="templates-opportunity-sidebar-menu" company="opportunity" page="page"/>
+                </w:navbox>
+
+                <a href="/opportunities" class="btn btn-block">@i18n("NLS.back")</a>
+            </div>
+        </i:if>
+        <div class="@if (opportunity.isNew()) { col-md-12 } else { col-md-9 }">
+            <i:render name="body"/>
+        </div>
+    </div>
+</w:page>

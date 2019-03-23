@@ -109,20 +109,31 @@ public class Employee extends Mixable {
     private String signature;
     public static final Column SIGNATURE = Column.named("signature");
 
+    /**
+     * contains the pbx-access-token
+     */
+    @NullAllowed
+    @Length(1024)
+    private String pbxAccessToken;
+    public static final Column PBXACCESSTOKEN = Column.named("pbxAccessToken");
+
+    @Part
+    private static Starface stf;
+
     @BeforeSave
     protected void checkIntegrity(UserAccount parent) {
         if (getDischargeDate() != null && !parent.getLogin().isAccountLocked()) {
             throw Exceptions.createHandled().withNLSKey("Employee.cannotDischargeWithoutLock").handle();
         }
 
-//        // build the pbxAccessToken
-//        if(pbxId != null && Strings.isFilled(pbxId)) {
-//            String pbxCleartextPassword = pbxId + pbxId + pbxId + pbxId;
-//            pbxAccessToken = stf.buildMd5HexString(pbxId + "*" + pbxCleartextPassword);
-//            pbxCleartextPassword = "";
-//        } else {
-//            pbxAccessToken = null;
-//        }
+        // build the pbxAccessToken
+        if(phoneExtension != null && Strings.isFilled(phoneExtension)) {
+            String pbxCleartextPassword = stf.buildStarefacePassword(phoneExtension);
+            pbxAccessToken = stf.SHA512(pbxCleartextPassword);
+            pbxCleartextPassword = "";
+        } else {
+            pbxAccessToken = null;
+        }
 
     }
 
@@ -172,5 +183,13 @@ public class Employee extends Mixable {
 
     public void setSignature(String signature) {
         this.signature = signature;
+    }
+
+    public String getPbxAccessToken() {
+        return pbxAccessToken;
+    }
+
+    public void setPbxAccessToken(String pbxAccessToken) {
+        this.pbxAccessToken = pbxAccessToken;
     }
 }

@@ -49,7 +49,7 @@ public class VatRate extends BizEntity {
     @NullAllowed
     @Autoloaded
     @Numeric(scale = 2, precision = 15)
-    private Amount vatRate;
+    private Amount vatRate = Amount.NOTHING;
     public static final Column VATRATE = Column.named("vatRate");
 
 
