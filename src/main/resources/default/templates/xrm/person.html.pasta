@@ -39,8 +39,6 @@
                                   active="page == 'overview'"/>
                     <w:navboxLink labelKey="Model.details" url="@apply('/company/%s/person/%s/edit', person.getCompany().getId(), person.getId())"
                                   active="page == 'details'"/>
-                    <w:navboxLink labelKey="Mail" url="@apply('/person/%s/sendNormalMailToPerson', person.getId())"
-                                  active="page == 'details'"/>
                     <w:navboxLink labelKey="Person.css" url="@apply('/company/%s/person/%s/css', person.getCompany().getId(), person.getId())"
                                   active="page == 'css'"/>
 

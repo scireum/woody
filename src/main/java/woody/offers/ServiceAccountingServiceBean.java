@@ -795,6 +795,7 @@ public class ServiceAccountingServiceBean implements ServiceAccountingService {
 
         // build the pdf-File and add the File as attachment to the mail
         Context context = prepareContext(offer, ServiceAccountingService.SALES_CONFIRMATION);
+        // ToDO auf .pasta umstellen
         File fileAttachment = createPdfFromContext(context, "templates/offer.pdf.vm");
 
         // build the mail-content

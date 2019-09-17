@@ -111,8 +111,8 @@ public class MailServiceBean implements MailService {
             case ServiceAccountingService.SALES_CONFIRMATION:
                 context = sas.prepareContext(offer, mail.getFunction()) ;
 // ToDo auf pasta umstellen
-//        File fileAttachment = sas.createPdfFromContext(context, "templates/offer.pdf.pasta");
-                File fileAttachment = sas.createPdfFromContext(context, "templates/offer.pdf.vm");
+                File fileAttachment = sas.createPdfFromContext(context, "templates/offer.pdf.pasta");
+//                File fileAttachment = sas.createPdfFromContext(context, "templates/offer.pdf.vm");
                 context.set("fileAttachment", fileAttachment);
 
 
@@ -182,7 +182,6 @@ public class MailServiceBean implements MailService {
                 message = MessageFormat.format(
                         messageTemplate, mail.getId(), mail.getReceiverAddress());
                 messageList.add(message);
-
                 break;
         }
 

@@ -72,13 +72,6 @@ public class MailController extends BizController {
         Company company = person.getCompany().getValue();
         List<Mailtemplate> templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
         invokeMailtemplate(mail, person, company);
-//        if(mail.getMailtemplate() != null) {
-//            templateList.add(mail.getMailtemplate().getValue());
-//        }
-//        if(mail == null) {
-//            ctx.respondWith().template("templates/mails/mail-details.html", templateList, mail, mail.getFunction());
-//            return;
-//        }
         if(Strings.isEmpty(mail.getSubject())) {
             UserContext.message(Message.info("Bei der Mail ist der 'Betreff' leer, deshalb kann keine Mail gesendet werden."));
             ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
@@ -109,6 +102,19 @@ public class MailController extends BizController {
         ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
     }
 
+    @LoginRequired
+    @Permission(MANAGE_XRM)
+    @Routed("/mail/:1/sendNotMail")
+    public void sendNotMail(WebContext ctx, String mailId) {
+        Mail mail = find(Mail.class, mailId);
+        Person person = mail.getPersonEntity().getValue();
+        Company company = person.getCompany().getValue();
+        List<Mailtemplate> templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
+        UserContext.message(Message.info("Die Mail wurde nicht gesendet."));
+        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
+    }
+
+
     private Offer buildOfferFromMail(Mail mail) {
         Offer offer = null;
         if(mail.getUsageId() != null && mail.getUsageId().contains("-")) {
@@ -136,49 +142,49 @@ public class MailController extends BizController {
 //    }
 
 
-    // send a normal mail to a person
-    @LoginRequired
-    @Permission(MANAGE_XRM)
-    @Routed("/person/:1/sendNormalMailToPerson")
-    // Funktion Normale Mail an Person senden, z. B. durch Anklicken der Mail-Adresse
-    public void sendNormalMailToPerson(WebContext ctx, String personId) {
-        String mailTemplateName =  ServiceAccountingService.NORMAL_MAIL;
-        String function = ServiceAccountingService.NORMAL_MAIL;
-
-        Person person = find(Person.class, personId);
-        Mail mail = new Mail();
-        String receiver = person.getContact().getEmail();
-        UserInfo ui = UserContext.getCurrentUser();
-        UserAccount uac = ui.as(UserAccount.class);
-        String sender = uac.getEmail();
-        mail.getEmployeeEntity().setValue(uac);
-        mail.getPersonEntity().setValue(person);
-        mail.setReceiverAddress(receiver);
-        mail.setSenderAddress(sender);
-        mail.setFunction(function);
-        mail.getMailtemplate().setValue(null);
-        mail.setAttachmentName("keine");
-        Mailtemplate mailtemplate = oma.select(Mailtemplate.class).eq(Mailtemplate.NAME, mailTemplateName).queryFirst();
-
-        Context context = new Context();
-        context.set("salutation",sas.getLetterHeadline(person));
-        String mailText = "";
-        if(mail.getText() == null) {
-             mailText = templates.generator().direct(mailtemplate.getMailcontent(), TagliatelleContentHandler.PASTA)
-                                       .applyContext(context).generate();
-            mail.setText(mailText);
-            int gg = 3;
-        }
-        oma.update(mail);
-        // Mail-Template in Liste vorbelegen
-        List<Mailtemplate> templateList = new ArrayList();
-        if (mail.getMailtemplate() != null) {
-
-            templateList.add(mail.getMailtemplate().getValue());
-        }
-        Company company = person.getCompany().getValue();
-        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
-    }
+//    // send a normal mail to a person
+//    @LoginRequired
+//    @Permission(MANAGE_XRM)
+//    @Routed("/person/:1/sendNormalMailToPerson")
+//    // Funktion Normale Mail an Person senden, z. B. durch Anklicken der Mail-Adresse
+//    public void sendNormalMailToPerson(WebContext ctx, String personId) {
+//        String mailTemplateName =  ServiceAccountingService.NORMAL_MAIL;
+//        String function = ServiceAccountingService.NORMAL_MAIL;
+//
+//        Person person = find(Person.class, personId);
+//        Mail mail = new Mail();
+//        String receiver = person.getContact().getEmail();
+//        UserInfo ui = UserContext.getCurrentUser();
+//        UserAccount uac = ui.as(UserAccount.class);
+//        String sender = uac.getEmail();
+//        mail.getEmployeeEntity().setValue(uac);
+//        mail.getPersonEntity().setValue(person);
+//        mail.setReceiverAddress(receiver);
+//        mail.setSenderAddress(sender);
+//        mail.setFunction(function);
+//        mail.getMailtemplate().setValue(null);
+//        mail.setAttachmentName("keine");
+//        Mailtemplate mailtemplate = oma.select(Mailtemplate.class).eq(Mailtemplate.NAME, mailTemplateName).queryFirst();
+//
+//        Context context = new Context();
+//        context.set("salutation",sas.getLetterHeadline(person));
+//        String mailText = "";
+//        if(mail.getText() == null) {
+//             mailText = templates.generator().direct(mailtemplate.getMailcontent(), TagliatelleContentHandler.PASTA)
+//                                       .applyContext(context).generate();
+//            mail.setText(mailText);
+//            int gg = 3;
+//        }
+//        oma.update(mail);
+//        // Mail-Template in Liste vorbelegen
+//        List<Mailtemplate> templateList = new ArrayList();
+//        if (mail.getMailtemplate() != null) {
+//
+//            templateList.add(mail.getMailtemplate().getValue());
+//        }
+//        Company company = person.getCompany().getValue();
+//        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
+//    }
 
 
 
@@ -207,18 +213,12 @@ public class MailController extends BizController {
             }
         }
 
-//        List<Mailtemplate> templateList = new ArrayList();
-//        if(mail.getMailtemplate() != null ) {
-//            templateList.add(mail.getMailtemplate().getValue());
-//        } else {
-//            templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
-//        }
         List<Mailtemplate> templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
         ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
     }
 
     private void invokeMailtemplate(Mail mail, Person person, Company company) {
-        // check the presence ogf a mailtemplate
+        // check the presence of a mailtemplate
         if(mail.getMailtemplate() == null || mail.getMailtemplate().getValue() == null) {
             return;
         }
@@ -233,12 +233,12 @@ public class MailController extends BizController {
         if(Strings.isEmpty(mail.getFunction())) {
             mail.setFunction(MailService.NORMAL_MAIL);
         }
-        // check: is the subject tp prepare
+        // check: is the subject to prepare
         boolean prepareSubject = false;
         if(Strings.isEmpty(mail.getSubject()) || mail.getSubject().contains("@")) {
             prepareSubject = true;
         }
-        // ceck: is the text to prepare
+        // check: is the text to prepare
         boolean prepareText = false;
         if(Strings.isEmpty(mail.getText()) || mail.getText().contains("@")) {
             prepareText = true;
@@ -273,17 +273,17 @@ public class MailController extends BizController {
     }
 
 
-    @LoginRequired
-    @Permission(MANAGE_XRM)
-    @Routed("/mail/:1/prepareMail")
-    public void prepareMailtemplate(WebContext ctx, String mailId, String templateId) {
-        Mail mail = findForTenant(Mail.class, mailId);
-//        Mailtemplate template = findForTenant(Mailtemplate.class, templateId);
-        Person person = mail.getPersonEntity().getValue();
-        Company company = person.getCompany().getValue();
-        List<Mailtemplate> templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
-        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
-    }
+//    @LoginRequired
+//    @Permission(MANAGE_XRM)
+//    @Routed("/mail/:1/prepareMail")
+//    public void prepareMailtemplate(WebContext ctx, String mailId, String templateId) {
+//        Mail mail = findForTenant(Mail.class, mailId);
+////        Mailtemplate template = findForTenant(Mailtemplate.class, templateId);
+//        Person person = mail.getPersonEntity().getValue();
+//        Company company = person.getCompany().getValue();
+//        List<Mailtemplate> templateList = oma.select(Mailtemplate.class).orderAsc(Mailtemplate.NAME).queryList();
+//        ctx.respondWith().template("templates/mails/mail-details.html.pasta", mail, templateList, mail.getFunction(), company, person, msv.getFunctionList());
+//    }
 //
 //    // Taste Speichern bei view 'mail-details.html' wurde gedrückt
 //    @LoginRequired

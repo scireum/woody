@@ -24,9 +24,9 @@
         </div>
         <div class="row">
                 <w:singleSelect name="function" labelKey="Mail.functionList"  optional="false">
-                    <i:for type="String" var="function" items="functionList">
-                        <option value="@function" @if (mail.getFunction().equals(function)) {
-                                 selected = "selected" }>@function
+                    <i:for type="String" var="function1" items="functionList">
+                        <option value="@function1" @if (mail.getFunction().equals(function1)) {
+                                 selected = "selected" }>@function1
                         </option>
                     </i:for>
                 </w:singleSelect>
