@@ -51,7 +51,7 @@ public interface MigrationTableService {
     /**
      * read all compaanies from the crm and add the dataPrivacyPersons into the woody-company-table
      */
-    public void addDataprivatyPersons();
+    public void addDataprivacyPersons();
 
     /**
      * set all dataPrivacyPersons in the woody-company-table to null

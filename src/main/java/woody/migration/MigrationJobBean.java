@@ -79,7 +79,7 @@ public class MigrationJobBean implements MigrationJob{
         mts.migrateCrmDataToWoody("comment", null);
 
         // add more data to several tables
-        mts.addDataprivatyPersons();
+        mts.addDataprivacyPersons();
         mas.addTags();
         mas.addTagAssignemtsFromCompany();
         mas.addTagAssignmentsFromPerson();

@@ -318,13 +318,22 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "emailPassword", "Employee_emailPassword");
         map.put("login_accountLocked", 0);
         map.put("login_numberOfLogins", 0);
+
         map.put("login_passwordHash", "");
         map.put("login_salt", "");
-        rowFetch(map, row, "shortname", "login_username");
         map.put("tenant", TENANT);
         map.put("login_ucasePasswordHash", "");
+
+        rowFetch(map, row, "shortname", "login_username");
         rowFetch(map, row, "shortname", "Employee_shortname");
-        rowFetch(map, row, "email", null);
+        // test-user einrichten
+        if("gha".equals(map.get("Employee_shortname"))) {
+            map.put("login_passwordHash", "Wv6eWmKjtzeiKwfPAs0yMA==");
+            map.put("login_salt", "gurjeii15aq4sm8p71su");
+            map.put("permissions_permissionString","administrator,xrm,offers,user-administrator,tasks");
+        }
+
+        rowFetch(map, row, "email", "email");
         if(map.get("email") == null) {
             map.put("email", "no_email-address in the crm given");
         }
@@ -333,9 +342,11 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row, "salutation", "person_salutation");
         rowFetch(map, row, "inaktiv", "Employee_inaktiv");
         rowFetch(map, row, "pbxId", "Employee_phoneExtension");
+
         String phone = row.getValue("pbxId").getString();
         phone = "+49 7151 90316-" + phone;
         map.put("Employee_phoneNr", phone);
+
         rowFetch(map, row, "endDate", "Employee_terminationDate");
         rowFetch(map, row, "signature", "Employee_signature");
         map.put("version", 0);
@@ -517,6 +528,13 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row,"endDate", null);
         rowFetch(map, row,"startDate", null);
         rowFetch(map, row,"description", null);
+        String s =  (String) map.get("description");
+        if(!Strings.isEmpty(s)) {
+            int count = s.length();
+            if (count > 254) {
+                int ggg = 3;
+            }
+        }
         rowFetch(map, row,"employee", "userAccount");
         return map;
     }
@@ -540,7 +558,9 @@ public class MigrationTableServiceBean implements MigrationTableService {
         rowFetch(map, row,"invoiceMailAdr", "companyAccountingData_invoiceMailAdr");
         rowFetch(map, row,"ptPrice", "companyAccountingData_ptPrice");
         rowFetch(map, row,"outputLanguage", "companyAccountingData_outputLanguage");
-        rowFetch(map, row,"dataPrivacySendDate", "companyAccountingData_dataPrivacySendDate");
+        rowFetch(map, row,"dataPrivacySendDate", "dataPrivacyCompanyData_dataPrivacySendDate");
+        rowFetch(map, row,"dataPrivacyReceivingDate", "dataPrivacyCompanyData_dataPrivacyReceivingDate");
+        rowFetch(map, row,"dataPrivacyAvvVersionDate", "dataPrivacyCompanyData_dataPrivacyAvvVersionDate");
 
         // build the postbox-address-elements
         // check whether all postbox-data are present
@@ -798,7 +818,7 @@ public class MigrationTableServiceBean implements MigrationTableService {
     }
 
     @Override
-    public void addDataprivatyPersons() {
+    public void addDataprivacyPersons() {
         System.out.println("Start addDataPrivacyPerson");
         Database databaseCrm = databases.get("crm");
         Long maxId = 0L;
@@ -822,11 +842,11 @@ public class MigrationTableServiceBean implements MigrationTableService {
                             if(opt.isPresent()) {
                                 Company company = (Company) opt.get();
                                 // set the dataPrivacyPerson and save the company
-                                company.getCompanyAccountingData().getDataPrivacyPerson().setId(dataPrivacyPersonId);
+                                company.getDataPrivacyCompanyData().getDataPrivacyPerson().setId(dataPrivacyPersonId);
                                 oma.update(company);
                             } else {
                                 // ToDo vernünftig anzeigen
-                                throw new Exception("Company mit id = " + id.toString() + " nicht gefinden.");
+                                throw new Exception("Company mit id = " + id.toString() + " nicht gefunden.");
                             }
                         }
                     }
@@ -844,9 +864,9 @@ public class MigrationTableServiceBean implements MigrationTableService {
         System.out.println("Start deleteDataPrivacyPersonsInCompanies");
         List<Company> companyList = oma.select(Company.class).queryList();
         for(Company company : companyList) {
-            if(company.getCompanyAccountingData().getDataPrivacyPerson() != null) {
+            if(company.getDataPrivacyCompanyData().getDataPrivacyPerson() != null) {
                 //set the dataPrivacyPerson to null
-                company.getCompanyAccountingData().getDataPrivacyPerson().setId(null);
+                company.getDataPrivacyCompanyData().getDataPrivacyPerson().setId(null);
                 // delete all address-data to avoid a exception.
                 company.getAddress().setCountry(null);
                 company.getAddress().setCity(null);

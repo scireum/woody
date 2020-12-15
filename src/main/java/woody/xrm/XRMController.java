@@ -93,7 +93,8 @@ public class XRMController extends BizController {
     }
 
     @LoginRequired
-    @Permission(PERMISSION_MANAGE_XRM)
+    // ToDO wieder rein machen
+//    @Permission(PERMISSION_MANAGE_XRM)
     @Routed("/migrateCrmToWoody")
     public void migrateCrmToWoody(WebContext ctx) {
 

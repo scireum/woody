@@ -72,15 +72,6 @@ public class CompanyAccountingData extends Composite {
     private String outputLanguage = "0";
     public static final Column OUTPUTLANGUAGE = Column.named("outputLanguage");
 
-    @NullAllowed
-    @Autoloaded
-    private final EntityRef<Person> dataPrivacyPerson = EntityRef.on(Person.class, EntityRef.OnDelete.SET_NULL);
-    public static final Column DATAPRIVACYPERSON = Column.named("dataPrivacyPerson");
-
-    @NullAllowed
-    @Autoloaded
-    private LocalDate dataPrivacySendDate;
-    public static final Column DATAPRIVACYSENDDATE = Column.named("dataPrivacySendDate");
 
 
     public InternationalAddressData getInvoiceAddress() {
@@ -119,15 +110,4 @@ public class CompanyAccountingData extends Composite {
         this.outputLanguage = outputLanguage;
     }
 
-    public EntityRef<Person> getDataPrivacyPerson() {
-        return dataPrivacyPerson;
-    }
-
-    public LocalDate getDataPrivacySendDate() {
-        return dataPrivacySendDate;
-    }
-
-    public void setDataPrivacySendDate(LocalDate dataPrivacySendDate) {
-        this.dataPrivacySendDate = dataPrivacySendDate;
-    }
 }

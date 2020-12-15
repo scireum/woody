@@ -17,6 +17,7 @@ import sirius.biz.tenants.TenantAware;
 import sirius.biz.web.Autoloaded;
 import sirius.db.mixing.Column;
 import sirius.db.mixing.EntityRef;
+import sirius.db.mixing.OMA;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Length;
 import sirius.db.mixing.annotations.NullAllowed;
@@ -36,6 +37,7 @@ import woody.core.relations.Relations;
 import woody.core.tags.TagQueryTagColorTypeProvider;
 import woody.core.tags.Tagged;
 
+import woody.dataPrivacy.DataPrivacyCompanyData;
 import woody.phoneCalls.SyncAsterisk;
 import woody.sales.CompanyAccountingData;
 import woody.sales.Contract;
@@ -115,6 +117,9 @@ public class Company extends TenantAware implements HasComments, HasRelations {
     private final CompanyAccountingData companyAccountingData = new CompanyAccountingData();
     public static final Column COMPANYACCOUNTINGDATA = Column.named("companyAccountingData");
 
+    private final DataPrivacyCompanyData dataPrivacyCompanyData = new DataPrivacyCompanyData();
+    public static final Column DATAPRIVACYCOMPANYDATA = Column.named("dataPrivacyCompanyData");
+
     private final Tagged tags = new Tagged(this);
     public static final Column TAGS = Column.named("tags");
 
@@ -147,7 +152,16 @@ public class Company extends TenantAware implements HasComments, HasRelations {
     protected void onSave() {
        // check te customerNR - if present
        if(customerNumber != null) {
-           Integer nr = Integer.parseInt(customerNumber);
+           Integer nr = -1;
+           try {
+               nr = Integer.parseInt(customerNumber);
+           } catch(Exception e) {
+               throw Exceptions.createHandled()
+                               .withNLSKey("Company.customerNumberIsNotInteger")
+                               .set("customerNumber", customerNumber)
+                               .handle();
+
+           }
            if (nr < MIN_CUSTOMERNR || nr > MAX_CUSTOMERNR) {
                throw Exceptions.createHandled()
                                .withNLSKey("Company.customerNumberOutOfInterval")
@@ -156,11 +170,32 @@ public class Company extends TenantAware implements HasComments, HasRelations {
                                .set("max", MAX_CUSTOMERNR)
                                .handle();
            }
+
+           // is the customerNr uniqe?
+           List<Company> companyTestList = oma.select(Company.class).eq(Company.CUSTOMER_NUMBER, customerNumber).queryList();
+           if(companyTestList.size() == 0) {
+               // all o.k.
+           } else {
+               if(!this.isNew() && companyTestList.size() == 1) {
+                   // all o.k.
+               } else {
+                   throw Exceptions.createHandled()
+                                   .withNLSKey("Company.customerNumberIsNotUnique")
+                                   .set("customerNumber", customerNumber)
+                                   .set("name", this.getName())
+                                   .handle();
+               }
+           }
+
        } else {
            // check the presence of a customer-number if contracts are existing
            long count = oma.select(Contract.class).eq(Contract.COMPANY, this).count();
            if (count > 0 && Strings.isEmpty(customerNumber)) {
-               throw Exceptions.createHandled().withNLSKey("Company.ContractsArePresent.CustomerNrIsMissing").handle();
+//               throw Exceptions.createHandled()
+//                               .withNLSKey("Company.ContractsArePresent.CustomerNrIsMissing")
+//                               .set("name", this.getName())
+//                               .set("count", NLS.toUserString(count))
+//                               .handle();
            }
        }
        // normalize the mainPhoneNr
@@ -194,7 +229,7 @@ public class Company extends TenantAware implements HasComments, HasRelations {
 //                }
 //            }
 //       }
-       // check the CompanyAccountingData
+       // check the invoiceMedium
        String invoiceMedium = this.getCompanyAccountingData().getInvoiceMedium();
        if(invoiceMedium == null) {
            throw Exceptions.createHandled()
@@ -331,5 +366,9 @@ public class Company extends TenantAware implements HasComments, HasRelations {
 
     public CompanyAccountingData getCompanyAccountingData() {
         return companyAccountingData;
+    }
+
+    public DataPrivacyCompanyData getDataPrivacyCompanyData() {
+        return dataPrivacyCompanyData;
     }
 }

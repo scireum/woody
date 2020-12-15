@@ -66,7 +66,7 @@ public class Campaign extends TenantAware {
      * description of the campaign
      */
     @Autoloaded
-    @Length(255)
+    @Length(2000)
     @NullAllowed
     private String description;
     public static final String DESCRIPTION = "description";
