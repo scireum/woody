@@ -17,7 +17,7 @@ clone:
 
 steps:
   - name: test
-    image: scireum/sirius-build
+    image: hub.scireum.com/scireum/sirius-build:latest
     commands:
       - mvn clean test
     volumes: *scireum_volumes
@@ -26,7 +26,7 @@ steps:
         - pull_request
 
   - name: compile
-    image: scireum/sirius-build
+    image: hub.scireum.com/scireum/sirius-build:latest
     commands:
       - mvn clean compile
     volumes: *scireum_volumes
@@ -35,7 +35,7 @@ steps:
         - push
 
   - name: package_tag
-    image: scireum/sirius-build
+    image: hub.scireum.com/scireum/sirius-build:latest
     commands:
       - sed -i 's/DEVELOPMENT-SNAPSHOT/${DRONE_TAG}/g' pom.xml
       - mvn clean package -DskipTests
@@ -45,7 +45,7 @@ steps:
         - tag
 
   - name: package_master
-    image: scireum/sirius-build
+    image: hub.scireum.com/scireum/sirius-build:latest
     commands:
       - mvn clean package -DskipTests
     volumes: *scireum_volumes

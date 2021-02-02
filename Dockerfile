@@ -1,4 +1,4 @@
-FROM scireum/sirius-runtime:7
+FROM hub.scireum.com/scireum/sirius-runtime:25
 
 USER root
 ADD target/release-dir /home/sirius
